@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# hbt: Hermes business templates installer. Run from the repo root on the server where Hermes runs.
+#   ./hbt install creator --dry-run
+#   ./hbt install creator --channel creator-video=C0123ABCD --channel agents-report=C0456EFGH
+#   ./hbt status creator | ./hbt update creator | ./hbt uninstall creator
+set -euo pipefail
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+find_python() {
+  if [[ -n "${HBT_PYTHON:-}" ]]; then echo "$HBT_PYTHON"; return; fi
+  # Hermes's own Python has PyYAML and ruamel, which the installer needs.
+  local hb venv
+  hb="$(command -v hermes || true)"
+  if [[ -n "$hb" ]]; then
+    venv="$(grep -oE '/[^"]*/venv/bin/hermes' "$hb" 2>/dev/null | head -1 || true)"
+    [[ -z "$venv" ]] && venv="$(readlink -f "$hb")"
+    if [[ -x "$(dirname "$venv")/python" ]]; then echo "$(dirname "$venv")/python"; return; fi
+  fi
+  for c in "$HOME/.hermes/hermes-agent/venv/bin/python" python3; do
+    if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import yaml, ruamel.yaml' 2>/dev/null; then echo "$c"; return; fi
+  done
+  echo "hbt: could not find a Python with PyYAML and ruamel.yaml. Is Hermes installed? Set HBT_PYTHON to override." >&2
+  exit 1
+}
+
+exec "$(find_python)" "$here/installer/hbt.py" "$@"

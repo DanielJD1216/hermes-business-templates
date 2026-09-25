@@ -1,0 +1,11 @@
+name: creator-newsletter
+version: 0.1.0
+description: "Creator template: Newsletter role"
+hermes_requires: ">=0.21.0"
+author: "DOO MADE"
+license: "MIT"
+distribution_owned:
+  - SOUL.md
+  - skills
+  - scripts
+  - distribution.yaml

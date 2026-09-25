@@ -1,0 +1,134 @@
+# Creator + Education template. The installer reads this file.
+name: creator
+title: Creator + Education
+version: 0.1.0
+workspace_dir: creator
+system_channel: agents-report
+
+roles:
+  - key: video
+    title: Video
+    kind: role
+    channel: creator-video
+    folder: video
+    reads: [canon, ops/incoming]
+    dirs: [episodes/active, episodes/archived]
+    starter_files:
+      topic-queue.md: "# Topic queue\n\nUpdated: never\n"
+    checks:
+      - Every active episode has a stage and a next action.
+      - No on-screen number lacks a source.
+      - Runtime is recorded for every script.
+      - The topic queue was updated in the last 35 days.
+
+  - key: edit
+    title: Editing
+    kind: role
+    channel: creator-edit
+    folder: editing
+    reads: [canon, video/episodes]
+    dirs: [active, archived, experiments, maintained]
+    checks:
+      - No edit has waited on the owner for more than 48 hours.
+      - Open review notes are counted.
+      - No handoff has missing files.
+
+  - key: newsletter
+    title: Newsletter
+    kind: role
+    channel: creator-newsletter
+    folder: newsletter
+    reads: [canon, video/episodes]
+    dirs: [issues]
+    checks:
+      - No draft is older than 7 days.
+      - Every approved issue is scheduled.
+
+  - key: distribution
+    title: Distribution
+    kind: role
+    channel: creator-distribution
+    folder: distribution
+    reads: [canon, video/episodes, editing]
+    dirs: [packs]
+    starter_files:
+      results-log.md: "# Results log\n\n| Post | Platform | Published | 48h | 7d | What worked |\n|---|---|---|---|---|---|\n"
+    checks:
+      - Nothing approved is still unscheduled.
+      - No scheduled item has failed.
+      - The number of posts without an approval record is zero.
+
+  - key: community
+    title: Community
+    kind: role
+    channel: creator-community
+    folder: community
+    reads: [canon, video/episodes]
+    dirs: [answers, posts, lessons]
+    checks:
+      - No member question has gone unanswered for more than 24 hours.
+      - No draft has waited on the owner for more than 48 hours.
+
+  - key: partnerships
+    title: Partnerships
+    kind: role
+    channel: creator-partnerships
+    folder: partnerships
+    reads: [canon]
+    dirs: [inquiries, invoices]
+    starter_files:
+      deals.md: "# Deals\n\n| Sponsor | Terms | Deliverables | Due | Disclosure | Invoice | Next date |\n|---|---|---|---|---|---|---|\n"
+    checks:
+      - No inquiry has waited more than 48 hours without a response.
+      - Deliverables due in the next 7 days are listed.
+      - Overdue invoices are listed.
+
+  - key: ops
+    title: Ops
+    kind: ops
+    channel: agents-report
+    folder: ops
+    reads: [all]
+    dirs: [incoming, reviews]
+
+desks:
+  editor:
+    key: desk-editor
+    title: Editor desk
+    kind: desk
+    folder: desks/editor
+    reads: [editing/active]
+  client:
+    key: desk-client
+    title: Client desk
+    kind: desk
+    folder: clients/{client}
+
+jobs:
+  - key: memory-watchdog
+    schedule: "*/5 * * * *"
+    script: hbt_memory_watch.py
+    no_agent: true
+    requires: openviking
+  - key: morning-approvals
+    schedule: "30 7 * * *"
+    skill: creator-ops-morning-list
+    prompt: "Run the creator-ops-morning-list playbook and reply with the list."
+  - key: nightly-review
+    schedule: "0 21 * * *"
+    skill: creator-ops-nightly-review
+    prompt: "Run the creator-ops-nightly-review playbook and reply with the result."
+  - key: update-check
+    schedule: "0 9 * * 1"
+    script: hbt_update_check.py
+    no_agent: true
+  - key: comment-pull
+    schedule: "0 9 1 * *"
+    skill: creator-ops-comment-pull
+    prompt: "Run the creator-ops-comment-pull playbook."
+    paused_reason: "Needs a comment export. Resume once you drop exports into ops/incoming/comments/."
+  - key: member-questions
+    schedule: "0 9 * * 1"
+    skill: creator-ops-member-questions
+    prompt: "Run the creator-ops-member-questions playbook."
+    paused_reason: "Needs a member-question export. Resume once you drop exports into ops/incoming/questions/."

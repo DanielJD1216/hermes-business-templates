@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+.env.*
+*.log
+.pytest_cache/
+.cache/
+.private-terms
