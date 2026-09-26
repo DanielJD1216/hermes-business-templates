@@ -139,6 +139,7 @@ class Routes(unittest.TestCase):
             self.assertIn("# owner comment", text)
             self.assertIn("hbt:creator:ops", text)
             self.assertIn("dispatch_in_gateway: true", text)
+            self.assertIn("review_dispatch: false", text)  # a role must never approve its own card
             hbt.revert_main_config(cfg, {"main_config": ch}, dry=False)
             import yaml
             self.assertEqual(yaml.safe_load(cfg.read_text()), yaml.safe_load(original))
@@ -164,6 +165,22 @@ class Routes(unittest.TestCase):
                 self.assertTrue(all(l in after for l in kept), "an owner line was reformatted")
                 hbt.revert_main_config(cfg, {"main_config": ch}, dry=False)
                 self.assertEqual(cfg.read_text(), text)
+
+    def test_update_keeps_the_owners_original_values(self):
+        """A second edit (update) must not record our own earlier change as the owner's original."""
+        with tempfile.TemporaryDirectory() as d:
+            cfg = Path(d) / "config.yaml"
+            original = "kanban:\n  dispatch_in_gateway: false\n"
+            cfg.write_text(original)
+            r1 = [{"name": "hbt:creator:ops", "platform": "slack", "chat_id": "C9", "profile": "creator-ops"}]
+            first = hbt.edit_main_config(cfg, r1, dispatch=True, dry=False, backup_dir=Path(d) / "bk")
+            r2 = r1 + [{"name": "hbt:creator:video", "platform": "slack", "chat_id": "C8", "profile": "creator-video"}]
+            second = hbt.edit_main_config(cfg, r2, dispatch=True, dry=False, backup_dir=Path(d) / "bk", previous=first)
+            self.assertEqual(second["routes_added"], ["hbt:creator:video"])
+            self.assertEqual(second["kanban_before"], first["kanban_before"])
+            record = dict(second, routes_added=first["routes_added"] + second["routes_added"])
+            hbt.revert_main_config(cfg, {"main_config": record}, dry=False)
+            self.assertEqual(cfg.read_text(), original)
 
     def test_channel_parsing(self):
         self.assertEqual(hbt.parse_channels(["#creator-video=C0ABCDEFG"]), {"creator-video": "C0ABCDEFG"})

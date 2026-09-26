@@ -249,22 +249,44 @@ def remove_routes(existing: list | None, names: set[str]) -> list:
                                                   and str(r.get("name", "")).startswith(ROUTE_TAG))]
 
 
-def edit_main_config(cfg_path: Path, routes: list[dict], dispatch: bool, dry: bool, backup_dir: Path) -> dict:
+# Kanban settings every template needs in the main profile. review_dispatch must be off: with it on,
+# Hermes re-runs the SAME role to review its own card, so a role would approve its own draft (Q19 says
+# the owner approves). Both are gateway-wide settings, read by the one gateway that runs the board.
+KANBAN_SETTINGS = {"dispatch_in_gateway": True, "review_dispatch": False}
+_MISSING = "__hbt_missing__"
+
+
+def edit_main_config(cfg_path: Path, routes: list[dict], dispatch: bool, dry: bool, backup_dir: Path,
+                     previous: dict | None = None) -> dict:
+    """Add our routes and kanban settings. Records each original value once, so uninstall can restore it.
+
+    ``previous`` is the main_config record from an earlier install/update; values already recorded there
+    are kept, so an update never overwrites the owner's true original with our own earlier change.
+    """
     y, data = load_yaml_rt(cfg_path)
-    changes: dict = {"routes_added": [], "dispatch_before": None,
-                     "created_sections": [s for s in ("gateway", "kanban") if s not in data]}
+    prev = previous or {}
+    changes: dict = {"routes_added": [],
+                     "created_sections": prev.get("created_sections",
+                                                  [s for s in ("gateway", "kanban") if s not in data]),
+                     "kanban_before": dict(prev.get("kanban_before") or {})}
+    if prev.get("dispatch_changed") and "dispatch_in_gateway" not in changes["kanban_before"]:
+        # record shape from v0.1.0 installs
+        old = prev.get("dispatch_before")
+        changes["kanban_before"]["dispatch_in_gateway"] = _MISSING if old is None else old
     gw = data.setdefault("gateway", {})
     new_routes, added = merge_routes(gw.get("profile_routes"), routes)
     changes["routes_added"] = added
     if added:
         gw["profile_routes"] = new_routes
     kb = data.setdefault("kanban", {})
-    changes["dispatch_before"] = kb.get("dispatch_in_gateway")
-    if dispatch and kb.get("dispatch_in_gateway") is not True:
-        kb["dispatch_in_gateway"] = True
-        changes["dispatch_changed"] = True
-    if added or changes.get("dispatch_changed"):
-        say(f"  main profile config: {len(added)} route(s) to add; kanban dispatch {'on' if dispatch else 'unchanged'}")
+    changed_keys = []
+    for key, want in (KANBAN_SETTINGS.items() if dispatch else ()):
+        if kb.get(key, _MISSING) != want:
+            changes["kanban_before"].setdefault(key, kb.get(key, _MISSING))
+            kb[key] = want
+            changed_keys.append(key)
+    if added or changed_keys:
+        say(f"  main profile config: {len(added)} route(s) to add; kanban settings changed: {', '.join(changed_keys) or 'none'}")
         if not dry:
             backup_dir.mkdir(parents=True, exist_ok=True)
             if cfg_path.exists():
@@ -279,27 +301,32 @@ def revert_main_config(cfg_path: Path, record: dict, dry: bool) -> None:
         return
     y, data = load_yaml_rt(cfg_path)
     gw = data.get("gateway") or {}
-    names = set(record.get("main_config", {}).get("routes_added", []))
+    mc = record.get("main_config", {})
+    names = set(mc.get("routes_added", []))
     before = len(gw.get("profile_routes") or [])
     if names and "profile_routes" in gw:
         gw["profile_routes"] = remove_routes(gw.get("profile_routes"), names)
         if not gw["profile_routes"]:
             del gw["profile_routes"]
     removed = before - len(gw.get("profile_routes") or [])
-    restored = False
-    mc = record.get("main_config", {})
-    if mc.get("dispatch_changed"):
-        kb = data.get("kanban") or {}
-        if mc.get("dispatch_before") is None:
-            kb.pop("dispatch_in_gateway", None)
+    kanban_before = dict(mc.get("kanban_before") or {})
+    if mc.get("dispatch_changed") and "dispatch_in_gateway" not in kanban_before:  # v0.1.0 record shape
+        kanban_before["dispatch_in_gateway"] = _MISSING if mc.get("dispatch_before") is None else mc["dispatch_before"]
+    restored = []
+    kb = data.get("kanban")
+    for key, old in kanban_before.items():
+        if kb is None:
+            break
+        if old == _MISSING:
+            kb.pop(key, None)
         else:
-            kb["dispatch_in_gateway"] = mc["dispatch_before"]
-        restored = True
+            kb[key] = old
+        restored.append(key)
     for section in mc.get("created_sections", []):
         if section in data and not data[section]:
             del data[section]
-            restored = True
-    say(f"  main profile config: remove {removed} route(s){'; restore kanban dispatch setting' if restored else ''}")
+            restored.append(section)
+    say(f"  main profile config: remove {removed} route(s); restore: {', '.join(restored) or 'nothing'}")
     if not dry and (removed or restored):
         with cfg_path.open("w", encoding="utf-8") as fh:
             y.dump(data, fh)
@@ -583,7 +610,7 @@ def cmd_update(a: argparse.Namespace) -> int:
     routes = [{"name": f"{ROUTE_TAG}{tpl.name}:{x.key}", "platform": "slack", "chat_id": channels[x.channel],
                "profile": tpl.profile(x.key)} for x in installed if channels.get(x.channel)]
     changes = edit_main_config(hermes_home() / "config.yaml", routes, dispatch=True, dry=a.dry_run,
-                               backup_dir=record_dir(tpl.name) / "backups")
+                               backup_dir=record_dir(tpl.name) / "backups", previous=rec.get("main_config"))
     ops = tpl.ops
     if ops and tpl.profile(ops.key) in rec["profiles"] and channels.get(tpl.system_channel):
         target = f"slack:{channels[tpl.system_channel]}"
@@ -591,8 +618,9 @@ def cmd_update(a: argparse.Namespace) -> int:
             if j.get("id"):
                 r.hermes_cmd("cron", "edit", j["id"], "--deliver", target, profile=j["profile"])
     if not a.dry_run:
-        rec["main_config"].setdefault("routes_added", [])
-        rec["main_config"]["routes_added"] += changes["routes_added"]
+        old_routes = list((rec.get("main_config") or {}).get("routes_added", []))
+        rec["main_config"] = changes
+        rec["main_config"]["routes_added"] = old_routes + [n for n in changes["routes_added"] if n not in old_routes]
         rec["version"], rec["channels"], rec["updated_at"] = tpl.version, channels, now_iso()
         settings = hermes_home() / "profiles" / tpl.profile(ops.key) / "hbt-settings.json" if ops else None
         if settings and settings.exists():
@@ -655,6 +683,7 @@ def cmd_status(a: argparse.Namespace) -> int:
     say(f"  routes: {len(ours)} of ours in the main config")
     say(f"  gateway serves every profile: {'yes' if gw.get('multiplex_profiles') else 'not yet (restart the gateway once)'}")
     say(f"  kanban dispatch in gateway: {(cfg.get('kanban') or {}).get('dispatch_in_gateway')}")
+    say(f"  kanban auto-review (must be False, the owner approves): {(cfg.get('kanban') or {}).get('review_dispatch', True)}")
     say(f"  memory: {'OpenViking' if rec['memory']['enabled'] else 'built-in'}")
     return 0
 
