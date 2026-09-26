@@ -249,6 +249,37 @@ def remove_routes(existing: list | None, names: set[str]) -> list:
                                                   and str(r.get("name", "")).startswith(ROUTE_TAG))]
 
 
+def deleted_marker(name: str) -> Path:
+    """Hermes marks a deleted profile with profiles/.deleted/<name> (hermes_constants.profile_tombstone_path)."""
+    return hermes_home() / "profiles" / ".deleted" / name
+
+
+def profile_is_live(name: str) -> bool:
+    return (hermes_home() / "profiles" / name).exists() and not deleted_marker(name).exists()
+
+
+def clear_deleted_marker(name: str, backup_dir: Path, dry: bool) -> None:
+    """Let a previously deleted profile name be installed again.
+
+    `hermes profile create` clears this marker itself; `hermes profile install` does not, so it fails
+    with "Named profile home does not exist" for any name deleted before (Hermes 0.21.5). A folder
+    still sitting at the deleted name is moved aside into the backups, never deleted.
+    """
+    marker = deleted_marker(name)
+    if not marker.exists():
+        return
+    home = hermes_home() / "profiles" / name
+    if home.exists():
+        dest = backup_dir / f"deleted-profile-{name}-{_dt.datetime.now():%Y%m%d-%H%M%S}"
+        say(f"  {name}: moving the leftover folder of a deleted profile to {dest}")
+        if not dry:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(home), str(dest))
+    say(f"  {name}: clearing Hermes's deleted-profile marker so the name can be installed again")
+    if not dry:
+        marker.unlink()
+
+
 def job_args(tpl, job: dict, ops_role, target: str, workdir: Path) -> list[str]:
     """`hermes cron create` arguments for one template job.
 
@@ -475,7 +506,7 @@ def cmd_install(a: argparse.Namespace) -> int:
         say(f"! Long-term memory is not reachable at {a.memory_endpoint}; roles will use built-in memory. Re-run with --no-memory to silence this.")
         memory = False
 
-    existing = [tpl.profile(x.key) for x in roles if (hermes_home() / "profiles" / tpl.profile(x.key)).exists()]
+    existing = [tpl.profile(x.key) for x in roles if profile_is_live(tpl.profile(x.key))]
     if existing:
         raise SystemExit(f"These profiles already exist: {', '.join(existing)}. Remove them or choose other roles.")
 
@@ -510,6 +541,7 @@ def cmd_install(a: argparse.Namespace) -> int:
     for role in roles:
         name = tpl.profile(role.key)
         src = stage_distribution(tpl, role) if not a.dry_run else tpl.path / "roles" / role.key
+        clear_deleted_marker(name, record_dir(tpl.name) / "backups", a.dry_run)
         r.hermes_cmd("profile", "install", str(src), "-y")
         rec["profiles"].append(name)
         checkpoint()

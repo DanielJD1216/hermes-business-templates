@@ -130,6 +130,34 @@ class Workspace(unittest.TestCase):
 
 
 class Routes(unittest.TestCase):
+    def test_deleted_profile_name_can_be_installed_again(self):
+        """hermes profile install fails on a name Hermes marked deleted; hbt clears the marker and
+        moves any leftover folder aside instead of deleting it."""
+        import os
+        with tempfile.TemporaryDirectory() as d:
+            old = os.environ.get("HERMES_HOME")
+            os.environ["HERMES_HOME"] = d
+            try:
+                profiles = Path(d) / "profiles"
+                (profiles / ".deleted").mkdir(parents=True)
+                (profiles / ".deleted" / "creator-video").write_text("deleted\n")
+                (profiles / "creator-video").mkdir()
+                (profiles / "creator-video" / "SOUL.md").write_text("half-made\n")
+                self.assertFalse(hbt.profile_is_live("creator-video"))
+                backups = Path(d) / "bk"
+                hbt.clear_deleted_marker("creator-video", backups, dry=True)
+                self.assertTrue((profiles / ".deleted" / "creator-video").exists())  # dry run changes nothing
+                hbt.clear_deleted_marker("creator-video", backups, dry=False)
+                self.assertFalse((profiles / ".deleted" / "creator-video").exists())
+                self.assertFalse((profiles / "creator-video").exists())
+                moved = list(backups.glob("deleted-profile-creator-video-*/SOUL.md"))
+                self.assertEqual(len(moved), 1)
+                hbt.clear_deleted_marker("creator-ops", backups, dry=False)  # no marker: no-op
+            finally:
+                if old is None:
+                    os.environ.pop("HERMES_HOME", None)
+                else:
+                    os.environ["HERMES_HOME"] = old
     def test_merge_keeps_foreign_routes_and_is_idempotent(self):
         foreign = [{"name": "owner-route", "platform": "slack", "chat_id": "C1", "profile": "x"}]
         ours = [{"name": "hbt:creator:video", "platform": "slack", "chat_id": "C2", "profile": "creator-video"}]
