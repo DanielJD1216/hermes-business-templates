@@ -280,6 +280,11 @@ def clear_deleted_marker(name: str, backup_dir: Path, dry: bool) -> None:
         marker.unlink()
 
 
+# Ops profile settings. cron.wrap_response off: Hermes otherwise wraps every post in a
+# "Cronjob Response ... send me a new message to stop" header and footer, which is noise for an owner.
+OPS_CONFIG = {"cron.wrap_response": "false"}
+
+
 def job_args(tpl, job: dict, ops_role, target: str, workdir: Path) -> list[str]:
     """`hermes cron create` arguments for one template job.
 
@@ -559,6 +564,7 @@ def cmd_install(a: argparse.Namespace) -> int:
         if role.kind == "ops":
             # Ops only runs unattended jobs and keeps no memory of its own (Q23): its inputs are files and the board.
             sets.update({"memory.memory_enabled": "false", "memory.user_profile_enabled": "false"})
+            sets.update(OPS_CONFIG)
         for k, v in sets.items():
             r.hermes_cmd("config", "set", k, str(v), profile=name)
         if memory and role.kind != "ops":
@@ -662,6 +668,9 @@ def cmd_update(a: argparse.Namespace) -> int:
         if not a.dry_run:
             stage_distribution(tpl, role)
         r.hermes_cmd("profile", "update", name, "-y")
+        if role.kind == "ops":
+            for k, v in OPS_CONFIG.items():
+                r.hermes_cmd("config", "set", k, v, profile=name)
         if channels.get(tpl.system_channel):
             set_env_values(hermes_home() / "profiles" / name / ".env",
                            {"SLACK_HOME_CHANNEL": channels[tpl.system_channel]}, a.dry_run)

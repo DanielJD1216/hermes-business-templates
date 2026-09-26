@@ -16,6 +16,13 @@ metadata:
 2. Answer each check with yes or no from the folders and from `hermes kanban --board creator list --json`.
 3. Report only the failed checks, grouped by role, each with the file or card that failed.
 
+## Format
+Reply with only the result, no greeting and no sign-off. One line per failed check, grouped under the role's profile name:
+
+`- <check>: <file or card that failed>`
+
+Use commas, colons and parentheses only. Never use em dashes or en dashes.
+
 ## Done when
 One post; if every check passed, reply with exactly: All nightly checks passed.
 
