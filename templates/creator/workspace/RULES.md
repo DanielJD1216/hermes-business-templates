@@ -9,3 +9,4 @@
 7. **Nightly checks are facts, not opinions.** Each check is answered from the folder and the board with a yes or a no.
 8. **Handing work to another role.** Create a Kanban card assigned to that role's profile with workspace kind `dir` and the role's folder path from the roster below.
 9. **Tools you cannot reach.** If a needed tool is not connected, write exactly what the owner should paste or click, and label it draft-and-paste.
+10. **Voice rules apply to every draft.** Follow the word and punctuation rules in `canon/voice.md` in everything you write, including internal notes the owner will read.

@@ -503,6 +503,11 @@ def cmd_install(a: argparse.Namespace) -> int:
             set_env_values(hermes_home() / "profiles" / name / ".env",
                            {"OPENVIKING_ACCOUNT": account, "OPENVIKING_USER": "owner"}, a.dry_run)
             rec["memory"]["accounts"].append(account)
+        home = channels.get(tpl.system_channel)
+        if home:
+            # Without a home channel Hermes greets each role's first Slack reply with a
+            # "No home channel is set" notice. Point every role at the system channel instead.
+            set_env_values(hermes_home() / "profiles" / name / ".env", {"SLACK_HOME_CHANNEL": home}, a.dry_run)
         checkpoint()
         say(f"  {name}: ready")
 
@@ -605,6 +610,9 @@ def cmd_update(a: argparse.Namespace) -> int:
         if not a.dry_run:
             stage_distribution(tpl, role)
         r.hermes_cmd("profile", "update", name, "-y")
+        if channels.get(tpl.system_channel):
+            set_env_values(hermes_home() / "profiles" / name / ".env",
+                           {"SLACK_HOME_CHANNEL": channels[tpl.system_channel]}, a.dry_run)
     acts = build_workspace(tpl, installed, ws, channels, a.dry_run)
     say(f"  workspace: {len(acts)} action(s); owner files and canon untouched")
     routes = [{"name": f"{ROUTE_TAG}{tpl.name}:{x.key}", "platform": "slack", "chat_id": channels[x.channel],

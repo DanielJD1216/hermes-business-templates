@@ -7,7 +7,7 @@ Ask the owner these questions one at a time, then write the answers into the mat
 3. What do you sell, and what are the prices? (business.md)
 4. Which topics and sponsor categories do you refuse? (business.md)
 5. Describe how you talk in three words. Paste two samples of your writing. (voice.md)
-6. Which words do you never use? (voice.md)
+6. Which words and punctuation do you never use (for example, em dashes)? (voice.md)
 7. What are your colours, fonts and thumbnail rules? (brand.md)
 8. What is your standing outro or call to action? (standing.md)
 9. How do you disclose sponsors, and what may sponsors review? (standing.md)
