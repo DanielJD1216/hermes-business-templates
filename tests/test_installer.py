@@ -115,6 +115,19 @@ class Workspace(unittest.TestCase):
             self.assertTrue(acts)
             self.assertFalse(ws.exists())
 
+    def test_agent_jobs_run_in_the_ops_folder(self):
+        """Without --workdir a cron run never reads the Ops AGENTS.md (roster, board, rules)."""
+        tpl = hbt.load_template("creator")
+        ops = tpl.ops
+        for job in tpl.jobs:
+            args = hbt.job_args(tpl, job, ops, "slack:C1", Path("/ws/ops"))
+            self.assertEqual(args[:3], ["cron", "create", job["schedule"]])
+            if job.get("no_agent"):
+                self.assertNotIn("--workdir", args)
+            else:
+                self.assertEqual(args[args.index("--workdir") + 1], "/ws/ops")
+                self.assertTrue(args[args.index("--skill") + 1].startswith("creator-ops-"))
+
 
 class Routes(unittest.TestCase):
     def test_merge_keeps_foreign_routes_and_is_idempotent(self):

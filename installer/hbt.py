@@ -249,6 +249,30 @@ def remove_routes(existing: list | None, names: set[str]) -> list:
                                                   and str(r.get("name", "")).startswith(ROUTE_TAG))]
 
 
+def job_args(tpl, job: dict, ops_role, target: str, workdir: Path) -> list[str]:
+    """`hermes cron create` arguments for one template job.
+
+    Agent jobs get ``--workdir`` (the Ops folder). Without it Hermes skips context files, so the run
+    never reads the Ops AGENTS.md with the roster, the board name and the rules.
+    """
+    args = ["cron", "create", job["schedule"]]
+    if job.get("prompt"):
+        args.append(job["prompt"])
+    args += ["--name", f"{ROUTE_TAG}{tpl.name}:{job['key']}", "--deliver", target]
+    if job.get("script"):
+        args += ["--script", job["script"]]
+    if job.get("no_agent"):
+        args.append("--no-agent")
+    else:
+        args += ["--workdir", str(workdir)]
+    if job.get("skill"):
+        prefix = f"{tpl.name}-{ops_role.key}-"
+        args += ["--skill", prefix + job["skill"].split(prefix)[-1]]
+    if job.get("paused_reason"):
+        args += ["--paused", "--paused-reason", job["paused_reason"]]
+    return args
+
+
 # Kanban settings every template needs in the main profile. review_dispatch must be off: with it on,
 # Hermes re-runs the SAME role to review its own card, so a role would approve its own draft (Q19 says
 # the owner approves). Both are gateway-wide settings, read by the one gateway that runs the board.
@@ -490,11 +514,18 @@ def cmd_install(a: argparse.Namespace) -> int:
         rec["profiles"].append(name)
         checkpoint()
         sets = {"terminal.cwd": str(ws / role.folder)}
+        if a.timezone:
+            # Cron schedules follow the profile's clock. Most VPS images run UTC, so without this
+            # the 07:30 morning list lands at 07:30 UTC.
+            sets["timezone"] = a.timezone
         for k, v in model.items():
             sets[f"model.{k}"] = v
         if memory and role.kind != "ops":
             sets.update({"memory.provider": "openviking", "memory.openviking.endpoint": a.memory_endpoint,
                          "memory.openviking.agent": name})
+            sets.update({"memory.memory_enabled": "false", "memory.user_profile_enabled": "false"})
+        if role.kind == "ops":
+            # Ops only runs unattended jobs and keeps no memory of its own (Q23): its inputs are files and the board.
             sets.update({"memory.memory_enabled": "false", "memory.user_profile_enabled": "false"})
         for k, v in sets.items():
             r.hermes_cmd("config", "set", k, str(v), profile=name)
@@ -546,18 +577,7 @@ def cmd_install(a: argparse.Namespace) -> int:
         for job in tpl.jobs:
             if job.get("requires") == "openviking" and not memory:
                 continue
-            args = ["cron", "create", job["schedule"]]
-            if job.get("prompt"):
-                args.append(job["prompt"])
-            args += ["--name", f"{ROUTE_TAG}{tpl.name}:{job['key']}", "--deliver", target]
-            if job.get("script"):
-                args += ["--script", job["script"]]
-            if job.get("no_agent"):
-                args.append("--no-agent")
-            if job.get("skill"):
-                args += ["--skill", f"{tpl.name}-{ops.key}-{job['skill'].split(f'{tpl.name}-{ops.key}-')[-1]}"]
-            if job.get("paused_reason"):
-                args += ["--paused", "--paused-reason", job["paused_reason"]]
+            args = job_args(tpl, job, ops, target, ws / ops.folder)
             out = r.hermes_cmd(*args, profile=tpl.profile(ops.key))
             m = re.search(r"\b([0-9a-f]{12})\b", out or "")
             rec["jobs"].append({"key": job["key"], "id": m.group(1) if m else None, "profile": tpl.profile(ops.key)})
@@ -620,6 +640,11 @@ def cmd_update(a: argparse.Namespace) -> int:
     changes = edit_main_config(hermes_home() / "config.yaml", routes, dispatch=True, dry=a.dry_run,
                                backup_dir=record_dir(tpl.name) / "backups", previous=rec.get("main_config"))
     ops = tpl.ops
+    if ops and tpl.profile(ops.key) in rec["profiles"]:
+        agent_keys = {j["key"] for j in tpl.jobs if not j.get("no_agent")}
+        for j in rec.get("jobs", []):
+            if j.get("id") and j.get("key") in agent_keys:  # older installs lacked --workdir
+                r.hermes_cmd("cron", "edit", j["id"], "--workdir", str(ws / ops.folder), profile=j["profile"])
     if ops and tpl.profile(ops.key) in rec["profiles"] and channels.get(tpl.system_channel):
         target = f"slack:{channels[tpl.system_channel]}"
         for j in rec.get("jobs", []):
