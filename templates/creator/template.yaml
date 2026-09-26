@@ -16,9 +16,9 @@ roles:
     starter_files:
       topic-queue.md: "# Topic queue\n\nUpdated: never\n"
     checks:
-      - Every active episode has a stage and a next action.
+      - Every active episode folder has a status.md with a Stage line and a Next action line.
       - No on-screen number lacks a source.
-      - Runtime is recorded for every script.
+      - Every script.md in an active episode starts with a runtime estimate.
       - The topic queue was updated in the last 35 days.
 
   - key: edit
@@ -92,6 +92,8 @@ roles:
     dirs: [incoming, reviews]
 
 desks:
+  # v0.2, not installed by v0.1. Desks serve people outside the business, so they will
+  # install only where rootless Docker is available (STACK_DECISIONS Q26).
   editor:
     key: desk-editor
     title: Editor desk

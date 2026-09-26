@@ -70,8 +70,9 @@ class TemplateShape(unittest.TestCase):
         extra = ROOT / ".private-terms"
         if extra.is_file():
             banned += [t.strip() for t in extra.read_text().splitlines() if t.strip() and not t.startswith("#")]
-        for f in list(TPL.rglob("*")) + [ROOT / "installer" / "hbt.py"]:
-            if f.is_file() and f.suffix in {".md", ".yaml", ".py"}:
+        public = [ROOT / "installer" / "hbt.py", ROOT / "README.md", ROOT / "CHANGELOG.md", ROOT / "hbt"]
+        for f in list(TPL.rglob("*")) + public:
+            if f.is_file() and (f.suffix in {".md", ".yaml", ".py"} or f in public):
                 text = f.read_text()
                 for b in banned:
                     self.assertNotIn(b, text, f"{b!r} in {f}")

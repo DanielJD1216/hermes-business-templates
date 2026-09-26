@@ -691,10 +691,11 @@ def cmd_update(a: argparse.Namespace) -> int:
         for j in rec.get("jobs", []):
             if j.get("id"):
                 r.hermes_cmd("cron", "edit", j["id"], "--deliver", target, profile=j["profile"])
+    added_now = list(changes["routes_added"])  # the record merge below reuses this dict
     if not a.dry_run:
         old_routes = list((rec.get("main_config") or {}).get("routes_added", []))
         rec["main_config"] = changes
-        rec["main_config"]["routes_added"] = old_routes + [n for n in changes["routes_added"] if n not in old_routes]
+        rec["main_config"]["routes_added"] = old_routes + [n for n in added_now if n not in old_routes]
         rec["version"], rec["channels"], rec["updated_at"] = tpl.version, channels, now_iso()
         settings = hermes_home() / "profiles" / tpl.profile(ops.key) / "hbt-settings.json" if ops else None
         if settings and settings.exists():
@@ -703,7 +704,7 @@ def cmd_update(a: argparse.Namespace) -> int:
             settings.write_text(json.dumps(s, indent=2) + "\n", encoding="utf-8")
         save_record(tpl.name, rec)
     say("Done." if not a.dry_run else "Dry run complete. Nothing was changed.")
-    if changes["routes_added"]:
+    if added_now:
         say("Restart the gateway once so the new channel routes take effect: hermes gateway restart")
     return 0
 

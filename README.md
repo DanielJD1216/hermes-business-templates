@@ -6,7 +6,7 @@ We provide the foundation only: roles, playbooks, folders, scheduled checks and 
 
 | Template | Status |
 |---|---|
-| Creator + Education | v0.1.0, first build |
+| Creator + Education | v0.1.0: roles and Ops. Editor and client desks come in v0.2. |
 | Project Services | planned |
 | Industrial Supplier | planned |
 
@@ -19,12 +19,31 @@ We provide the foundation only: roles, playbooks, folders, scheduled checks and 
 
 Every role drafts; nothing is published, sent, priced or signed without your `approve`.
 
+## What has been tested
+
+v0.1.0 was installed on a real server (Ubuntu 24.04 on WSL2, Hermes 0.21.5, Slack, OpenViking, a ChatGPT subscription login) with the Video role and Ops, used, and uninstalled.
+
+| Area | Result |
+|---|---|
+| Install, update and uninstall | Passed with all seven profiles in a sandbox, and with Video and Ops on the live server. Uninstall restored the main config byte for byte. |
+| Main config edits | Only the added lines change. Your formatting, comments and settings are kept. |
+| A role answering in its own Slack channel | Passed (Video). The role answers, not the main agent, and works in its own folder. |
+| Kanban card from start to your approval | Passed. The card stops at review and waits for you; the role cannot approve its own work. |
+| Card notices in the role's channel | Passed. |
+| Separate long-term memory per role | Passed (Video). |
+| Morning approvals list | Passed when run on demand: posted the waiting card to `#agents-report`. Its 07:30 run uses the same scheduler as the nightly review. |
+| Nightly review | Passed. Ran on schedule at 21:00 owner time and named the file behind each failed check. |
+| Memory watchdog | Passed while memory was healthy (silent, as designed). The outage alert path is covered by tests, not a live outage. |
+| Update check | Passed. Silent when no newer version exists. |
+
+**Not yet tested on a live server:** the Editing, Newsletter, Distribution, Community and Partnerships roles (their playbooks are written but have not run against real work), the two paused Ops jobs (comment pull and member questions), a real memory outage, and any chat platform other than Slack.
+
 ## Requirements
 
-- A Linux server (or WSL) running Hermes 0.21 or newer, with the gateway connected to Slack.
-- Your main Hermes profile logged in to a model provider (`hermes model`). The roles use the same model settings.
+- A Linux server (or WSL2) running Hermes 0.21 or newer, with the gateway connected to Slack.
+- Your main Hermes profile logged in to a model provider (`hermes model`). The roles use the same login and model settings.
 - Optional: [OpenViking](https://github.com/volcengine/OpenViking) for long-term memory. Without it, roles use Hermes's built-in memory.
-- Optional: Docker. Without it, roles run commands directly on the server, limited by their folder and rules.
+- Optional for v0.1: Docker. Without it, roles run commands directly on the server, limited by their folder and rules. The v0.2 editor and client desks serve people outside the business, so they will install only where rootless Docker is available.
 
 ## Install
 
@@ -36,8 +55,10 @@ cd ~/hermes-business-templates
   --timezone America/Vancouver \
   --channel agents-report=C0123ABCD \
   --channel creator-video=C0234BCDE      # repeat for each role channel you created
-hermes gateway restart                    # once, so the gateway serves the new roles
+hermes gateway restart                    # once, see below
 ```
+
+The restart is needed once: the gateway picks up new profiles, channel routing and the Kanban runner setting at startup. Until then the roles do not answer and nothing posts.
 
 Then ask your main agent to run the canon interview in `canon/INTERVIEW.md` and fill in the four canon files.
 
@@ -49,13 +70,25 @@ Create one channel per role (`#creator-video`, `#creator-edit`, `#creator-newsle
 
 Messages in a role's channel are answered by that role. `#agents-report` is routed to Ops, so keep it for system output and limited to the owner.
 
+### Scheduled jobs
+
+All times follow the `--timezone` you give (the server clock otherwise, which is often UTC).
+
+| Job | When | Posts |
+|---|---|---|
+| Morning approvals list | 07:30 daily | Every card waiting for your approval, or "Nothing waiting for approval." |
+| Nightly review | 21:00 daily | Each role's failed checks with the file or card behind them, or "All nightly checks passed." |
+| Memory watchdog | every 5 minutes | Only when memory goes down, every 6 hours while it stays down, and when it recovers. |
+| Update check | Mondays 09:00 | Only when a newer template version exists. |
+| Comment pull, member questions | paused | Resume once you drop exports into `ops/incoming/`. |
+
 ## Update
 
 ```bash
 cd ~/hermes-business-templates && git pull && ./hbt update creator
 ```
 
-Updates replace template-owned files only: each role's `SOUL.md`, playbooks and scripts, and the generated `AGENTS.md` files. Your `canon/`, your role folders' contents, your `.env` files, memories, sessions and any settings you changed are kept. Ops checks for a new version weekly and posts a notice.
+Updates replace template-owned files only: each role's `SOUL.md`, playbooks and scripts, and the generated `AGENTS.md` files. Your `canon/`, your role folders' contents, your `.env` files, memories, sessions and any settings you changed are kept.
 
 ## Uninstall
 
@@ -65,13 +98,19 @@ Updates replace template-owned files only: each role's `SOUL.md`, playbooks and 
 hermes gateway restart
 ```
 
-Uninstall removes only what the installer recorded in `$HERMES_HOME/business-templates/creator/record.json`. Routes and settings you added yourself are never touched. The business folder and long-term memories are kept unless you ask otherwise.
+Uninstall removes only what the installer recorded in `$HERMES_HOME/business-templates/creator/record.json`. Routes and settings you added yourself are never touched, and changed settings go back to your original values. The business folder and long-term memories are kept unless you ask otherwise. `--delete-workspace` refuses a folder that existed before the install.
 
 ## Memory
 
-With OpenViking running, each role and desk gets its **own memory account**, so roles cannot see each other's memories. Facts every role needs belong in `canon/`, not in shared memory. Ops uses built-in memory only and watches OpenViking every 5 minutes, posting when it goes down, every 6 hours while it stays down, and when it recovers.
+With OpenViking running, each role gets its **own memory account**, so roles cannot see each other's memories. Facts every role needs belong in `canon/`, not in shared memory. Ops keeps no memory; it watches OpenViking every 5 minutes instead.
 
 Roles run unattended from Kanban, so their built-in memory writes are off (an approval prompt nobody can answer would stall them).
+
+## Known limits
+
+- OpenViking has no login in its default local setup. Any program on the server can read any memory account by name, so keep the server to trusted software.
+- Slack is the only chat platform tested.
+- One Slack bot serves every role. Roles are told apart by channel, not by bot name.
 
 ## Tests
 
