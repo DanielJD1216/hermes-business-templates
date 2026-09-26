@@ -207,11 +207,29 @@ def build_workspace(tpl: Template, roles: list[Role], ws: Path, channels: dict[s
 # --------------------------------------------------------------------------- main-profile config edits
 
 def load_yaml_rt(path: Path):
-    from ruamel.yaml import YAML  # Hermes ships ruamel; round-trip keeps the owner's comments
+    """Round-trip YAML that keeps the owner's comments, quotes, line lengths and list indentation."""
+    from ruamel.yaml import YAML  # Hermes ships ruamel
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
     y = YAML()
     y.preserve_quotes = True
-    data = y.load(path.read_text(encoding="utf-8")) if path.exists() else None
+    y.width = 4096
+    if _lists_are_indented(text):
+        y.indent(mapping=2, sequence=4, offset=2)
+    else:
+        y.indent(mapping=2, sequence=2, offset=0)
+    data = y.load(text) if text else None
     return y, (data if data is not None else {})
+
+
+def _lists_are_indented(text: str) -> bool:
+    """True when list items sit deeper than their parent key (`key:\\n  - a`), the style Hermes writes."""
+    lines = text.splitlines()
+    for prev, line in zip(lines, lines[1:]):
+        key = re.match(r"^(\s*)[^\s#-][^:]*:\s*$", prev)
+        item = re.match(r"^(\s*)- ", line)
+        if key and item:
+            return len(item.group(1)) > len(key.group(1))
+    return True
 
 
 def merge_routes(existing: list | None, wanted: list[dict]) -> tuple[list, list[str]]:
@@ -423,7 +441,7 @@ def cmd_install(a: argparse.Namespace) -> int:
             return 1
 
     rec = {"template": tpl.name, "version": tpl.version, "installed_at": now_iso(), "hermes_version": info["hermes_version"],
-           "workspace": str(ws), "profiles": [], "jobs": [], "board": None, "main_config": {},
+           "workspace": str(ws), "workspace_created": not ws.exists(), "profiles": [], "jobs": [], "board": None, "main_config": {},
            "memory": {"enabled": memory, "endpoint": a.memory_endpoint, "accounts": []}, "channels": channels,
            "repo_path": str(REPO_ROOT)}
 
@@ -592,6 +610,8 @@ def cmd_uninstall(a: argparse.Namespace) -> int:
     rec = load_record(a.template)
     if not rec:
         raise SystemExit(f"{a.template} is not installed here (no record in {record_dir(a.template)}).")
+    if a.delete_workspace and not rec.get("workspace_created", False):
+        raise SystemExit(f"{rec['workspace']} existed before the install, so hbt will not delete it. Remove it yourself if you mean to.")
     r = Runner(a.hermes, a.dry_run, a.verbose)
     say(f"Uninstalling {a.template} ({'dry run' if a.dry_run else 'live'})")
     say(f"  profiles: {', '.join(rec['profiles']) or 'none'}")

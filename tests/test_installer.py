@@ -144,6 +144,27 @@ class Routes(unittest.TestCase):
             self.assertEqual(yaml.safe_load(cfg.read_text()), yaml.safe_load(original))
             self.assertIn("# owner comment", cfg.read_text())
 
+    def test_edit_keeps_every_untouched_line(self):
+        """Adding routes must not reformat the owner's file: only the new lines may differ."""
+        original = (
+            "# owner comment\n"
+            "model:\n  default: m\n"
+            "skills:\n  external:\n    - one\n    - two\n"
+            "long: 'a very long quoted value that goes well past eighty characters so line wrapping would show up here'\n"
+            "kanban:\n  dispatch_in_gateway: false\n"
+        )
+        for text in (original, original.replace("    - one\n    - two\n", "  - one\n  - two\n")):
+            with tempfile.TemporaryDirectory() as d:
+                cfg = Path(d) / "config.yaml"
+                cfg.write_text(text)
+                routes = [{"name": "hbt:creator:ops", "platform": "slack", "chat_id": "C9", "profile": "creator-ops"}]
+                ch = hbt.edit_main_config(cfg, routes, dispatch=True, dry=False, backup_dir=Path(d) / "bk")
+                after = cfg.read_text().splitlines()
+                kept = [l for l in text.splitlines() if l != "  dispatch_in_gateway: false"]
+                self.assertTrue(all(l in after for l in kept), "an owner line was reformatted")
+                hbt.revert_main_config(cfg, {"main_config": ch}, dry=False)
+                self.assertEqual(cfg.read_text(), text)
+
     def test_channel_parsing(self):
         self.assertEqual(hbt.parse_channels(["#creator-video=C0ABCDEFG"]), {"creator-video": "C0ABCDEFG"})
         for bad in (["creator-video"], ["creator-video=general"]):
