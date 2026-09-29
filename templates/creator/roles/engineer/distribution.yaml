@@ -1,0 +1,9 @@
+name: engineer
+version: 0.2.0
+description: "Creator template: Engineer, builds from the CTO plans"
+hermes_requires: ">=0.21.0"
+author: "DOO MADE"
+license: "MIT"
+distribution_owned:
+  - SOUL.md
+  - distribution.yaml

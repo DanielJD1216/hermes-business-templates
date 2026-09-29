@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0 (2026-09-29)
+
+The Creator template is now a working setup copied as is: a lead per department, one Slack app per bot, and a guided setup.
+
+- Bots: Creative Director (Media and Marketing), CTO and Engineer (Build), and Ops (scheduled jobs, no Slack app). The six v0.1 specialist roles are gone; their 24 playbooks moved to the Creative Director.
+- Plain profile names (`creative-director`, `cto`, `engineer`, `ops`). The installer refuses to overwrite a profile that already exists.
+- Each bot gets its own Slack app file and settings: it answers its own channels without an @mention, ignores @mentions of other bots, and only the owner can talk to it. CTO and Engineer hear each other only by @mention, with thread follow-ups waking only the bot mentioned.
+- CTO hands every build to Engineer on a Kanban card in `<projects>/<project>`; the result posts in Engineer's channel. Card-running bots save memories without an approval prompt, and are added to the Kanban runner list when the owner keeps one.
+- New `./hbt setup`: one action at a time, each checked, resumable. New `./hbt connect`: hidden token prompt, checked with Slack, refuses a token another bot uses, finds channels by name.
+- Desks: one per outside editor (`./hbt desk ... --name <editor>`), each with its own Slack app, channel and folder.
+- No channel routes for the bots any more; only Ops keeps one, so it can post in `#agents-report` through the main agent's bot.
+
 ## 0.1.0 (2026-09-26)
 
 First release: the Creator + Education template and the `hbt` installer.

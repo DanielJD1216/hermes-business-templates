@@ -1,110 +1,109 @@
 # Creator + Education template. The installer reads this file.
+# v0.2 mirrors the setup it was built from: one lead per department, each bot its own Slack app.
 name: creator
 title: Creator + Education
-version: 0.1.0
+version: 0.2.0
 workspace_dir: creator
 system_channel: agents-report
 
 roles:
-  - key: video
-    title: Video
+  - key: creative-director
+    title: Creative Director
     kind: role
-    channel: creator-video
-    folder: video
-    reads: [canon, ops/incoming]
-    dirs: [episodes/active, episodes/archived]
+    section: 20 Media and 30 Marketing
+    # First channel is the bot's home. The bot answers in all of them without an @mention.
+    channels: [media-video, media-edit, media-newsletter, marketing-distribution]
+    folder: media
+    takes_cards: true     # Ops hands it cards (comment and member-question digests)
+    reads: [canon, ops/incoming, desks]
+    dirs: [video/episodes/active, video/episodes/archived, editing/active, editing/archived,
+           editing/experiments, editing/maintained, newsletter/issues, distribution/packs,
+           community/answers, community/posts, community/lessons, partnerships/inquiries,
+           partnerships/invoices]
     starter_files:
-      topic-queue.md: "# Topic queue\n\nUpdated: never\n"
+      video/topic-queue.md: "# Topic queue\n\nUpdated: never\n"
+      distribution/results-log.md: "# Results log\n\n| Post | Platform | Published | 48h | 7d | What worked |\n|---|---|---|---|---|---|\n"
+      partnerships/deals.md: "# Deals\n\n| Sponsor | Terms | Deliverables | Due | Disclosure | Invoice | Next date |\n|---|---|---|---|---|---|---|\n"
     checks:
       - Every active episode folder has a status.md with a Stage line and a Next action line.
       - No on-screen number lacks a source.
       - Every script.md in an active episode starts with a runtime estimate.
       - The topic queue was updated in the last 35 days.
-
-  - key: edit
-    title: Editing
-    kind: role
-    channel: creator-edit
-    folder: editing
-    reads: [canon, video/episodes]
-    dirs: [active, archived, experiments, maintained]
-    checks:
       - No edit has waited on the owner for more than 48 hours.
-      - Open review notes are counted.
-      - No handoff has missing files.
-
-  - key: newsletter
-    title: Newsletter
-    kind: role
-    channel: creator-newsletter
-    folder: newsletter
-    reads: [canon, video/episodes]
-    dirs: [issues]
-    checks:
-      - No draft is older than 7 days.
-      - Every approved issue is scheduled.
-
-  - key: distribution
-    title: Distribution
-    kind: role
-    channel: creator-distribution
-    folder: distribution
-    reads: [canon, video/episodes, editing]
-    dirs: [packs]
-    starter_files:
-      results-log.md: "# Results log\n\n| Post | Platform | Published | 48h | 7d | What worked |\n|---|---|---|---|---|---|\n"
-    checks:
-      - Nothing approved is still unscheduled.
+      - Open edit review notes are counted.
+      - No editor handoff has missing files.
+      - No newsletter draft is older than 7 days.
+      - Every approved newsletter issue is scheduled.
+      - Nothing approved for distribution is still unscheduled.
       - No scheduled item has failed.
       - The number of posts without an approval record is zero.
-
-  - key: community
-    title: Community
-    kind: role
-    channel: creator-community
-    folder: community
-    reads: [canon, video/episodes]
-    dirs: [answers, posts, lessons]
-    checks:
       - No member question has gone unanswered for more than 24 hours.
-      - No draft has waited on the owner for more than 48 hours.
-
-  - key: partnerships
-    title: Partnerships
-    kind: role
-    channel: creator-partnerships
-    folder: partnerships
-    reads: [canon]
-    dirs: [inquiries, invoices]
-    starter_files:
-      deals.md: "# Deals\n\n| Sponsor | Terms | Deliverables | Due | Disclosure | Invoice | Next date |\n|---|---|---|---|---|---|---|\n"
-    checks:
-      - No inquiry has waited more than 48 hours without a response.
-      - Deliverables due in the next 7 days are listed.
+      - No community draft has waited on the owner for more than 48 hours.
+      - No sponsor inquiry has waited more than 48 hours without a response.
+      - Sponsor deliverables due in the next 7 days are listed.
       - Overdue invoices are listed.
+
+  - key: cto
+    title: CTO
+    kind: role
+    section: 50 Build
+    channels: [build-architect]
+    folder: build
+    reads: [canon]
+    dirs: [plans]
+    peers: [engineer]     # the two bots may @mention each other
+    slack_toolsets: [kanban]  # added to the bot's Slack tools, so it can create cards
+    checks:
+      - No card assigned to engineer has been blocked for more than 24 hours.
+
+  - key: engineer
+    title: Engineer
+    kind: role
+    section: 50 Build
+    channels: [build-engineering]
+    folder: engineering
+    reads: [canon, build/plans]
+    dirs: [notes]
+    peers: [cto]
+    takes_cards: true     # runs cards in the background, so memory saves cannot wait for approval
 
   - key: ops
     title: Ops
     kind: ops
-    channel: agents-report
+    channels: [agents-report]
     folder: ops
     reads: [all]
     dirs: [incoming, reviews]
 
 desks:
-  # v0.2, not installed by v0.1. Desks serve people outside the business, so they will
-  # install only where rootless Docker is available (STACK_DECISIONS Q26).
-  editor:
-    key: desk-editor
+  # A desk answers one person outside the business (Q20). Add one per editor with
+  # `hbt desk creator desk-editor --name <editor>`, only where rootless Docker runs (Q26).
+  # Each editor gets their own Slack app, channel ext-editor-<name> and folder desks/editor-<name>,
+  # file tools only, no network, and sees only their own folder.
+  - key: desk-editor
     title: Editor desk
     kind: desk
+    channels: [ext-editor]
     folder: desks/editor
-    reads: [editing/active]
-  client:
-    key: desk-client
-    title: Client desk
-    kind: desk
-    folder: clients/{client}
+    dirs: [handoff]
+    starter_files:
+      brief.md: |
+        # Editor brief
+
+        The Editor desk answers this editor from this file only. Write here
+        only what the editor may see. Keep scripts, money and private notes out.
+
+        ## Current project
+        - Title:
+        - Due:
+        - Length:
+        - Style notes:
+        - Music and fonts:
+        - Where to upload:
+
+        ## Always true
+        - Export settings:
+        - Captions:
 
 jobs:
   - key: memory-watchdog

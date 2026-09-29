@@ -1,0 +1,11 @@
+name: creative-director
+version: 0.2.0
+description: "Creator template: Creative Director, lead for Media and Marketing"
+hermes_requires: ">=0.21.0"
+author: "DOO MADE"
+license: "MIT"
+distribution_owned:
+  - SOUL.md
+  - skills
+  - scripts
+  - distribution.yaml

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # hbt: Hermes business templates installer. Run from the repo root on the server where Hermes runs.
+#   ./hbt setup creator            (start here: guided, one step at a time)
 #   ./hbt install creator --dry-run
-#   ./hbt install creator --channel creator-video=C0123ABCD --channel agents-report=C0456EFGH
+#   ./hbt connect creator cto      (save one bot's Slack tokens)
 #   ./hbt status creator | ./hbt update creator | ./hbt uninstall creator
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

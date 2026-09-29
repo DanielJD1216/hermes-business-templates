@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""hbt: install a Hermes business template as separate role profiles.
+"""hbt: install a Hermes business template as separate bots, one Slack app each.
 
 Commands
-  install <template>   create role profiles, workspace, board, jobs and routes
+  setup   <template>   guided setup, one action at a time (start here)
+  install <template>   create the bots' profiles, workspace, board and jobs
+  connect <template> <role>  save a bot's Slack tokens and find its channels
   update  <template>   re-apply template-owned files after `git pull`
+  desk    <template> <desk> --name <person>  add a desk for one outside person
   uninstall <template> remove what install created (workspace and memory kept by default)
   status  <template>   show what is installed and what still needs the owner
 
@@ -84,12 +87,21 @@ class Role:
     key: str
     title: str
     kind: str
-    channel: str
+    channels: list[str]
     folder: str
     reads: list[str] = field(default_factory=list)
     dirs: list[str] = field(default_factory=list)
     starter_files: dict[str, str] = field(default_factory=dict)
     checks: list[str] = field(default_factory=list)
+    peers: list[str] = field(default_factory=list)          # bots this one may @mention, and hear from
+    slack_toolsets: list[str] = field(default_factory=list)  # added to the bot's Slack tools
+    takes_cards: bool = False                                # runs Kanban cards in the background
+    section: str = ""
+
+    @property
+    def channel(self) -> str:
+        """The bot's home channel: its first one."""
+        return self.channels[0]
 
 
 @dataclass
@@ -102,9 +114,11 @@ class Template:
     roles: list[Role]
     jobs: list[dict]
     path: Path
+    desks: list[Role] = field(default_factory=list)
 
     def profile(self, role_key: str) -> str:
-        return f"{self.name}-{role_key}"
+        # v0.2: plain names (creative-director, cto, engineer, ops), the names the owner sees in Slack.
+        return role_key
 
     @property
     def ops(self) -> Role | None:
@@ -118,15 +132,21 @@ def load_template(name: str) -> Template:
         known = ", ".join(sorted(p.name for p in TEMPLATES_DIR.iterdir() if (p / "template.yaml").is_file()))
         raise SystemExit(f"Unknown template {name!r}. Available: {known}")
     spec = yaml.safe_load(spec_file.read_text(encoding="utf-8"))
-    roles = [Role(key=r["key"], title=r["title"], kind=r.get("kind", "role"), channel=r["channel"], folder=r["folder"],
-                  reads=r.get("reads", []), dirs=r.get("dirs", []), starter_files=r.get("starter_files", {}) or {},
-                  checks=r.get("checks", [])) for r in spec["roles"]]
-    for r in roles:
+
+    def to_role(r: dict) -> Role:
+        return Role(key=r["key"], title=r["title"], kind=r.get("kind", "role"),
+                    channels=r.get("channels") or [r["channel"]], folder=r["folder"],
+                    reads=r.get("reads", []), dirs=r.get("dirs", []), starter_files=r.get("starter_files", {}) or {},
+                    checks=r.get("checks", []), peers=r.get("peers", []), slack_toolsets=r.get("slack_toolsets", []),
+                    takes_cards=bool(r.get("takes_cards")), section=r.get("section", ""))
+    roles = [to_role(r) for r in spec["roles"]]
+    desks = [to_role(r) for r in spec.get("desks") or []]
+    for r in roles + desks:
         if not (path / "roles" / r.key / "distribution.yaml").is_file():
             raise SystemExit(f"Template {name}: role {r.key} has no roles/{r.key}/distribution.yaml")
     return Template(name=spec["name"], title=spec["title"], version=str(spec["version"]),
                     workspace_dir=spec.get("workspace_dir", spec["name"]), system_channel=spec.get("system_channel", "agents-report"),
-                    roles=roles, jobs=spec.get("jobs", []), path=path)
+                    roles=roles, jobs=spec.get("jobs", []), path=path, desks=desks)
 
 
 def select_roles(tpl: Template, wanted: str | None) -> list[Role]:
@@ -144,43 +164,55 @@ def select_roles(tpl: Template, wanted: str | None) -> list[Role]:
 
 # --------------------------------------------------------------------------- workspace rendering
 
-def render_roster(tpl: Template, roles: list[Role], ws: Path, channels: dict[str, str]) -> str:
-    lines = ["| Role | Profile (Kanban assignee) | Folder | Slack channel |", "|---|---|---|---|"]
+def render_roster(tpl: Template, roles: list[Role], ws: Path, channels: dict[str, str],
+                  bots: dict[str, str] | None = None) -> str:
+    bots = bots or {}
+    lines = ["| Role | Profile (Kanban assignee) | Slack mention | Folder | Slack channels |", "|---|---|---|---|---|"]
     for r in roles:
-        ch = f"#{r.channel}" + (f" ({channels[r.channel]})" if channels.get(r.channel) else "")
-        lines.append(f"| {r.title} | `{tpl.profile(r.key)}` | `{ws / r.folder}` | {ch} |")
+        ch = ", ".join(f"#{c}" + (f" ({channels[c]})" if channels.get(c) else "") for c in r.channels)
+        mention = f"`<@{bots[r.key]}>`" if bots.get(r.key) else ("none" if r.kind == "ops" else "not set up yet")
+        lines.append(f"| {r.title} | `{tpl.profile(r.key)}` | {mention} | `{ws / r.folder}` | {ch} |")
     return "\n".join(lines)
 
 
-def render_role_agents(tpl: Template, role: Role, roles: list[Role], ws: Path, channels: dict[str, str]) -> str:
+def render_role_agents(tpl: Template, role: Role, roles: list[Role], ws: Path, channels: dict[str, str],
+                       bots: dict[str, str] | None = None, projects: str = "") -> str:
     rules = (tpl.path / "workspace" / "RULES.md").read_text(encoding="utf-8").strip()
     reads = ", ".join(f"`{ws / p}`" if p != "all" else "every role folder" for p in role.reads) or "none"
     checks = "\n".join(f"- {c}" for c in role.checks) or "- None. This role has no nightly checks of its own."
+    build = ""
+    if role.peers and projects:
+        build = (f"- Projects folder: `{projects}`. Each project gets its own subfolder, named in lowercase with "
+                 f"hyphens; build work happens only there.\n")
     return (
         f"# {tpl.title}: {role.title} workspace\n\n"
         f"This file is generated by the business template installer (v{tpl.version}). Template updates rewrite it; "
         f"put your own notes in `NOTES.md` next to it.\n\n"
         f"## You\n- Role: {role.title} (`{tpl.profile(role.key)}`)\n- Write only in: `{ws / role.folder}`\n"
         f"- You may read: {reads}\n- Owner's canon (read-only): `{ws / 'canon'}`\n"
-        f"- Kanban board: `{tpl.name}`\n\n"
-        f"{rules}\n\n## Roster\n\n{render_roster(tpl, roles, ws, channels)}\n\n"
+        f"- Kanban board: `{tpl.name}`\n{build}\n"
+        f"{rules}\n\n## Roster\n\n{render_roster(tpl, roles, ws, channels, bots)}\n\n"
         f"## Nightly checks for {role.title}\n\n{checks}\n"
     )
 
 
-def render_root_agents(tpl: Template, roles: list[Role], ws: Path, channels: dict[str, str]) -> str:
+def render_root_agents(tpl: Template, roles: list[Role], ws: Path, channels: dict[str, str],
+                       bots: dict[str, str] | None = None) -> str:
     rules = (tpl.path / "workspace" / "RULES.md").read_text(encoding="utf-8").strip()
     return (f"# {tpl.title} workspace\n\nGenerated by the business template installer (v{tpl.version}).\n"
             f"Each role works in its own folder and reads its own AGENTS.md there.\n\n{rules}\n\n"
-            f"## Roster\n\n{render_roster(tpl, roles, ws, channels)}\n")
+            f"## Roster\n\n{render_roster(tpl, roles, ws, channels, bots)}\n")
 
 
-def build_workspace(tpl: Template, roles: list[Role], ws: Path, channels: dict[str, str], dry: bool) -> list[str]:
+def build_workspace(tpl: Template, roles: list[Role], ws: Path, channels: dict[str, str], dry: bool,
+                    bots: dict[str, str] | None = None, projects: str = "") -> list[str]:
     """Create folders and files. Never overwrites owner files (canon, starter files); AGENTS.md is template-owned."""
     actions: list[str] = []
 
     def put(path: Path, text: str, owned: bool) -> None:
         if path.exists() and not owned:
+            return
+        if path.exists() and path.read_text(encoding="utf-8") == text:
             return
         actions.append(f"{'update' if path.exists() else 'create'} {path}")
         if not dry:
@@ -190,7 +222,7 @@ def build_workspace(tpl: Template, roles: list[Role], ws: Path, channels: dict[s
     canon_src = tpl.path / "workspace" / "canon"
     for f in sorted(canon_src.iterdir()):
         put(ws / "canon" / f.name, f.read_text(encoding="utf-8"), owned=False)
-    put(ws / "AGENTS.md", render_root_agents(tpl, roles, ws, channels), owned=True)
+    put(ws / "AGENTS.md", render_root_agents(tpl, roles, ws, channels, bots), owned=True)
     for r in roles:
         base = ws / r.folder
         for d in r.dirs:
@@ -200,7 +232,7 @@ def build_workspace(tpl: Template, roles: list[Role], ws: Path, channels: dict[s
                     (base / d).mkdir(parents=True, exist_ok=True)
         for name, text in r.starter_files.items():
             put(base / name, text, owned=False)
-        put(base / "AGENTS.md", render_role_agents(tpl, r, roles, ws, channels), owned=True)
+        put(base / "AGENTS.md", render_role_agents(tpl, r, roles, ws, channels, bots, projects), owned=True)
     return actions
 
 
@@ -285,6 +317,45 @@ def clear_deleted_marker(name: str, backup_dir: Path, dry: bool) -> None:
 OPS_CONFIG = {"cron.wrap_response": "false"}
 
 
+def slack_settings(role: Role, channels: dict[str, str], owner: str, bots: dict[str, str]) -> tuple[dict, dict]:
+    """(config, env) for one bot's own Slack app. The settings the template was proven with:
+
+    - it answers in its own channels without an @mention (free_response_channels);
+    - it stays quiet when the owner @mentions another bot there (ignore_other_user_mentions);
+    - it hears its peers only when they @mention it, and a thread follow-up wakes only the bot
+      that was mentioned (allow_bots: mentions + strict_mention), so two bots never loop.
+    Hermes denies everyone by default, so the owner (and each peer bot) must be on the allowlist.
+    """
+    cfg: dict[str, str] = {"slack.ignore_other_user_mentions": "true"}
+    ids = [channels[c] for c in role.channels if channels.get(c)]
+    if ids:
+        cfg["slack.free_response_channels"] = ",".join(ids)
+    peers = [bots[p] for p in role.peers if bots.get(p)]
+    if role.peers:
+        cfg.update({"slack.allow_bots": "mentions", "slack.strict_mention": "true"})
+    env: dict[str, str] = {}
+    allowed = [u for u in [owner] + peers if u]
+    if allowed:
+        env["SLACK_ALLOWED_USERS"] = ",".join(allowed)
+    if ids:
+        env["SLACK_HOME_CHANNEL"] = ids[0]  # its own channel, so Hermes never posts a "no home channel" notice
+    return cfg, env
+
+
+def card_takers(existing, wanted: list[str]):
+    """New ``kanban.dispatch_profiles`` value, or None to leave it alone.
+
+    The key absent means every profile's cards run, ours included, so we never add it (adding it would stop
+    the owner's other profiles). When the owner has a list, our card takers are appended to it.
+    """
+    if existing is None or existing == _MISSING:
+        return None
+    names = [str(n) for n in existing] if isinstance(existing, (list, tuple)) else \
+        [n.strip() for n in str(existing).split(",") if n.strip()]
+    merged = names + [w for w in wanted if w not in names]
+    return merged if merged != names else None
+
+
 def job_args(tpl, job: dict, ops_role, target: str, workdir: Path) -> list[str]:
     """`hermes cron create` arguments for one template job.
 
@@ -317,11 +388,12 @@ _MISSING = "__hbt_missing__"
 
 
 def edit_main_config(cfg_path: Path, routes: list[dict], dispatch: bool, dry: bool, backup_dir: Path,
-                     previous: dict | None = None) -> dict:
+                     previous: dict | None = None, card_profiles: list[str] | None = None) -> dict:
     """Add our routes and kanban settings. Records each original value once, so uninstall can restore it.
 
     ``previous`` is the main_config record from an earlier install/update; values already recorded there
     are kept, so an update never overwrites the owner's true original with our own earlier change.
+    v0.2 installs pass no routes: each bot has its own Slack app, so nothing needs routing.
     """
     y, data = load_yaml_rt(cfg_path)
     prev = previous or {}
@@ -333,16 +405,23 @@ def edit_main_config(cfg_path: Path, routes: list[dict], dispatch: bool, dry: bo
         # record shape from v0.1.0 installs
         old = prev.get("dispatch_before")
         changes["kanban_before"]["dispatch_in_gateway"] = _MISSING if old is None else old
-    gw = data.setdefault("gateway", {})
-    new_routes, added = merge_routes(gw.get("profile_routes"), routes)
+    added = []
+    if routes:
+        gw = data.setdefault("gateway", {})
+        new_routes, added = merge_routes(gw.get("profile_routes"), routes)
+        if added:
+            gw["profile_routes"] = new_routes
     changes["routes_added"] = added
-    if added:
-        gw["profile_routes"] = new_routes
     kb = data.setdefault("kanban", {})
     changed_keys = []
-    for key, want in (KANBAN_SETTINGS.items() if dispatch else ()):
-        if kb.get(key, _MISSING) != want:
-            changes["kanban_before"].setdefault(key, kb.get(key, _MISSING))
+    wanted: dict = dict(KANBAN_SETTINGS) if dispatch else {}
+    takers = card_takers(kb.get("dispatch_profiles", _MISSING), card_profiles or [])
+    if takers is not None:
+        wanted["dispatch_profiles"] = takers
+    for key, want in wanted.items():
+        cur = kb.get(key, _MISSING)
+        if (list(cur) if isinstance(cur, (list, tuple)) else cur) != want:
+            changes["kanban_before"].setdefault(key, list(cur) if isinstance(cur, (list, tuple)) else cur)
             kb[key] = want
             changed_keys.append(key)
     if added or changed_keys:
@@ -422,6 +501,14 @@ def set_env_values(env_path: Path, values: dict[str, str], dry: bool) -> None:
         os.chmod(env_path, 0o600)
 
 
+def read_env_value(env_path: Path, key: str) -> str:
+    for line in env_path.read_text(encoding="utf-8").splitlines() if env_path.exists() else []:
+        k, _, v = line.partition("=")
+        if k.strip() == key:
+            return v.strip().strip("\"'")
+    return ""
+
+
 # --------------------------------------------------------------------------- preflight
 
 def preflight(r: Runner) -> dict:
@@ -481,13 +568,117 @@ def parse_channels(pairs: list[str]) -> dict[str, str]:
 
 # --------------------------------------------------------------------------- distribution staging
 
-def stage_distribution(tpl: Template, role: Role) -> Path:
+def stage_distribution(tpl: Template, role: Role, name: str | None = None) -> Path:
     """Copy the role's distribution to a stable place, so `hermes profile update` can find it again."""
-    dest = record_dir(tpl.name) / "dist" / tpl.profile(role.key)
+    dest = record_dir(tpl.name) / "dist" / (name or tpl.profile(role.key))
     if dest.exists():
         shutil.rmtree(dest)
     shutil.copytree(tpl.path / "roles" / role.key, dest)
     return dest
+
+
+# --------------------------------------------------------------------------- Slack
+
+SLACK_ID = re.compile(r"[UW][A-Z0-9]{6,}")
+
+
+def slack_api(token: str, method: str, **params: str) -> dict:
+    """Call one Slack Web API method. The token travels in a header and is never printed."""
+    import urllib.parse
+    import urllib.request
+    req = urllib.request.Request(f"https://slack.com/api/{method}", data=urllib.parse.urlencode(params).encode(),
+                                 headers={"Authorization": f"Bearer {token}"})
+    try:
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            return json.load(resp)
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": f"could not reach Slack ({type(exc).__name__})"}
+
+
+def find_channels(token: str, names: list[str]) -> dict[str, dict]:
+    """{name: {"id", "member"}} for the named channels this bot can see."""
+    found: dict[str, dict] = {}
+    cursor = ""
+    while True:
+        res = slack_api(token, "conversations.list", types="public_channel,private_channel",
+                        exclude_archived="true", limit="1000", cursor=cursor)
+        if not res.get("ok"):
+            raise SystemExit(f"Slack refused the channel list ({res.get('error')}). "
+                             "Was the app created from the manifest and installed to the workspace?")
+        for c in res.get("channels", []):
+            if c.get("name") in names:
+                found[c["name"]] = {"id": c["id"], "member": bool(c.get("is_member"))}
+        cursor = (res.get("response_metadata") or {}).get("next_cursor") or ""
+        if not cursor:
+            return found
+
+
+def token_holder(token: str) -> str:
+    """The profile that already holds this bot token ('main' for the main agent), or ''.
+    Two profiles with one token is a fatal duplicate for the Hermes gateway."""
+    if token == read_env_value(hermes_home() / ".env", "SLACK_BOT_TOKEN"):
+        return "main"
+    for env in sorted((hermes_home() / "profiles").glob("*/.env")):
+        if read_env_value(env, "SLACK_BOT_TOKEN") == token:
+            return env.parent.name
+    return ""
+
+
+def ask_tokens(title: str, profile: str) -> tuple[str, str]:
+    import getpass
+    bot = getpass.getpass(f"{title} bot token, starts with xoxb- (hidden): ").strip()
+    app = getpass.getpass(f"{title} app token, starts with xapp- (hidden): ").strip()
+    if not (bot.startswith("xoxb-") and app.startswith("xapp-")):
+        raise SystemExit("Those do not look like Slack tokens. Nothing was saved.")
+    holder = token_holder(bot)
+    if holder and holder != profile:
+        raise SystemExit(f"That bot token already belongs to {'your main agent' if holder == 'main' else holder}. "
+                         f"{title} needs its own Slack app. Nothing was saved.")
+    return bot, app
+
+
+def write_manifest(r: Runner, tpl: Template, title: str, name: str, *extra: str) -> Path:
+    """The stock Hermes Slack manifest for this bot, plus reactions:write so it can mark what it picked up."""
+    path = record_dir(tpl.name) / f"{name}-slack-manifest.json"
+    r.hermes_cmd("slack", "manifest", "--name", title, "--description", f"{tpl.title}: {title}", *extra,
+                 "--write", str(path), profile=name)
+    if path.exists():
+        m = json.loads(path.read_text(encoding="utf-8"))
+        scopes = m.setdefault("oauth_config", {}).setdefault("scopes", {}).setdefault("bot", [])
+        if "reactions:write" not in scopes:
+            scopes.append("reactions:write")
+            path.write_text(json.dumps(m, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def apply_slack(r: Runner, tpl: Template, role: Role, rec: dict, dry: bool) -> None:
+    name = tpl.profile(role.key)
+    cfg, env = slack_settings(role, rec.get("channels") or {}, rec.get("owner", ""), rec.get("bots") or {})
+    for k, v in cfg.items():
+        r.hermes_cmd("config", "set", k, v, profile=name)
+    set_env_values(hermes_home() / "profiles" / name / ".env", env, dry)
+
+
+def wire_system_channel(r: Runner, tpl: Template, rec: dict, dry: bool) -> bool:
+    """Point Ops at the system channel: a route through the main agent's bot, and job delivery.
+    Ops has no Slack app of its own. Returns True when a gateway restart is needed."""
+    ops, cid = tpl.ops, (rec.get("channels") or {}).get(tpl.system_channel)
+    installed = [x for x in tpl.roles if tpl.profile(x.key) in rec["profiles"]]
+    routes = []
+    if ops and cid and tpl.profile(ops.key) in rec["profiles"]:
+        routes = [{"name": f"{ROUTE_TAG}{tpl.name}:{ops.key}", "platform": "slack", "chat_id": cid,
+                   "profile": tpl.profile(ops.key)}]
+        for j in rec.get("jobs", []):
+            if j.get("id"):
+                r.hermes_cmd("cron", "edit", j["id"], "--deliver", f"slack:{cid}", profile=j["profile"])
+    changes = edit_main_config(hermes_home() / "config.yaml", routes, dispatch=True, dry=dry,
+                               backup_dir=record_dir(tpl.name) / "backups", previous=rec.get("main_config"),
+                               card_profiles=[tpl.profile(x.key) for x in installed if x.takes_cards])
+    added = list(changes["routes_added"])
+    old = list((rec.get("main_config") or {}).get("routes_added", []))
+    changes["routes_added"] = old + [n for n in added if n not in old]
+    rec["main_config"] = changes
+    return bool(added)
 
 
 # --------------------------------------------------------------------------- commands
@@ -498,30 +689,37 @@ def cmd_install(a: argparse.Namespace) -> int:
     info = preflight(r)
     rec = load_record(tpl.name)
     if rec and not a.dry_run:
-        raise SystemExit(f"{tpl.name} is already installed (record: {record_dir(tpl.name)}). Use `hbt update {tpl.name}` or uninstall first.")
+        raise SystemExit(f"{tpl.name} is already installed (record: {record_dir(tpl.name)}). "
+                         f"Use `hbt setup {tpl.name}` to continue, or `hbt update {tpl.name}`.")
     roles = select_roles(tpl, a.roles)
     ws = Path(a.workspace).expanduser().resolve() if a.workspace else (hermes_home() / "workspaces" / tpl.workspace_dir)
+    projects = str(Path(a.projects).expanduser().resolve()) if a.projects else str(Path.home() / "projects")
     channels = parse_channels(a.channel)
+    owner = (a.owner or read_env_value(hermes_home() / ".env", "SLACK_ALLOWED_USERS").split(",")[0]).strip()
+    if owner and not SLACK_ID.fullmatch(owner):
+        raise SystemExit(f"Slack member IDs look like U0123ABCD (your profile > three dots > Copy member ID); got {owner!r}")
     main_cfg = hermes_home() / "config.yaml"
     model = read_main_model(main_cfg)
     memory = not a.no_memory
     if memory and not openviking_ok(a.memory_endpoint):
         if a.require_memory:
             raise SystemExit(f"Long-term memory (OpenViking) is not reachable at {a.memory_endpoint}.")
-        say(f"! Long-term memory is not reachable at {a.memory_endpoint}; roles will use built-in memory. Re-run with --no-memory to silence this.")
+        say(f"! Long-term memory is not reachable at {a.memory_endpoint}; bots will use built-in memory. Re-run with --no-memory to silence this.")
         memory = False
 
     existing = [tpl.profile(x.key) for x in roles if profile_is_live(tpl.profile(x.key))]
     if existing:
-        raise SystemExit(f"These profiles already exist: {', '.join(existing)}. Remove them or choose other roles.")
+        raise SystemExit(f"These profiles already exist: {', '.join(existing)}. hbt never overwrites a profile; "
+                         "remove them or install on another server.")
 
     say(f"Installing {tpl.title} v{tpl.version} ({'dry run' if a.dry_run else 'live'})")
     say(f"  Hermes {info['hermes_version']}; HERMES_HOME {hermes_home()}")
-    say(f"  roles: {', '.join(tpl.profile(x.key) for x in roles)}")
-    say(f"  workspace: {ws}")
-    say(f"  model: {model.get('default', '(profile default)')} via {model.get('provider', '(default)')}; memory: {'OpenViking, one account per role' if memory else 'built-in'}")
+    say(f"  bots: {', '.join(tpl.profile(x.key) for x in roles)}")
+    say(f"  workspace: {ws}; projects: {projects}")
+    say(f"  owner: {owner or 'not set (only you should be able to talk to the bots; set --owner)'}")
+    say(f"  model: {model.get('default', '(profile default)')} via {model.get('provider', '(default)')}; memory: {'OpenViking, one account per bot' if memory else 'built-in'}")
     if not info["docker"]:
-        say("! Docker not found: roles run commands directly on this server, limited only by their working folder and rules.")
+        say("! Docker not found: bots run commands directly on this server, limited only by their working folder and rules.")
     if not a.yes and not a.dry_run:
         if input("Proceed? [y/N] ").strip().lower() not in ("y", "yes"):
             say("Cancelled.")
@@ -530,7 +728,7 @@ def cmd_install(a: argparse.Namespace) -> int:
     rec = {"template": tpl.name, "version": tpl.version, "installed_at": now_iso(), "hermes_version": info["hermes_version"],
            "workspace": str(ws), "workspace_created": not ws.exists(), "profiles": [], "jobs": [], "board": None, "main_config": {},
            "memory": {"enabled": memory, "endpoint": a.memory_endpoint, "accounts": []}, "channels": channels,
-           "repo_path": str(REPO_ROOT)}
+           "bots": {}, "owner": owner, "projects": projects, "manifests": {}, "setup": {}, "repo_path": str(REPO_ROOT)}
 
     def checkpoint():
         if not a.dry_run:
@@ -538,11 +736,13 @@ def cmd_install(a: argparse.Namespace) -> int:
 
     # 1. workspace
     say("1/6 workspace")
-    acts = build_workspace(tpl, roles, ws, channels, a.dry_run)
+    acts = build_workspace(tpl, roles, ws, channels, a.dry_run, projects=projects)
+    if not a.dry_run:
+        Path(projects).mkdir(parents=True, exist_ok=True)
     say(f"  {len(acts)} folder/file action(s)")
 
     # 2. profiles
-    say("2/6 role profiles")
+    say("2/6 bot profiles")
     for role in roles:
         name = tpl.profile(role.key)
         src = stage_distribution(tpl, role) if not a.dry_run else tpl.path / "roles" / role.key
@@ -561,22 +761,25 @@ def cmd_install(a: argparse.Namespace) -> int:
             sets.update({"memory.provider": "openviking", "memory.openviking.endpoint": a.memory_endpoint,
                          "memory.openviking.agent": name})
             sets.update({"memory.memory_enabled": "false", "memory.user_profile_enabled": "false"})
+        if role.takes_cards:
+            # Cards run in the background, where nobody can click a memory approval: it would hang the card.
+            sets["memory.write_approval"] = "false"
         if role.kind == "ops":
             # Ops only runs unattended jobs and keeps no memory of its own (Q23): its inputs are files and the board.
             sets.update({"memory.memory_enabled": "false", "memory.user_profile_enabled": "false"})
             sets.update(OPS_CONFIG)
         for k, v in sets.items():
             r.hermes_cmd("config", "set", k, str(v), profile=name)
+        for toolset in role.slack_toolsets:
+            r.hermes_cmd("tools", "enable", toolset, "--platform", "slack", profile=name)
         if memory and role.kind != "ops":
             account = f"{a.memory_prefix}-{role.key}"
             set_env_values(hermes_home() / "profiles" / name / ".env",
                            {"OPENVIKING_ACCOUNT": account, "OPENVIKING_USER": "owner"}, a.dry_run)
             rec["memory"]["accounts"].append(account)
-        home = channels.get(tpl.system_channel)
-        if home:
-            # Without a home channel Hermes greets each role's first Slack reply with a
-            # "No home channel is set" notice. Point every role at the system channel instead.
-            set_env_values(hermes_home() / "profiles" / name / ".env", {"SLACK_HOME_CHANNEL": home}, a.dry_run)
+        if role.kind != "ops":
+            apply_slack(r, tpl, role, rec, a.dry_run)
+            rec["manifests"][role.key] = str(write_manifest(r, tpl, role.title, name)) if not a.dry_run else ""
         checkpoint()
         say(f"  {name}: ready")
 
@@ -610,8 +813,6 @@ def cmd_install(a: argparse.Namespace) -> int:
     say("5/6 scheduled jobs")
     if ops:
         target = f"slack:{channels[tpl.system_channel]}" if channels.get(tpl.system_channel) else "local"
-        if target == "local":
-            say(f"  ! no --channel {tpl.system_channel}=<ID>: job output stays on the server until you add it (hbt update --channel ...)")
         for job in tpl.jobs:
             if job.get("requires") == "openviking" and not memory:
                 continue
@@ -622,33 +823,261 @@ def cmd_install(a: argparse.Namespace) -> int:
             checkpoint()
         say(f"  {len(rec['jobs']) if not a.dry_run else len(tpl.jobs)} job(s) delivering to {target}")
 
-    # 6. main profile: routes + kanban dispatch
+    # 6. main profile: kanban settings (and the Ops route, once the system channel is known)
     say("6/6 main profile")
-    routes = []
-    for role in roles:
-        cid = channels.get(role.channel)
-        if cid:
-            routes.append({"name": f"{ROUTE_TAG}{tpl.name}:{role.key}", "platform": "slack", "chat_id": cid,
-                           "profile": tpl.profile(role.key)})
-    rec["main_config"] = edit_main_config(main_cfg, routes, dispatch=True, dry=a.dry_run,
-                                          backup_dir=record_dir(tpl.name) / "backups")
+    wire_system_channel(r, tpl, rec, a.dry_run)
     checkpoint()
 
     say("\nDone." if not a.dry_run else "\nDry run complete. Nothing was changed.")
-    print_next_steps(tpl, roles, channels, memory)
+    say(f"Next: ./hbt setup {tpl.name}  (connects each bot to Slack, one step at a time)")
     return 0
 
 
-def print_next_steps(tpl: Template, roles: list[Role], channels: dict[str, str], memory: bool) -> None:
-    missing = [r.channel for r in roles if not channels.get(r.channel)]
-    say("\nNext steps for the owner:")
-    say("  1. Restart the gateway once so it serves the new roles: hermes gateway restart")
+def cmd_connect(a: argparse.Namespace) -> int:
+    """Save one bot's Slack tokens (hidden), check them with Slack, and find its channels by name."""
+    tpl = load_template(a.template)
+    rec = load_record(tpl.name)
+    if not rec:
+        raise SystemExit(f"Install the template first: ./hbt setup {tpl.name}")
+    bots = [x for x in tpl.roles if x.kind != "ops"]
+    role = next((x for x in bots if x.key == a.role), None)
+    if not role or tpl.profile(role.key) not in rec["profiles"]:
+        raise SystemExit(f"Unknown bot {a.role!r}. Bots: {', '.join(x.key for x in bots)}")
+    name = tpl.profile(role.key)
+    env = hermes_home() / "profiles" / name / ".env"
+    r = Runner(a.hermes, a.dry_run, a.verbose)
+    token = read_env_value(env, "SLACK_BOT_TOKEN")
+    if a.tokens or not token:
+        token, app = ask_tokens(role.title, name)
+        me = slack_api(token, "auth.test")
+        if not me.get("ok"):
+            raise SystemExit(f"Slack did not accept that bot token ({me.get('error')}). Nothing was saved.")
+        set_env_values(env, {"SLACK_BOT_TOKEN": token, "SLACK_APP_TOKEN": app}, a.dry_run)
+    else:
+        me = slack_api(token, "auth.test")
+        if not me.get("ok"):
+            raise SystemExit(f"{role.title}'s saved token no longer works ({me.get('error')}). "
+                             f"Save new ones: ./hbt connect {tpl.name} {role.key} --tokens")
+    rec.setdefault("bots", {})[role.key] = me["user_id"]
+    rec.setdefault("channels", {})
+    wanted = role.channels + [tpl.system_channel]
+    found = find_channels(token, wanted)
+    for ch, info in found.items():
+        rec["channels"][ch] = info["id"]
+    # This bot, and every bot that lists it as a peer (they need its ID on their allowlist).
+    for x in [role] + [p for p in bots if role.key in p.peers and tpl.profile(p.key) in rec["profiles"]]:
+        apply_slack(r, tpl, x, rec, a.dry_run)
+    installed = [x for x in tpl.roles if tpl.profile(x.key) in rec["profiles"]]
+    build_workspace(tpl, installed, Path(rec["workspace"]), rec["channels"], a.dry_run,
+                    bots=rec["bots"], projects=rec.get("projects", ""))
+    wire_system_channel(r, tpl, rec, a.dry_run)
+    if not a.dry_run:
+        save_record(tpl.name, rec)
+    missing = [c for c in role.channels if c not in found]
+    outside = [c for c in role.channels if c in found and not found[c]["member"]]
+    say(f"{role.title} is connected to Slack as <@{me['user_id']}>.")
     if missing:
-        say(f"  2. Create these Slack channels, invite the bot, then run hbt update {tpl.name} --channel name=ID ...:")
-        say("     " + ", ".join(f"#{c}" for c in missing))
-    say(f"  3. Fill in the owner canon: ask your main agent to run the interview in canon/INTERVIEW.md")
-    if not memory:
-        say("  4. Long-term memory is off. See the README Memory section to turn it on later.")
+        say(f"  Channels not found: {', '.join('#' + c for c in missing)}. Create them in Slack. "
+            f"If one exists but is private, invite {role.title} to it: a bot cannot see a private channel it is not in.")
+    if outside:
+        say(f"  Not invited yet: {', '.join('#' + c for c in outside)}. In each one, type /invite @{role.title}")
+    return 2 if missing or outside else 0
+
+
+# --------------------------------------------------------------------------- guided setup
+
+def next_setup_step(tpl: Template, rec: dict | None) -> tuple[str, Role | None]:
+    """The single next thing the owner has to do, worked out from what is already true.
+    Setup can stop anywhere and pick up here: nothing but the record and Slack decide the step."""
+    if not rec:
+        return "install", None
+    done = rec.get("setup") or {}
+    bots = [x for x in tpl.roles if x.kind != "ops" and tpl.profile(x.key) in rec["profiles"]]
+    for role in bots:
+        if role.key not in (rec.get("bots") or {}):
+            return "connect", role
+        if role.key not in (done.get("channels_ok") or []):
+            return "channels", role
+    if tpl.ops and tpl.profile(tpl.ops.key) in rec["profiles"] and not done.get("system_channel_ok"):
+        return "system-channel", None
+    if not done.get("restarted"):
+        return "restart", None
+    for role in bots:
+        if role.key not in (done.get("tested") or []):
+            return "test", role
+    builder = next((x for x in bots if x.takes_cards and x.peers), None)
+    if builder and not done.get("first_card"):
+        return "first-card", builder
+    return "done", None
+
+
+def _wait(prompt: str) -> None:
+    input(f"\n{prompt}\nPress Enter when done (Ctrl+C to stop; run ./hbt setup again to pick up here). ")
+
+
+def _ask(question: str, default: str = "") -> str:
+    got = input(f"{question}{f' [{default}]' if default else ''}: ").strip()
+    return got or default
+
+
+def _bot_replied(token: str, channel: str, bot_id: str, since: float) -> bool:
+    """True when the bot answered anything posted in the channel after `since`, in a thread or not."""
+    hist = slack_api(token, "conversations.history", channel=channel, oldest=f"{since:.6f}", limit="50")
+    for m in hist.get("messages", []):
+        if m.get("user") == bot_id:
+            return True
+        if m.get("reply_count"):
+            thread = slack_api(token, "conversations.replies", channel=channel, ts=m["ts"], limit="50")
+            if any(x.get("user") == bot_id for x in thread.get("messages", [])):
+                return True
+    return False
+
+
+def cmd_setup(a: argparse.Namespace) -> int:
+    import time
+    tpl = load_template(a.template)
+    say(f"{tpl.title} setup. One action at a time; each one is checked before the next.\n")
+    while True:
+        rec = load_record(tpl.name)
+        step, role = next_setup_step(tpl, rec)
+        done = (rec or {}).setdefault("setup", {})
+
+        if step == "install":
+            say("This installs: " + ", ".join(f"{x.title}" for x in tpl.roles) + ". Ops runs scheduled jobs and has no Slack app.")
+            tz = _ask("Your timezone (for the morning list)", _system_timezone())
+            projects = _ask("Folder where Engineer builds your projects", str(Path.home() / "projects"))
+            owner = _ask("Your Slack member ID (Slack > your profile > three dots > Copy member ID)",
+                         read_env_value(hermes_home() / ".env", "SLACK_ALLOWED_USERS").split(",")[0].strip())
+            args = ["--hermes", a.hermes, "install", tpl.name, "--yes", "--projects", projects, "--owner", owner]
+            if tz:
+                args += ["--timezone", tz]
+            if main(args) != 0:
+                return 1
+
+        elif step == "connect":
+            manifest = rec["manifests"].get(role.key) or "(run ./hbt update to write it)"
+            _wait(f"Step: create the {role.title} Slack app.\n"
+                  f"  1. api.slack.com/apps > Create New App > From a manifest > pick your workspace.\n"
+                  f"  2. Paste the contents of {manifest}, create it, then Install to Workspace.\n"
+                  f"  3. Basic Information > App-Level Tokens > Generate Token with the scope connections:write.\n"
+                  f"  Keep the page open: the next prompt asks for the Bot User OAuth Token (xoxb-) and that app token (xapp-).")
+            try:
+                main(["--hermes", a.hermes, "connect", tpl.name, role.key, "--tokens"])
+            except SystemExit as exc:
+                say(f"! {exc}")
+
+        elif step == "channels":
+            code = main(["--hermes", a.hermes, "connect", tpl.name, role.key])
+            if code == 0:
+                done.setdefault("channels_ok", []).append(role.key)
+                _with_setup(tpl.name, done)
+                say(f"  {role.title} is in all its channels.")
+            else:
+                _wait(f"Step: create any missing channels above and invite {role.title} to each: /invite @{role.title}")
+
+        elif step == "system-channel":
+            token = read_env_value(hermes_home() / ".env", "SLACK_BOT_TOKEN")
+            if not token:
+                say(f"! Your main agent has no Slack bot on this server, so Ops output stays on the server "
+                    f"(`hermes -p {tpl.profile(tpl.ops.key)} cron list`).")
+                _with_setup(tpl.name, done | {"system_channel_ok": "skipped"})
+                continue
+            found = find_channels(token, [tpl.system_channel]).get(tpl.system_channel)
+            if found and found["member"]:
+                rec["channels"][tpl.system_channel] = found["id"]
+                wire_system_channel(Runner(a.hermes, False, a.verbose), tpl, rec, False)
+                rec["setup"] = done | {"system_channel_ok": True}
+                save_record(tpl.name, rec)
+                say(f"  Ops will post the morning list and alerts in #{tpl.system_channel}.")
+            else:
+                _wait(f"Step: create #{tpl.system_channel} (if it does not exist) and invite your main agent's bot to it. "
+                      f"Ops posts its morning list and alerts there.")
+
+        elif step == "restart":
+            _wait("Step: restart Hermes once so it starts the new bots. In a terminal on this server run:\n"
+                  "  hermes gateway restart")
+            _with_setup(tpl.name, done | {"restarted": now_iso()})
+
+        elif step == "test":
+            cid = rec["channels"][role.channel]
+            since = time.time()
+            _wait(f"Step: in #{role.channel}, post this (no @mention needed):\n  what's your job here?")
+            token = read_env_value(hermes_home() / "profiles" / tpl.profile(role.key) / ".env", "SLACK_BOT_TOKEN")
+            say(f"  Waiting up to 3 minutes for {role.title} to answer...")
+            answered = False
+            for _ in range(18):
+                answered = _bot_replied(token, cid, rec["bots"][role.key], since)
+                if answered:
+                    break
+                time.sleep(10)
+            if answered:
+                done.setdefault("tested", []).append(role.key)
+                _with_setup(tpl.name, done)
+                say(f"  {role.title} answered. That bot works.")
+            else:
+                say(f"! No answer from {role.title} yet. Check `hermes gateway status`, then try the step again.")
+
+        elif step == "first-card":
+            lead = next(x for x in tpl.roles if role.key in x.peers)
+            since = time.time()
+            _wait(f"Step: your first build. In #{lead.channel}, post:\n"
+                  f"  Create a new project called \"hello world\". Plan a tiny hello world script and execute.\n"
+                  f"  {lead.title} plans it and hands it to {role.title} on a card; the result posts in #{role.channel}.")
+            say("  Waiting up to 10 minutes for the card to finish...")
+            card = None
+            for _ in range(60):
+                card = _finished_card(Runner(a.hermes, False, a.verbose), tpl, tpl.profile(role.key), since)
+                if card:
+                    break
+                time.sleep(10)
+            if card:
+                _with_setup(tpl.name, done | {"first_card": card.get("id")})
+                say(f"  Card {card.get('id')} is done: {card.get('title')}. Your build team works.")
+            else:
+                say(f"! No finished card yet. Look at the board with `hermes kanban --board {tpl.name} list`, then try again.")
+
+        else:
+            say("\nSetup is complete. Every bot answered and your first card was built.")
+            if tpl.desks:
+                d = tpl.desks[0]
+                say(f"When an outside editor starts working with you, give them their own desk:\n"
+                    f"  ./hbt desk {tpl.name} {d.key} --name <editor> --guest <their member ID> "
+                    f"--channel {d.channel}-<editor>=<channel ID>")
+            say(f"Fill in your business details: ask your main agent to run the interview in "
+                f"{Path(rec['workspace']) / 'canon' / 'INTERVIEW.md'}")
+            return 0
+
+
+def _with_setup(tpl_name: str, done: dict) -> dict:
+    rec = load_record(tpl_name) or {}
+    rec["setup"] = done
+    save_record(tpl_name, rec)
+    return rec
+
+
+def _system_timezone() -> str:
+    p = Path("/etc/timezone")
+    return p.read_text(encoding="utf-8").strip() if p.is_file() else ""
+
+
+def _finished_card(r: Runner, tpl: Template, assignee: str, since: float) -> dict | None:
+    out = r.hermes_cmd("kanban", "--board", tpl.name, "list", "--assignee", assignee, "--status", "done", "--json",
+                       check=False, mutate=False)
+    try:
+        cards = json.loads(out or "[]")
+    except json.JSONDecodeError:
+        return None
+    cards = cards.get("tasks", cards) if isinstance(cards, dict) else cards
+    for c in cards or []:
+        created = c.get("created_at") or 0
+        if isinstance(created, str):
+            try:
+                created = _dt.datetime.fromisoformat(created).timestamp()
+            except ValueError:
+                created = 0
+        if created >= since - 60:
+            return c
+    return None
 
 
 def cmd_update(a: argparse.Namespace) -> int:
@@ -660,8 +1089,7 @@ def cmd_update(a: argparse.Namespace) -> int:
     preflight(r)
     installed = [x for x in tpl.roles if tpl.profile(x.key) in rec["profiles"]]
     ws = Path(rec["workspace"])
-    channels = dict(rec.get("channels") or {})
-    channels.update(parse_channels(a.channel))
+    rec.setdefault("channels", {}).update(parse_channels(a.channel))
     say(f"Updating {tpl.name} {rec['version']} -> {tpl.version} ({'dry run' if a.dry_run else 'live'})")
     for role in installed:
         name = tpl.profile(role.key)
@@ -671,32 +1099,30 @@ def cmd_update(a: argparse.Namespace) -> int:
         if role.kind == "ops":
             for k, v in OPS_CONFIG.items():
                 r.hermes_cmd("config", "set", k, v, profile=name)
-        if channels.get(tpl.system_channel):
-            set_env_values(hermes_home() / "profiles" / name / ".env",
-                           {"SLACK_HOME_CHANNEL": channels[tpl.system_channel]}, a.dry_run)
-    acts = build_workspace(tpl, installed, ws, channels, a.dry_run)
+        else:
+            apply_slack(r, tpl, role, rec, a.dry_run)
+            if not a.dry_run:
+                rec.setdefault("manifests", {})[role.key] = str(write_manifest(r, tpl, role.title, name))
+    acts = build_workspace(tpl, installed, ws, rec["channels"], a.dry_run, bots=rec.get("bots"),
+                           projects=rec.get("projects", ""))
     say(f"  workspace: {len(acts)} action(s); owner files and canon untouched")
-    routes = [{"name": f"{ROUTE_TAG}{tpl.name}:{x.key}", "platform": "slack", "chat_id": channels[x.channel],
-               "profile": tpl.profile(x.key)} for x in installed if channels.get(x.channel)]
-    changes = edit_main_config(hermes_home() / "config.yaml", routes, dispatch=True, dry=a.dry_run,
-                               backup_dir=record_dir(tpl.name) / "backups", previous=rec.get("main_config"))
+    for name, entry in (rec.get("desks") or {}).items():
+        desk = next((d for d in tpl.desks if d.key == entry.get("desk", name)), None)
+        if desk:
+            if not a.dry_run:
+                stage_distribution(tpl, desk, name)
+            r.hermes_cmd("profile", "update", name, "-y")
+            for k, v in desk_config(ws / entry.get("folder", desk.folder), entry["channel"]).items():
+                r.hermes_cmd("config", "set", k, v, profile=name)
     ops = tpl.ops
     if ops and tpl.profile(ops.key) in rec["profiles"]:
         agent_keys = {j["key"] for j in tpl.jobs if not j.get("no_agent")}
         for j in rec.get("jobs", []):
             if j.get("id") and j.get("key") in agent_keys:  # older installs lacked --workdir
                 r.hermes_cmd("cron", "edit", j["id"], "--workdir", str(ws / ops.folder), profile=j["profile"])
-    if ops and tpl.profile(ops.key) in rec["profiles"] and channels.get(tpl.system_channel):
-        target = f"slack:{channels[tpl.system_channel]}"
-        for j in rec.get("jobs", []):
-            if j.get("id"):
-                r.hermes_cmd("cron", "edit", j["id"], "--deliver", target, profile=j["profile"])
-    added_now = list(changes["routes_added"])  # the record merge below reuses this dict
+    wire_system_channel(r, tpl, rec, a.dry_run)
     if not a.dry_run:
-        old_routes = list((rec.get("main_config") or {}).get("routes_added", []))
-        rec["main_config"] = changes
-        rec["main_config"]["routes_added"] = old_routes + [n for n in added_now if n not in old_routes]
-        rec["version"], rec["channels"], rec["updated_at"] = tpl.version, channels, now_iso()
+        rec["version"], rec["updated_at"] = tpl.version, now_iso()
         settings = hermes_home() / "profiles" / tpl.profile(ops.key) / "hbt-settings.json" if ops else None
         if settings and settings.exists():
             s = json.loads(settings.read_text(encoding="utf-8"))
@@ -704,8 +1130,137 @@ def cmd_update(a: argparse.Namespace) -> int:
             settings.write_text(json.dumps(s, indent=2) + "\n", encoding="utf-8")
         save_record(tpl.name, rec)
     say("Done." if not a.dry_run else "Dry run complete. Nothing was changed.")
-    if added_now:
-        say("Restart the gateway once so the new channel routes take effect: hermes gateway restart")
+    if not a.dry_run:
+        say("Restart the gateway once so the bots pick up the changes: hermes gateway restart")
+    return 0
+
+
+# --------------------------------------------------------------------------- desks (Q20, Q26)
+
+DESK_IMAGE = "debian:bookworm-slim"  # file tools need bash in the container; Alpine has none
+
+
+def docker_rootless() -> str:
+    """'' when rootless Docker answers for this user, else why desks cannot be added."""
+    try:
+        res = subprocess.run(["docker", "info", "--format", "{{json .SecurityOptions}}"],
+                             capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.TimeoutExpired):
+        return "Docker is not installed or did not answer."
+    if res.returncode != 0:
+        return "Docker is installed but not running for this user."
+    if "rootless" not in res.stdout:
+        return "Docker runs as root here, so anything that can use it controls the whole server."
+    return ""
+
+
+def desk_config(folder: Path, channel_id: str) -> dict[str, str]:
+    """A desk answers outsiders, so everything it can do is pinned: file tools only, inside a
+    container that sees only the desk folder and has no network, one Slack channel, no memory,
+    and no admin slash commands for anyone."""
+    return {
+        "platform_toolsets.slack": '["file"]',
+        "terminal.backend": "docker",
+        "terminal.cwd": "/workspace",
+        "terminal.docker_image": DESK_IMAGE,
+        "terminal.docker_volumes": json.dumps([f"{folder}:/workspace"]),
+        "terminal.docker_mount_cwd_to_workspace": "false",
+        "terminal.docker_network": "false",
+        "memory.memory_enabled": "false",
+        "memory.user_profile_enabled": "false",
+        "slack.allowed_channels": channel_id,
+        "slack.unauthorized_dm_behavior": "ignore",
+        "slack.gateway_restart_notification": "false",
+        "slack.allow_admin_from": '["nobody"]',  # gating on, no admins: guests keep only /help and /whoami
+        "slack.group_allow_admin_from": '["nobody"]',
+    }
+
+
+def parse_guests(ids: list[str]) -> list[str]:
+    out = [g.strip() for g in ids or [] if g.strip()]
+    bad = [g for g in out if not SLACK_ID.fullmatch(g)]
+    if bad:
+        raise SystemExit(f"Slack member IDs look like U0123ABCD (profile > three dots > Copy member ID); got {', '.join(bad)}")
+    return out
+
+
+def desk_names(desk: Role, person: str) -> tuple[str, str, str]:
+    """(profile, channel, folder) for one person's desk: desk-editor-sam, ext-editor-sam, desks/editor-sam."""
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,30}", person or ""):
+        raise SystemExit(f"--name is the person's short name in lowercase, e.g. sam or sam-lee; got {person!r}")
+    return f"{desk.key}-{person}", f"{desk.channel}-{person}", f"{desk.folder}-{person}"
+
+
+def cmd_desk(a: argparse.Namespace) -> int:
+    tpl = load_template(a.template)
+    desk = next((d for d in tpl.desks if d.key == a.desk), None)
+    if not desk:
+        raise SystemExit(f"Unknown desk {a.desk!r}. Desks in {tpl.name}: {', '.join(d.key for d in tpl.desks) or 'none'}")
+    rec = load_record(tpl.name)
+    if not rec:
+        raise SystemExit(f"Install the template first: ./hbt setup {tpl.name}")
+    name, channel, folder_rel = desk_names(desk, a.name)
+    env = hermes_home() / "profiles" / name / ".env"
+
+    if a.tokens:
+        if name not in rec["profiles"]:
+            raise SystemExit(f"Add the desk first: ./hbt desk {tpl.name} {desk.key} --name {a.name} "
+                             f"--channel {channel}=<ID> --guest <ID>")
+        bot, app = ask_tokens(f"{desk.title} ({a.name})", name)
+        set_env_values(env, {"SLACK_BOT_TOKEN": bot, "SLACK_APP_TOKEN": app}, a.dry_run)
+        say("Saved. The desk bot connects when the gateway next scans profiles; if it has not answered in a few "
+            "minutes, restart the gateway once.")
+        return 0
+
+    reason = docker_rootless()
+    if reason:
+        raise SystemExit(f"Desks serve people outside your business, so they run only inside rootless Docker. {reason} "
+                         "See the README Desks section.")
+    cid = parse_channels(a.channel).get(channel)
+    if not cid:
+        raise SystemExit(f"Give this desk's own Slack channel: --channel {channel}=C0123ABCD")
+    guests = parse_guests(a.guest)
+    if not guests:
+        raise SystemExit("Name at least one guest: --guest U0123ABCD")
+    r = Runner(a.hermes, a.dry_run, a.verbose)
+    preflight(r)
+    folder = Path(rec["workspace"]) / folder_rel
+    say(f"Adding {desk.title} for {a.name} ({name}) {'dry run' if a.dry_run else 'live'}: folder {folder}, "
+        f"channel {cid}, {len(guests)} guest(s)")
+    if not a.dry_run:
+        for d in desk.dirs:
+            (folder / d).mkdir(parents=True, exist_ok=True)
+        for fname, text in desk.starter_files.items():
+            if not (folder / fname).exists():  # the brief is the owner's once written
+                (folder / fname).write_text(text, encoding="utf-8")
+    if name not in rec["profiles"]:
+        if profile_is_live(name):
+            raise SystemExit(f"A profile named {name} already exists and hbt did not create it. Nothing was changed.")
+        src = stage_distribution(tpl, desk, name) if not a.dry_run else tpl.path / "roles" / desk.key
+        clear_deleted_marker(name, record_dir(tpl.name) / "backups", a.dry_run)
+        r.hermes_cmd("profile", "install", str(src), "--name", name, "-y")
+        if not a.dry_run:
+            rec["profiles"].append(name)
+            save_record(tpl.name, rec)
+    sets = desk_config(folder, cid)
+    sets.update({f"model.{k}": v for k, v in read_main_model(hermes_home() / "config.yaml").items()})
+    for k, v in sets.items():
+        r.hermes_cmd("config", "set", k, v, profile=name)
+    # The home channel is the desk's own channel: it silences Hermes's "no home channel" notice to guests.
+    set_env_values(env, {"SLACK_ALLOWED_USERS": ",".join(guests), "SLACK_HOME_CHANNEL": cid}, a.dry_run)
+    manifest = write_manifest(r, tpl, f"{desk.title} {a.name}", name, "--no-assistant") if not a.dry_run else ""
+    if not a.dry_run:
+        rec.setdefault("desks", {})[name] = {"desk": desk.key, "person": a.name, "channel": cid, "folder": folder_rel,
+                                             "guests": guests, "updated_at": now_iso()}
+        save_record(tpl.name, rec)
+    say("Done." if not a.dry_run else "Dry run complete. Nothing was changed.")
+    if not read_env_value(env, "SLACK_BOT_TOKEN"):
+        say("\nNext steps for the owner:")
+        say(f"  1. api.slack.com/apps > Create New App > From a manifest > paste {manifest}. Install it to the workspace.")
+        say("     Then Basic Information > App-Level Tokens > generate one with connections:write.")
+        say(f"  2. Save both tokens with hidden input (never paste them into a chat): "
+            f"./hbt desk {tpl.name} {desk.key} --name {a.name} --tokens")
+    say(f"  Invite the desk bot to #{channel}, and fill in {folder / 'brief.md'}. {a.name} can see only that folder.")
     return 0
 
 
@@ -720,6 +1275,8 @@ def cmd_uninstall(a: argparse.Namespace) -> int:
     say(f"  profiles: {', '.join(rec['profiles']) or 'none'}")
     say(f"  workspace {rec['workspace']}: {'DELETE' if a.delete_workspace else 'kept'}")
     say(f"  memory accounts {', '.join(rec['memory'].get('accounts', [])) or 'none'}: kept (see README to delete them)")
+    if rec.get("bots"):
+        say("  Slack apps: kept. Delete them at api.slack.com/apps if you no longer need them.")
     if not a.yes and not a.dry_run:
         if input("Proceed? [y/N] ").strip().lower() not in ("y", "yes"):
             say("Cancelled.")
@@ -730,7 +1287,7 @@ def cmd_uninstall(a: argparse.Namespace) -> int:
             r.hermes_cmd("profile", "delete", name, "-y")
     if rec.get("board"):
         # Archives the board (recoverable under kanban/boards/_archived); tasks are never hard-deleted by us.
-        out = r.hermes_cmd("kanban", "boards", "rm", rec["board"], check=False)
+        r.hermes_cmd("kanban", "boards", "rm", rec["board"], check=False)
         say(f"  board {rec['board']}: archived" if not a.dry_run else "")
     if a.delete_workspace:
         say(f"  delete {rec['workspace']}")
@@ -740,7 +1297,7 @@ def cmd_uninstall(a: argparse.Namespace) -> int:
         shutil.rmtree(record_dir(a.template) / "dist", ignore_errors=True)
         done = record_dir(a.template) / f"record.uninstalled.{_dt.datetime.now():%Y%m%d-%H%M%S}.json"
         os.replace(record_dir(a.template) / "record.json", done)
-    say("Done. Restart the gateway once so it stops serving the removed roles." if not a.dry_run else "Dry run complete. Nothing was changed.")
+    say("Done. Restart the gateway once so it stops serving the removed bots." if not a.dry_run else "Dry run complete. Nothing was changed.")
     return 0
 
 
@@ -749,17 +1306,19 @@ def cmd_status(a: argparse.Namespace) -> int:
     if not rec:
         say(f"{a.template}: not installed")
         return 1
+    tpl = load_template(a.template)
     say(f"{a.template} v{rec['version']} installed {rec['installed_at']}")
     for name in rec["profiles"]:
-        say(f"  {'ok     ' if (hermes_home() / 'profiles' / name).exists() else 'MISSING'} {name}")
+        key = next((x.key for x in tpl.roles if tpl.profile(x.key) == name), "")
+        slack = f"Slack <@{rec['bots'][key]}>" if key in (rec.get("bots") or {}) else ""
+        say(f"  {'ok     ' if (hermes_home() / 'profiles' / name).exists() else 'MISSING'} {name} {slack}")
     cfg = yaml.safe_load((hermes_home() / "config.yaml").read_text(encoding="utf-8")) or {}
-    gw = cfg.get("gateway") or {}
-    ours = [x for x in gw.get("profile_routes") or [] if str(x.get("name", "")).startswith(ROUTE_TAG)]
-    say(f"  routes: {len(ours)} of ours in the main config")
-    say(f"  gateway serves every profile: {'yes' if gw.get('multiplex_profiles') else 'not yet (restart the gateway once)'}")
-    say(f"  kanban dispatch in gateway: {(cfg.get('kanban') or {}).get('dispatch_in_gateway')}")
-    say(f"  kanban auto-review (must be False, the owner approves): {(cfg.get('kanban') or {}).get('review_dispatch', True)}")
+    kb = cfg.get("kanban") or {}
+    say(f"  kanban dispatch in gateway: {kb.get('dispatch_in_gateway')}")
+    say(f"  kanban auto-review (must be False, the owner approves): {kb.get('review_dispatch', True)}")
     say(f"  memory: {'OpenViking' if rec['memory']['enabled'] else 'built-in'}")
+    step, role = next_setup_step(tpl, rec)
+    say(f"  setup: {'complete' if step == 'done' else f'next step is {step}' + (f' ({role.title})' if role else '')}")
     return 0
 
 
@@ -775,13 +1334,19 @@ def build_parser() -> argparse.ArgumentParser:
         if confirm:
             sp.add_argument("-y", "--yes", action="store_true", help="do not ask for confirmation")
 
-    i = sub.add_parser("install", help="install a template")
+    g = sub.add_parser("setup", help="guided setup, one action at a time (start here)")
+    g.add_argument("template")
+    g.set_defaults(func=cmd_setup)
+
+    i = sub.add_parser("install", help="install a template (setup runs this for you)")
     common(i)
     i.add_argument("--roles", help="comma-separated role keys (default: all). Ops is always included.")
     i.add_argument("--workspace", help="shared folder for the business (default: $HERMES_HOME/workspaces/<template>)")
-    i.add_argument("--channel", action="append", default=[], metavar="NAME=ID", help="Slack channel ID, e.g. creator-video=C0123ABCD (repeat)")
+    i.add_argument("--projects", help="folder where Engineer builds projects (default: ~/projects)")
+    i.add_argument("--owner", help="your Slack member ID; the only person the bots answer (default: your main agent's first allowed user)")
+    i.add_argument("--channel", action="append", default=[], metavar="NAME=ID", help="Slack channel ID, e.g. media-video=C0123ABCD (repeat)")
     i.add_argument("--timezone", help="IANA timezone for alert times, e.g. America/Vancouver")
-    i.add_argument("--no-memory", action="store_true", help="skip OpenViking; roles use built-in memory")
+    i.add_argument("--no-memory", action="store_true", help="skip OpenViking; bots use built-in memory")
     i.add_argument("--require-memory", action="store_true", help="fail if OpenViking is not reachable")
     i.add_argument("--memory-endpoint", default="http://127.0.0.1:1933")
     i.add_argument("--memory-prefix", default=None, help="OpenViking account prefix (default: the template name)")
@@ -790,17 +1355,33 @@ def build_parser() -> argparse.ArgumentParser:
     i.add_argument("--memory-fix-hint", default="", help="one line telling the owner how to fix a memory outage")
     i.set_defaults(func=cmd_install)
 
+    c = sub.add_parser("connect", help="save a bot's Slack tokens (hidden) and find its channels")
+    common(c, confirm=False)
+    c.add_argument("role", help="bot key, e.g. cto")
+    c.add_argument("--tokens", action="store_true", help="ask for new tokens even if some are saved")
+    c.set_defaults(func=cmd_connect)
+
     u = sub.add_parser("update", help="re-apply template files after git pull")
     common(u, confirm=False)
     u.add_argument("--channel", action="append", default=[], metavar="NAME=ID")
     u.set_defaults(func=cmd_update)
+
+    k = sub.add_parser("desk", help="add or refresh one outside person's desk (needs rootless Docker)")
+    common(k, confirm=False)
+    k.add_argument("desk", help="desk key, e.g. desk-editor")
+    k.add_argument("--name", required=True, help="the person's short name, e.g. sam; gives desk-editor-sam and #ext-editor-sam")
+    k.add_argument("--channel", action="append", default=[], metavar="NAME=ID", help="the desk's own Slack channel")
+    k.add_argument("--guest", action="append", default=[], metavar="USER_ID",
+                   help="Slack member ID allowed to use the desk (repeat; replaces the current list)")
+    k.add_argument("--tokens", action="store_true", help="save the desk bot's Slack tokens (hidden prompt)")
+    k.set_defaults(func=cmd_desk)
 
     x = sub.add_parser("uninstall", help="remove what install created")
     common(x)
     x.add_argument("--delete-workspace", action="store_true", help="also delete the business folder (cannot be undone)")
     x.set_defaults(func=cmd_uninstall)
 
-    s = sub.add_parser("status", help="show install state")
+    s = sub.add_parser("status", help="show install state and the next setup step")
     s.add_argument("template")
     s.set_defaults(func=cmd_status)
     return p

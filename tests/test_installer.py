@@ -34,14 +34,14 @@ class TemplateShape(unittest.TestCase):
         self.tpl = hbt.load_template("creator")
 
     def test_every_role_has_a_distribution_and_soul(self):
-        for r in self.tpl.roles:
+        for r in self.tpl.roles + self.tpl.desks:
             d = TPL / "roles" / r.key
             self.assertTrue((d / "distribution.yaml").is_file(), r.key)
             self.assertTrue((d / "SOUL.md").is_file(), r.key)
 
     def test_manifest_names_match_profile_names(self):
         import yaml
-        for r in self.tpl.roles:
+        for r in self.tpl.roles + self.tpl.desks:
             m = yaml.safe_load((TPL / "roles" / r.key / "distribution.yaml").read_text())
             self.assertEqual(m["name"], self.tpl.profile(r.key))
 
@@ -53,7 +53,10 @@ class TemplateShape(unittest.TestCase):
             m = re.search(r"^name: (\S+)$", text, re.M)
             self.assertIsNotNone(m, skill)
             self.assertEqual(m.group(1), skill.parent.name)
-            self.assertTrue(m.group(1).startswith(f"creator-{role}-"), skill)
+            # Ops playbooks are creator-ops-*; the lead's are named by workstream (creator-video-*, ...).
+            self.assertTrue(m.group(1).startswith("creator-ops-" if role == "ops" else "creator-"), skill)
+            if role != "ops":
+                self.assertFalse(m.group(1).startswith("creator-ops-"), skill)
             self.assertIn("## Done when", text, skill)
 
     def test_job_skills_exist_in_ops(self):
@@ -78,10 +81,24 @@ class TemplateShape(unittest.TestCase):
                     self.assertNotIn(b, text, f"{b!r} in {f}")
 
     def test_ops_is_always_selected(self):
-        roles = hbt.select_roles(self.tpl, "video")
-        self.assertEqual({r.key for r in roles}, {"video", "ops"})
+        roles = hbt.select_roles(self.tpl, "cto")
+        self.assertEqual({r.key for r in roles}, {"cto", "ops"})
         with self.assertRaises(SystemExit):
-            hbt.select_roles(self.tpl, "video,nope")
+            hbt.select_roles(self.tpl, "cto,nope")
+
+    def test_the_template_is_the_org_chart(self):
+        """Q28: Creative Director, CTO and Engineer each get a Slack app; Ops has none; plain profile names."""
+        keys = [r.key for r in self.tpl.roles]
+        self.assertEqual(keys, ["creative-director", "cto", "engineer", "ops"])
+        self.assertEqual([self.tpl.profile(k) for k in keys], keys)
+        by = {r.key: r for r in self.tpl.roles}
+        self.assertEqual(by["cto"].peers, ["engineer"])
+        self.assertEqual(by["engineer"].peers, ["cto"])
+        self.assertTrue(by["engineer"].takes_cards)
+        self.assertIn("kanban", by["cto"].slack_toolsets)
+        self.assertEqual(len(list(TPL.glob("roles/creative-director/skills/*/SKILL.md"))), 24)
+        channels = [c for r in self.tpl.roles for c in r.channels]
+        self.assertEqual(len(channels), len(set(channels)), "two bots answering in one channel would double-reply")
 
 
 class Workspace(unittest.TestCase):
@@ -91,22 +108,36 @@ class Workspace(unittest.TestCase):
             ws = Path(d) / "ws"
             first = hbt.build_workspace(tpl, tpl.roles, ws, {}, dry=False)
             self.assertTrue((ws / "canon" / "business.md").is_file())
-            self.assertTrue((ws / "video" / "AGENTS.md").is_file())
+            self.assertTrue((ws / "media" / "AGENTS.md").is_file())
+            self.assertTrue((ws / "media" / "video" / "episodes" / "active").is_dir())
             (ws / "canon" / "business.md").write_text("OWNER EDIT")
-            (ws / "video" / "topic-queue.md").write_text("OWNER QUEUE")
+            (ws / "media" / "video" / "topic-queue.md").write_text("OWNER QUEUE")
+            (ws / "media" / "AGENTS.md").write_text("stale")
             second = hbt.build_workspace(tpl, tpl.roles, ws, {}, dry=False)
             self.assertEqual((ws / "canon" / "business.md").read_text(), "OWNER EDIT")
-            self.assertEqual((ws / "video" / "topic-queue.md").read_text(), "OWNER QUEUE")
+            self.assertEqual((ws / "media" / "video" / "topic-queue.md").read_text(), "OWNER QUEUE")
             self.assertTrue(all(a.startswith("update") for a in second), second)
             self.assertGreater(len(first), len(second))
 
     def test_role_agents_lists_checks_and_roster(self):
         tpl = hbt.load_template("creator")
-        video = next(r for r in tpl.roles if r.key == "video")
-        text = hbt.render_role_agents(tpl, video, tpl.roles, Path("/ws"), {"creator-video": "C0ABCDEFG"})
+        cd = next(r for r in tpl.roles if r.key == "creative-director")
+        text = hbt.render_role_agents(tpl, cd, tpl.roles, Path("/ws"), {"media-video": "C0ABCDEFG"})
         self.assertIn("topic queue was updated in the last 35 days", text)
-        self.assertIn("`creator-partnerships`", text)
+        self.assertIn("`engineer`", text)
         self.assertIn("C0ABCDEFG", text)
+
+    def test_build_leads_see_mentions_and_the_projects_folder(self):
+        """CTO hands off by @mention and by card into <projects>/<project>; both come from its AGENTS.md."""
+        tpl = hbt.load_template("creator")
+        cto = next(r for r in tpl.roles if r.key == "cto")
+        text = hbt.render_role_agents(tpl, cto, tpl.roles, Path("/ws"), {"build-engineering": "C0ENG1234"},
+                                      bots={"engineer": "U0ENG1234"}, projects="/srv/projects")
+        self.assertIn("`<@U0ENG1234>`", text)
+        self.assertIn("#build-engineering (C0ENG1234)", text)
+        self.assertIn("`/srv/projects`", text)
+        cd = next(r for r in tpl.roles if r.key == "creative-director")
+        self.assertNotIn("Projects folder", hbt.render_role_agents(tpl, cd, tpl.roles, Path("/ws"), {}, projects="/p"))
 
     def test_dry_run_writes_nothing(self):
         tpl = hbt.load_template("creator")
@@ -229,6 +260,121 @@ class Routes(unittest.TestCase):
         for bad in (["creator-video"], ["creator-video=general"]):
             with self.assertRaises(SystemExit):
                 hbt.parse_channels(bad)
+
+
+class SlackAndCards(unittest.TestCase):
+    """The per-bot Slack settings and card runners the template was proven with (Q27, Q28)."""
+
+    def setUp(self):
+        self.tpl = hbt.load_template("creator")
+        self.by = {r.key: r for r in self.tpl.roles}
+
+    def test_a_bot_answers_its_own_channels_and_only_its_owner(self):
+        chans = {"media-video": "C1", "media-edit": "C2", "build-architect": "C3"}
+        cfg, env = hbt.slack_settings(self.by["creative-director"], chans, "U0OWNER1", {})
+        self.assertEqual(cfg["slack.free_response_channels"], "C1,C2")
+        self.assertEqual(cfg["slack.ignore_other_user_mentions"], "true")
+        self.assertNotIn("slack.allow_bots", cfg)  # no peers: other bots are ignored
+        self.assertEqual(env, {"SLACK_ALLOWED_USERS": "U0OWNER1", "SLACK_HOME_CHANNEL": "C1"})
+
+    def test_peers_hear_each_other_only_by_mention(self):
+        cfg, env = hbt.slack_settings(self.by["cto"], {"build-architect": "C3"}, "U0OWNER1", {"engineer": "U0ENG1234"})
+        self.assertEqual(cfg["slack.allow_bots"], "mentions")
+        self.assertEqual(cfg["slack.strict_mention"], "true")  # a thread follow-up wakes only the bot mentioned
+        self.assertEqual(env["SLACK_ALLOWED_USERS"], "U0OWNER1,U0ENG1234")
+        cfg, env = hbt.slack_settings(self.by["cto"], {}, "U0OWNER1", {})  # before Engineer is connected
+        self.assertEqual(env, {"SLACK_ALLOWED_USERS": "U0OWNER1"})
+        self.assertNotIn("slack.free_response_channels", cfg)
+
+    def test_card_runners_never_narrow_an_open_board(self):
+        self.assertIsNone(hbt.card_takers(hbt._MISSING, ["engineer"]))  # absent: every profile already runs
+        self.assertIsNone(hbt.card_takers(["engineer", "x"], ["engineer"]))
+        self.assertEqual(hbt.card_takers(["x"], ["engineer"]), ["x", "engineer"])
+        self.assertEqual(hbt.card_takers("x, y", ["y", "engineer"]), ["x", "y", "engineer"])
+
+    def test_card_runner_list_is_restored_on_uninstall(self):
+        import yaml
+        with tempfile.TemporaryDirectory() as d:
+            cfg = Path(d) / "config.yaml"
+            original = "kanban:\n  dispatch_in_gateway: true\n  review_dispatch: false\n  dispatch_profiles:\n    - mine\n"
+            cfg.write_text(original)
+            ch = hbt.edit_main_config(cfg, [], dispatch=True, dry=False, backup_dir=Path(d) / "bk",
+                                      card_profiles=["creative-director", "engineer"])
+            self.assertEqual(yaml.safe_load(cfg.read_text())["kanban"]["dispatch_profiles"],
+                             ["mine", "creative-director", "engineer"])
+            self.assertEqual(ch["routes_added"], [])
+            self.assertNotIn("gateway", yaml.safe_load(cfg.read_text()))  # no routes, no gateway section
+            hbt.revert_main_config(cfg, {"main_config": ch}, dry=False)
+            self.assertEqual(yaml.safe_load(cfg.read_text()), yaml.safe_load(original))
+
+
+class GuidedSetup(unittest.TestCase):
+    """Setup works out the one next action from what is already true, so it can stop and resume anywhere."""
+
+    def test_steps_come_one_at_a_time_in_order(self):
+        tpl = hbt.load_template("creator")
+        self.assertEqual(hbt.next_setup_step(tpl, None), ("install", None))
+        rec = {"profiles": ["creative-director", "cto", "engineer", "ops"], "bots": {}, "setup": {}}
+        seen = []
+        for _ in range(20):
+            step, role = hbt.next_setup_step(tpl, rec)
+            seen.append(step + (f":{role.key}" if role else ""))
+            if step == "done":
+                break
+            if step == "connect":
+                rec["bots"][role.key] = "U0" + role.key.upper()[:6].replace("-", "X")
+            elif step == "channels":
+                rec["setup"].setdefault("channels_ok", []).append(role.key)
+            elif step == "system-channel":
+                rec["setup"]["system_channel_ok"] = True
+            elif step == "restart":
+                rec["setup"]["restarted"] = "now"
+            elif step == "test":
+                rec["setup"].setdefault("tested", []).append(role.key)
+            elif step == "first-card":
+                rec["setup"]["first_card"] = "t_1"
+        self.assertEqual(seen, [
+            "connect:creative-director", "channels:creative-director", "connect:cto", "channels:cto",
+            "connect:engineer", "channels:engineer", "system-channel", "restart",
+            "test:creative-director", "test:cto", "test:engineer", "first-card:engineer", "done"])
+
+    def test_one_desk_per_editor(self):
+        tpl = hbt.load_template("creator")
+        desk = tpl.desks[0]
+        self.assertEqual(hbt.desk_names(desk, "sam"), ("desk-editor-sam", "ext-editor-sam", "desks/editor-sam"))
+        for bad in ("Sam", "sam lee", "", "../x"):
+            with self.assertRaises(SystemExit):
+                hbt.desk_names(desk, bad)
+
+
+class Desks(unittest.TestCase):
+    """A desk answers people outside the business. These pin what it can reach (Q20, Q26)."""
+
+    def test_desk_sees_only_its_folder_offline_with_file_tools_only(self):
+        import json
+        cfg = hbt.desk_config(Path("/srv/biz/desks/editor"), "C0DESK123")
+        self.assertEqual(json.loads(cfg["platform_toolsets.slack"]), ["file"])
+        self.assertEqual(cfg["terminal.backend"], "docker")
+        self.assertEqual(json.loads(cfg["terminal.docker_volumes"]), ["/srv/biz/desks/editor:/workspace"])
+        self.assertEqual(cfg["terminal.docker_mount_cwd_to_workspace"], "false")
+        self.assertEqual(cfg["terminal.docker_network"], "false")
+        self.assertEqual(cfg["memory.memory_enabled"], "false")
+        self.assertEqual(cfg["slack.allowed_channels"], "C0DESK123")
+        self.assertEqual(cfg["slack.unauthorized_dm_behavior"], "ignore")
+        self.assertEqual(json.loads(cfg["slack.allow_admin_from"]), ["nobody"])
+
+    def test_desk_folders_are_outside_every_role_folder(self):
+        tpl = hbt.load_template("creator")
+        self.assertTrue(tpl.desks)
+        for d in tpl.desks:
+            for r in tpl.roles:
+                self.assertFalse(d.folder == r.folder or d.folder.startswith(r.folder + "/"), (d.key, r.key))
+
+    def test_guest_ids_are_checked(self):
+        self.assertEqual(hbt.parse_guests(["U0ABCDEF1", " W0ABCDEF2 "]), ["U0ABCDEF1", "W0ABCDEF2"])
+        for bad in (["@editor"], ["C0ABCDEF1"], ["u0abcdef1"]):
+            with self.assertRaises(SystemExit):
+                hbt.parse_guests(bad)
 
 
 class MemoryWatch(unittest.TestCase):

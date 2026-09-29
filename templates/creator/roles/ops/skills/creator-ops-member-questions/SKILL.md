@@ -13,7 +13,7 @@ metadata:
 
 ## Steps
 1. Find the newest member-question export in incoming/questions/.
-2. Create a Kanban card for the Community role (question digest) with the export path in the body.
+2. Create a Kanban card for the Creative Director (Community workstream question digest), assigned to `creative-director` with the export path in the body.
 
 ## Done when
 The card exists, or the reply says no new export was found.
