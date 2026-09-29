@@ -1,8 +1,9 @@
 # Creator + Education template. The installer reads this file.
 # v0.2 mirrors the setup it was built from: one lead per department, each bot its own Slack app.
+# v0.3: leads hand work to each other by mention (peers), and hbt check finds drift between the bots.
 name: creator
 title: Creator + Education
-version: 0.2.0
+version: 0.3.0
 workspace_dir: creator
 system_channel: agents-report
 
@@ -14,6 +15,7 @@ roles:
     # First channel is the bot's home. The bot answers in all of them without an @mention.
     channels: [media-video, media-edit, media-newsletter, marketing-distribution]
     folder: media
+    peers: [cto]          # hands build work to CTO by mention, and takes content work from it
     takes_cards: true     # Ops hands it cards (comment and member-question digests)
     reads: [canon, ops/incoming, desks]
     dirs: [video/episodes/active, video/episodes/archived, editing/active, editing/archived,
@@ -51,7 +53,7 @@ roles:
     folder: build
     reads: [canon]
     dirs: [plans]
-    peers: [engineer]     # the two bots may @mention each other
+    peers: [engineer, creative-director]  # bots it may @mention and hear from
     slack_toolsets: [kanban]  # added to the bot's Slack tools, so it can create cards
     checks:
       - No card assigned to engineer has been blocked for more than 24 hours.
@@ -66,6 +68,7 @@ roles:
     dirs: [notes]
     peers: [cto]
     takes_cards: true     # runs cards in the background, so memory saves cannot wait for approval
+    builds: true          # works in the projects folder; setup's first card goes to it
 
   - key: ops
     title: Ops
@@ -122,6 +125,10 @@ jobs:
   - key: update-check
     schedule: "0 9 * * 1"
     script: hbt_update_check.py
+    no_agent: true
+  - key: drift-check      # hbt check: posts only when the gaps change, and weekly while they stay open
+    schedule: "0 8 * * *"
+    script: hbt_drift_check.py
     no_agent: true
   - key: comment-pull
     schedule: "0 9 1 * *"

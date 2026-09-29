@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 (2026-09-29)
+
+Fixes the gaps found by running the same setup for real: bots that could not hand each other work, copies that drifted apart, and nothing that noticed.
+
+- The Creative Director and CTO are now peers: each hears the other by @mention, and setup invites each bot into the channels of the bots that hand it work. A handoff is an @mention in the sender's thread with the whole brief. Before, only CTO and Engineer could reach each other.
+- New `./hbt check`: finds drift between the bots (owner profile, playbooks, tool sign-ins, handoff wiring, failing jobs, passed offer dates) and prints each gap with its fix. Ops runs it every morning and posts only when the gaps change.
+- New `canon/offers.md`: what you sell, dates coming up, and replaced decisions. The Creative Director keeps it current with your approval; the canon interview fills it in.
+- `./hbt update` now adds scheduled jobs the template gained since your install.
+
 ## 0.2.0 (2026-09-29)
 
 The Creator template is now a working setup copied as is: a lead per department, one Slack app per bot, and a guided setup.

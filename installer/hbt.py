@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as _dt
+import hashlib
 import json
 import os
 import re
@@ -96,6 +97,7 @@ class Role:
     peers: list[str] = field(default_factory=list)          # bots this one may @mention, and hear from
     slack_toolsets: list[str] = field(default_factory=list)  # added to the bot's Slack tools
     takes_cards: bool = False                                # runs Kanban cards in the background
+    builds: bool = False                                     # builds projects in the projects folder
     section: str = ""
 
     @property
@@ -138,7 +140,7 @@ def load_template(name: str) -> Template:
                     channels=r.get("channels") or [r["channel"]], folder=r["folder"],
                     reads=r.get("reads", []), dirs=r.get("dirs", []), starter_files=r.get("starter_files", {}) or {},
                     checks=r.get("checks", []), peers=r.get("peers", []), slack_toolsets=r.get("slack_toolsets", []),
-                    takes_cards=bool(r.get("takes_cards")), section=r.get("section", ""))
+                    takes_cards=bool(r.get("takes_cards")), builds=bool(r.get("builds")), section=r.get("section", ""))
     roles = [to_role(r) for r in spec["roles"]]
     desks = [to_role(r) for r in spec.get("desks") or []]
     for r in roles + desks:
@@ -181,7 +183,7 @@ def render_role_agents(tpl: Template, role: Role, roles: list[Role], ws: Path, c
     reads = ", ".join(f"`{ws / p}`" if p != "all" else "every role folder" for p in role.reads) or "none"
     checks = "\n".join(f"- {c}" for c in role.checks) or "- None. This role has no nightly checks of its own."
     build = ""
-    if role.peers and projects:
+    if projects and (role.builds or "kanban" in role.slack_toolsets):  # the builder, and the lead that hands it cards
         build = (f"- Projects folder: `{projects}`. Each project gets its own subfolder, named in lowercase with "
                  f"hyphens; build work happens only there.\n")
     return (
@@ -342,6 +344,13 @@ def slack_settings(role: Role, channels: dict[str, str], owner: str, bots: dict[
     return cfg, env
 
 
+def peer_channels(tpl: Template, role: Role, profiles: list[str] | None = None) -> list[str]:
+    """Channels of the (installed) bots that hand this one work. Handoffs are a mention in the sender's
+    own thread and a bot only hears channels it is in, so the receiver must be a member of each."""
+    senders = [x for x in tpl.roles if role.key in x.peers and (profiles is None or tpl.profile(x.key) in profiles)]
+    return [c for x in senders for c in x.channels if c not in role.channels]
+
+
 def card_takers(existing, wanted: list[str]):
     """New ``kanban.dispatch_profiles`` value, or None to leave it alone.
 
@@ -354,6 +363,13 @@ def card_takers(existing, wanted: list[str]):
         [n.strip() for n in str(existing).split(",") if n.strip()]
     merged = names + [w for w in wanted if w not in names]
     return merged if merged != names else None
+
+
+def new_jobs(tpl: Template, rec: dict) -> list[dict]:
+    """Template jobs this install does not have yet. A job the owner removed stays in the record, so it is not re-added."""
+    have = {j.get("key") for j in rec.get("jobs", [])}
+    memory = bool((rec.get("memory") or {}).get("enabled"))
+    return [j for j in tpl.jobs if j["key"] not in have and not (j.get("requires") == "openviking" and not memory)]
 
 
 def job_args(tpl, job: dict, ops_role, target: str, workdir: Path) -> list[str]:
@@ -860,7 +876,8 @@ def cmd_connect(a: argparse.Namespace) -> int:
                              f"Save new ones: ./hbt connect {tpl.name} {role.key} --tokens")
     rec.setdefault("bots", {})[role.key] = me["user_id"]
     rec.setdefault("channels", {})
-    wanted = role.channels + [tpl.system_channel]
+    handoff = peer_channels(tpl, role, rec["profiles"])
+    wanted = role.channels + handoff + [tpl.system_channel]
     found = find_channels(token, wanted)
     for ch, info in found.items():
         rec["channels"][ch] = info["id"]
@@ -873,9 +890,11 @@ def cmd_connect(a: argparse.Namespace) -> int:
     wire_system_channel(r, tpl, rec, a.dry_run)
     if not a.dry_run:
         save_record(tpl.name, rec)
-    missing = [c for c in role.channels if c not in found]
-    outside = [c for c in role.channels if c in found and not found[c]["member"]]
+    missing = [c for c in role.channels + handoff if c not in found]
+    outside = [c for c in role.channels + handoff if c in found and not found[c]["member"]]
     say(f"{role.title} is connected to Slack as <@{me['user_id']}>.")
+    if any(c in handoff for c in outside):
+        say(f"  {role.title} also joins the channels of the bots that hand it work, so their mentions reach it.")
     if missing:
         say(f"  Channels not found: {', '.join('#' + c for c in missing)}. Create them in Slack. "
             f"If one exists but is private, invite {role.title} to it: a bot cannot see a private channel it is not in.")
@@ -905,7 +924,7 @@ def next_setup_step(tpl: Template, rec: dict | None) -> tuple[str, Role | None]:
     for role in bots:
         if role.key not in (done.get("tested") or []):
             return "test", role
-    builder = next((x for x in bots if x.takes_cards and x.peers), None)
+    builder = next((x for x in bots if x.builds), None)
     if builder and not done.get("first_card"):
         return "first-card", builder
     return "done", None
@@ -1018,7 +1037,7 @@ def cmd_setup(a: argparse.Namespace) -> int:
                 say(f"! No answer from {role.title} yet. Check `hermes gateway status`, then try the step again.")
 
         elif step == "first-card":
-            lead = next(x for x in tpl.roles if role.key in x.peers)
+            lead = next(x for x in tpl.roles if role.key in x.peers and "kanban" in x.slack_toolsets)
             since = time.time()
             _wait(f"Step: your first build. In #{lead.channel}, post:\n"
                   f"  Create a new project called \"hello world\". Plan a tiny hello world script and execute.\n"
@@ -1045,6 +1064,8 @@ def cmd_setup(a: argparse.Namespace) -> int:
                     f"--channel {d.channel}-<editor>=<channel ID>")
             say(f"Fill in your business details: ask your main agent to run the interview in "
                 f"{Path(rec['workspace']) / 'canon' / 'INTERVIEW.md'}")
+            say(f"Ops runs ./hbt check {tpl.name} every morning and posts any gap in #{tpl.system_channel} "
+                f"with its fix. Run it yourself any time.")
             return 0
 
 
@@ -1120,6 +1141,14 @@ def cmd_update(a: argparse.Namespace) -> int:
         for j in rec.get("jobs", []):
             if j.get("id") and j.get("key") in agent_keys:  # older installs lacked --workdir
                 r.hermes_cmd("cron", "edit", j["id"], "--workdir", str(ws / ops.folder), profile=j["profile"])
+        for job in new_jobs(tpl, rec):  # jobs the template gained since this install (v0.3: drift-check)
+            cid = (rec.get("channels") or {}).get(tpl.system_channel)
+            out = r.hermes_cmd(*job_args(tpl, job, ops, f"slack:{cid}" if cid else "local", ws / ops.folder),
+                               profile=tpl.profile(ops.key))
+            m = re.search(r"\b([0-9a-f]{12})\b", out or "")
+            rec.setdefault("jobs", []).append({"key": job["key"], "id": m.group(1) if m else None,
+                                               "profile": tpl.profile(ops.key)})
+            say(f"  new scheduled job: {job['key']}")
     wire_system_channel(r, tpl, rec, a.dry_run)
     if not a.dry_run:
         rec["version"], rec["updated_at"] = tpl.version, now_iso()
@@ -1322,6 +1351,135 @@ def cmd_status(a: argparse.Namespace) -> int:
     return 0
 
 
+# --------------------------------------------------------------------------- drift check
+
+def _sha(path: Path) -> str | None:
+    return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
+
+
+def _profile_cfg(name: str) -> dict:
+    f = hermes_home() / "profiles" / name / "config.yaml"
+    return (yaml.safe_load(f.read_text(encoding="utf-8")) or {}) if f.is_file() else {}
+
+
+def _truthy(v) -> bool:
+    return str(v).strip().lower() in ("true", "yes", "on", "1")
+
+
+def check_gaps(tpl: Template, rec: dict, live: bool = True) -> list[str]:
+    """Drift between what the template set up and what is true now, one line per gap with its fix.
+    Each check is a gap that broke a real install: copies drifting apart, a handoff nobody hears,
+    a tool that lost its sign-in, a failing job. ``live`` adds the Slack membership checks."""
+    gaps: list[str] = []
+    home = hermes_home()
+    installed = [x for x in tpl.roles if tpl.profile(x.key) in rec.get("profiles", [])]
+    bots = [x for x in installed if x.kind != "ops"]
+    ids, channels = rec.get("bots") or {}, rec.get("channels") or {}
+    for x in installed:
+        if not (home / "profiles" / tpl.profile(x.key)).is_dir():
+            gaps.append(f"{tpl.profile(x.key)}: profile is missing. Fix: ./hbt update {tpl.name}")
+    # 1. The owner profile: every bot answers from the same USER.md.
+    users = {x.key: _sha(home / "profiles" / tpl.profile(x.key) / "memories" / "USER.md") for x in bots}
+    if len(set(users.values())) > 1:  # a missing file counts: that bot knows nothing about you
+        gaps.append("The bots have different USER.md files, so they describe you differently. "
+                    "Fix: copy the one you want to every bot's memories/USER.md.")
+    # 2. Template playbooks: each role still has the version the template shipped.
+    for x in installed:
+        src = tpl.path / "roles" / x.key / "skills"
+        stale = sorted(f.parent.name for f in src.rglob("SKILL.md")
+                       if _sha(f) != _sha(home / "profiles" / tpl.profile(x.key) / "skills" / f.relative_to(src)))
+        if stale:
+            gaps.append(f"{tpl.profile(x.key)}: {len(stale)} playbook(s) differ from the template "
+                        f"({', '.join(stale[:3])}{'...' if len(stale) > 3 else ''}). Fix: ./hbt update {tpl.name}")
+    # 3. Sign-in tools: turned on but never signed in, or signed out since.
+    for x in installed:
+        name = tpl.profile(x.key)
+        prof = home / "profiles" / name
+        for server, sc in (_profile_cfg(name).get("mcp_servers") or {}).items():
+            sc = sc or {}
+            if sc.get("auth") != "oauth" or not _truthy(sc.get("enabled", True)):
+                continue
+            token = prof / "mcp-tokens" / f"{server}.json"
+            if not token.is_file():
+                gaps.append(f"{name}: {server} is on but not signed in. "
+                            f"Fix: hermes -p {name} mcp login {server}, or turn it off if this bot does not need it.")
+                continue
+            log = prof / "logs" / "agent.log"
+            if log.is_file() and log.stat().st_mtime > token.stat().st_mtime:
+                with log.open("rb") as fh:  # the tail is enough: a sign-in loss repeats on every connect attempt
+                    fh.seek(max(0, log.stat().st_size - 2_000_000))
+                    tail = fh.read().decode("utf-8", "replace")
+                if f"re-authenticate with `hermes mcp login {server}`" in tail:
+                    gaps.append(f"{name}: {server} lost its sign-in. Fix: hermes -p {name} mcp login {server}")
+    # 4. Handoffs: each bot hears its peers, wakes on their mentions, and is in their channels.
+    owner = rec.get("owner", "")
+    for x in bots:
+        name, prof = tpl.profile(x.key), home / "profiles" / tpl.profile(x.key)
+        allowed = {u.strip() for u in read_env_value(prof / ".env", "SLACK_ALLOWED_USERS").split(",")}
+        need = [(owner, "you")] + [(ids[s.key], s.title) for s in bots if x.key in s.peers and ids.get(s.key)]
+        deaf = [who for uid, who in need if uid and uid not in allowed]
+        if deaf:
+            gaps.append(f"{name}: ignores Slack messages from {', '.join(deaf)}. Fix: ./hbt update {tpl.name}")
+        slack = _profile_cfg(name).get("slack") or {}
+        if x.peers and (slack.get("allow_bots") != "mentions" or not _truthy(slack.get("strict_mention"))):
+            gaps.append(f"{name}: not set to wake on a peer's mention only. Fix: ./hbt update {tpl.name}")
+        token = read_env_value(prof / ".env", "SLACK_BOT_TOKEN")
+        wanted = [c for c in peer_channels(tpl, x, rec.get("profiles")) if c in channels]
+        if live and token and wanted and x.key in ids:
+            res = slack_api(token, "users.conversations", types="public_channel,private_channel", limit="1000")
+            if not res.get("ok"):
+                gaps.append(f"{name}: Slack check failed ({res.get('error')}). Fix: ./hbt connect {tpl.name} {x.key}")
+                continue
+            member = {c.get("id") for c in res.get("channels", [])}
+            for c in wanted:
+                if channels[c] not in member:
+                    gaps.append(f"{name}: not in #{c}, so handoffs there never reach it. Fix: /invite @{x.title} in #{c}")
+    # 5. Scheduled jobs: on, but the last run did not work.
+    for j in rec.get("jobs", []):
+        f = home / "profiles" / j["profile"] / "cron" / "jobs.json"
+        data = json.loads(f.read_text(encoding="utf-8")) if f.is_file() else []
+        for job in data.get("jobs", []) if isinstance(data, dict) else data:
+            if job.get("id") == j.get("id") and job.get("enabled", True) and job.get("state") != "paused" \
+                    and job.get("last_status") not in (None, "ok"):
+                gaps.append(f"{j['profile']}: scheduled job {j['key']} last run: {job['last_status']}. "
+                            f"Fix: hermes -p {j['profile']} cron runs {j['id']}")
+    # 6. Offers: a date in canon/offers.md that has passed means the file needs its outcome.
+    offers = Path(rec.get("workspace", "")) / "canon" / "offers.md"
+    if offers.is_file():
+        text = offers.read_text(encoding="utf-8")
+        upcoming = text.split("## Dates coming up", 1)[-1].split("\n## ", 1)[0] if "## Dates coming up" in text else ""
+        passed = sorted({d for d in re.findall(r"\b20\d\d-\d\d-\d\d\b", upcoming) if d < _dt.date.today().isoformat()})
+        if passed:
+            gaps.append(f"canon/offers.md: {', '.join(passed)} passed. Fix: ask {bots[0].title if bots else 'your lead'} "
+                        f"to record what happened and move it out of Dates coming up.")
+    return gaps
+
+
+def cmd_check(a: argparse.Namespace) -> int:
+    rec = load_record(a.template)
+    if not rec:
+        say(f"{a.template}: not installed")
+        return 1
+    tpl = load_template(a.template)
+    gaps = check_gaps(tpl, rec, live=not a.offline)
+    if a.quiet:  # Ops runs this on a schedule: say something only when the list changes, and weekly while open
+        state = record_dir(tpl.name) / "check-state.json"
+        key = hashlib.sha256("\n".join(gaps).encode()).hexdigest()
+        last = json.loads(state.read_text(encoding="utf-8")) if state.is_file() else {}
+        today = _dt.date.today().isoformat()
+        if not gaps or (last.get("key") == key and
+                        (_dt.date.fromisoformat(today) - _dt.date.fromisoformat(last.get("posted", today))).days < 7):
+            if not gaps and last:
+                state.write_text("{}\n", encoding="utf-8")
+            return 0
+        state.write_text(json.dumps({"key": key, "posted": today}) + "\n", encoding="utf-8")
+    if gaps:
+        say(f"{tpl.title} check: {len(gaps)} gap(s).\n" + "\n".join(f"- {g}" for g in gaps))
+    elif not a.quiet:
+        say(f"{tpl.title} check: no gaps.")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="hbt", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--hermes", default=os.environ.get("HBT_HERMES", "hermes"), help="hermes executable")
@@ -1333,6 +1491,12 @@ def build_parser() -> argparse.ArgumentParser:
         sp.add_argument("--dry-run", action="store_true", help="show what would change; change nothing")
         if confirm:
             sp.add_argument("-y", "--yes", action="store_true", help="do not ask for confirmation")
+
+    k = sub.add_parser("check", help="find drift between the bots (sign-ins, handoffs, copies, failing jobs)")
+    k.add_argument("template")
+    k.add_argument("--quiet", action="store_true", help="scheduled mode: print only when the gaps change")
+    k.add_argument("--offline", action="store_true", help="skip the Slack membership checks")
+    k.set_defaults(func=cmd_check)
 
     g = sub.add_parser("setup", help="guided setup, one action at a time (start here)")
     g.add_argument("template")

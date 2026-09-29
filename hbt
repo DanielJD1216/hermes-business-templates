@@ -3,6 +3,7 @@
 #   ./hbt setup creator            (start here: guided, one step at a time)
 #   ./hbt install creator --dry-run
 #   ./hbt connect creator cto      (save one bot's Slack tokens)
+#   ./hbt check creator            (find drift between the bots, with the fix for each gap)
 #   ./hbt status creator | ./hbt update creator | ./hbt uninstall creator
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

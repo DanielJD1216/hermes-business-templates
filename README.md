@@ -24,13 +24,14 @@ It copies a working creator business: one lead per department, the way a normal 
 
 Your own main agent (your assistant) is not installed or changed. Every bot drafts; nothing is published, sent, priced or signed without your `approve`.
 
-Also installed: a shared business folder with `canon/` (your business, voice, brand and standing rules, which only you edit) plus one folder per bot, and a Kanban board named `creator`.
+Also installed: a shared business folder with `canon/` (your business, offers, voice, brand and standing rules) plus one folder per bot, and a Kanban board named `creator`. Only you edit `canon/`, except `offers.md`: the Creative Director keeps it current and saves a change only after your `approve`.
 
 ## How the bots work together
 
 - Each bot answers in its own channels without an @mention, and stays quiet when you @mention a different bot there.
-- CTO and Engineer are invited to both build channels. They hear each other only when one @mentions the other, and a thread follow-up wakes only the bot you mentioned, so they never loop.
-- Say "Create a new project called hello world, plan it and build it" in `#build-architect`. The CTO writes the plan, creates a card for Engineer, and the result posts in `#build-engineering`.
+- Bots hand work to each other by @mentioning the other bot in the thread they are working in, with the whole brief in that message. A bot can only reply in its own thread, so setup invites each bot into the channels of the bots that hand it work: CTO into the Creative Director's channels and `#build-engineering`, the Creative Director and Engineer into `#build-architect`.
+- A bot hears another bot only when @mentioned, and a thread follow-up wakes only the bot you mentioned, so they never loop.
+- Say "Create a new project called hello world, plan it and build it" in `#build-architect`. The CTO writes the plan, creates a card for Engineer, and the result posts in `#build-engineering`. Ask the Creative Director for a landing page and it hands the build to the CTO the same way.
 
 ## Setup
 
@@ -52,6 +53,18 @@ Setup walks you through one action at a time and checks each one before the next
 
 Then ask your main agent to run the canon interview in `canon/INTERVIEW.md`. `./hbt status creator` shows what is installed and the next setup step.
 
+### Keeping the bots in step
+
+Each bot is a separate copy of settings, playbooks and permissions, and copies drift apart. `./hbt check creator` compares them and prints one line per gap with its fix:
+
+- a bot with a different `USER.md`, or playbooks that differ from the template;
+- a tool that is turned on but not signed in, or lost its sign-in;
+- a bot that does not hear another bot that hands it work, or is not in that bot's channel;
+- a scheduled job whose last run failed;
+- a date under "Dates coming up" in `canon/offers.md` that has passed.
+
+Ops runs it every morning and posts only when the gaps change, and once a week while they stay open.
+
 ### Desks for outside editors
 
 ```bash
@@ -71,19 +84,21 @@ All times follow your timezone.
 | Nightly review | 21:00 daily | Each bot's failed checks with the file or card behind them, or "All nightly checks passed." |
 | Memory watchdog | every 5 minutes | Only when memory goes down, every 6 hours while it stays down, and when it recovers. |
 | Update check | Mondays 09:00 | Only when a newer template version exists. |
+| Drift check | 08:00 daily | Only when `./hbt check` finds new gaps, and weekly while they stay open. |
 | Comment pull, member questions | paused | Resume once you drop exports into `ops/incoming/`. |
 
 ## What has been tested
 
 | Area | Result |
 |---|---|
-| Unit tests | 29 pass: template shape, config edits and exact restore, Slack settings, setup order, desk names. |
+| Unit tests | 38 pass: template shape, config edits and exact restore, Slack settings, setup order, desk names, and each drift check. |
+| v0.3 in a clean sandbox | Install, simulated connect, `./hbt check` clean; three deliberate breaks, each reported with its fix, and `./hbt update` restored the allowlist; the Ops drift job ran through Hermes cron, posted once, then stayed silent. |
 | Install in a clean sandbox | Passed on Hermes 0.21.5: 4 bots, workspace, board, 5 jobs, 3 Slack app files, the owner's config otherwise unchanged. |
 | Connect and guided setup | Passed in the sandbox against a simulated Slack: refused the main agent's token, a bad token and a reused token; caught a missing invite; resumed mid-way and ran to the end. |
 | Slack and card checks against a live workspace | Passed read-only: token check, channel lookup, spotting a bot's reply, and finding a finished card. |
 | The same bots, settings and CTO to Engineer card flow | Running daily on the setup this template was taken from. |
 
-**Not yet tested:** a full `./hbt setup` with real Slack apps from start to finish, cards on a separate `creator` board through a live gateway, a desk with long-term memory on, the two paused Ops jobs, a real memory outage, and any chat platform other than Slack. v0.1 installs cannot be updated to v0.2 in place: the bot names changed, so uninstall v0.1 first.
+**Not yet tested:** a full `./hbt setup` with real Slack apps from start to finish, a Creative Director to CTO handoff through a live gateway, the Slack membership part of `./hbt check` against a live workspace, cards on a separate `creator` board through a live gateway, a desk with long-term memory on, the two paused Ops jobs, a real memory outage, and any chat platform other than Slack. v0.1 installs cannot be updated to v0.2 in place: the bot names changed, so uninstall v0.1 first.
 
 ## Requirements
 

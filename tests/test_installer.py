@@ -92,13 +92,146 @@ class TemplateShape(unittest.TestCase):
         self.assertEqual(keys, ["creative-director", "cto", "engineer", "ops"])
         self.assertEqual([self.tpl.profile(k) for k in keys], keys)
         by = {r.key: r for r in self.tpl.roles}
-        self.assertEqual(by["cto"].peers, ["engineer"])
+        self.assertEqual(by["cto"].peers, ["engineer", "creative-director"])
         self.assertEqual(by["engineer"].peers, ["cto"])
+        self.assertEqual(by["creative-director"].peers, ["cto"])  # v0.3: content hands build work to CTO
         self.assertTrue(by["engineer"].takes_cards)
+        self.assertEqual([r.key for r in self.tpl.roles if r.builds], ["engineer"])
         self.assertIn("kanban", by["cto"].slack_toolsets)
         self.assertEqual(len(list(TPL.glob("roles/creative-director/skills/*/SKILL.md"))), 24)
         channels = [c for r in self.tpl.roles for c in r.channels]
         self.assertEqual(len(channels), len(set(channels)), "two bots answering in one channel would double-reply")
+
+
+class DriftCheck(unittest.TestCase):
+    """v0.3: hbt check finds the gaps that broke Daniel's own setup (2026-09-29)."""
+
+    def setUp(self):
+        self.tpl = hbt.load_template("creator")
+        self.tmp = tempfile.TemporaryDirectory()
+        self.home = Path(self.tmp.name)
+        self._old = hbt.os.environ.get("HERMES_HOME")
+        hbt.os.environ["HERMES_HOME"] = str(self.home)
+        ids = {"creative-director": "U0CD00001", "cto": "U0CTO0001", "engineer": "U0ENG0001"}
+        chans = {"media-video": "C1", "media-edit": "C2", "media-newsletter": "C3", "marketing-distribution": "C4",
+                 "build-architect": "C5", "build-engineering": "C6"}
+        self.rec = {"profiles": [self.tpl.profile(r.key) for r in self.tpl.roles], "bots": ids, "channels": chans,
+                    "owner": "U0OWNER01", "workspace": str(self.home / "ws"), "jobs": []}
+        for r in self.tpl.roles:
+            prof = self.home / "profiles" / self.tpl.profile(r.key)
+            (prof / "memories").mkdir(parents=True)
+            (prof / "memories" / "USER.md").write_text("owner profile")
+            src = TPL / "roles" / r.key / "skills"
+            for f in src.rglob("*"):
+                if f.is_file():
+                    dst = prof / "skills" / f.relative_to(src)
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    dst.write_bytes(f.read_bytes())
+            if r.kind == "ops":
+                continue
+            cfg, env = hbt.slack_settings(r, chans, "U0OWNER01", ids)
+            (prof / ".env").write_text("".join(f"{k}={v}\n" for k, v in env.items()))
+            slack = {k.split(".", 1)[1]: v for k, v in cfg.items()}
+            (prof / "config.yaml").write_text(hbt.yaml.safe_dump({"slack": slack}))
+
+    def tearDown(self):
+        if self._old is None:
+            hbt.os.environ.pop("HERMES_HOME", None)
+        else:
+            hbt.os.environ["HERMES_HOME"] = self._old
+        self.tmp.cleanup()
+
+    def gaps(self):
+        return hbt.check_gaps(self.tpl, self.rec, live=False)
+
+    def test_a_fresh_install_has_no_gaps(self):
+        self.assertEqual(self.gaps(), [])
+
+    def test_every_peer_is_heard(self):
+        """The live gap: CTO heard only Engineer, so a handoff from the Creative Director was ignored."""
+        cfg, env = hbt.slack_settings(self.tpl.roles[1], {}, "U0OWNER01", self.rec["bots"])
+        self.assertEqual(env["SLACK_ALLOWED_USERS"], "U0OWNER01,U0ENG0001,U0CD00001")
+        (self.home / "profiles" / "cto" / ".env").write_text("SLACK_ALLOWED_USERS=U0OWNER01,U0ENG0001\n")
+        self.assertIn("cto: ignores Slack messages from Creative Director. Fix: ./hbt update creator", self.gaps())
+
+    def test_receivers_join_their_senders_channels(self):
+        by = {r.key: r for r in self.tpl.roles}
+        self.assertEqual(hbt.peer_channels(self.tpl, by["cto"]),
+                         ["media-video", "media-edit", "media-newsletter", "marketing-distribution", "build-engineering"])
+        self.assertEqual(hbt.peer_channels(self.tpl, by["creative-director"]), ["build-architect"])
+        self.assertEqual(hbt.peer_channels(self.tpl, by["ops"]), [])
+        self.assertEqual(hbt.peer_channels(self.tpl, by["cto"], ["cto", "engineer", "ops"]), ["build-engineering"])
+
+    def test_update_adds_jobs_the_template_gained(self):
+        rec = {"jobs": [{"key": "morning-approvals"}, {"key": "nightly-review"}, {"key": "update-check"},
+                        {"key": "comment-pull"}, {"key": "member-questions"}], "memory": {"enabled": False}}
+        self.assertEqual([j["key"] for j in hbt.new_jobs(self.tpl, rec)], ["drift-check"])  # no memory watchdog
+        rec["jobs"].append({"key": "drift-check"})
+        self.assertEqual(hbt.new_jobs(self.tpl, rec), [])
+
+    def test_one_bot_without_the_owner_profile_is_a_gap(self):
+        (self.home / "profiles" / "engineer" / "memories" / "USER.md").unlink()
+        self.assertIn("different USER.md", "\n".join(self.gaps()))
+
+    def test_drifted_copies_and_missing_sign_ins_are_found(self):
+        (self.home / "profiles" / "cto" / "memories" / "USER.md").write_text("old positioning")
+        skill = next((self.home / "profiles" / "creative-director" / "skills").rglob("SKILL.md"))
+        skill.write_text(skill.read_text() + "\nlocal edit")
+        (self.home / "profiles" / "cto" / "config.yaml").write_text(hbt.yaml.safe_dump(
+            {"slack": {"allow_bots": "mentions", "strict_mention": True},
+             "mcp_servers": {"vidiq": {"auth": "oauth"}, "malloy": {"auth": "oauth", "enabled": False}}}))
+        gaps = "\n".join(self.gaps())
+        self.assertIn("different USER.md", gaps)
+        self.assertIn("creative-director: 1 playbook(s) differ", gaps)
+        self.assertIn("cto: vidiq is on but not signed in", gaps)
+        self.assertNotIn("malloy", gaps)  # turned off, so not a gap
+
+    def test_a_lost_sign_in_is_found(self):
+        prof = self.home / "profiles" / "creative-director"
+        cfg = hbt.yaml.safe_load((prof / "config.yaml").read_text())
+        cfg["mcp_servers"] = {"vidiq": {"auth": "oauth"}}
+        (prof / "config.yaml").write_text(hbt.yaml.safe_dump(cfg))
+        (prof / "mcp-tokens").mkdir()
+        (prof / "mcp-tokens" / "vidiq.json").write_text("{}")
+        (prof / "logs").mkdir()
+        log = prof / "logs" / "agent.log"
+        log.write_text("2026-09-29 13:00:00,000 WARNING x: re-authenticate with `hermes mcp login vidiq`\n")
+        old = (prof / "mcp-tokens" / "vidiq.json").stat().st_mtime - 60
+        hbt.os.utime(prof / "mcp-tokens" / "vidiq.json", (old, old))
+        self.assertIn("creative-director: vidiq lost its sign-in. Fix: hermes -p creative-director mcp login vidiq",
+                      self.gaps())
+
+    def test_failing_jobs_and_passed_offer_dates(self):
+        cron = self.home / "profiles" / "ops" / "cron"
+        cron.mkdir(parents=True)
+        (cron / "jobs.json").write_text(hbt.json.dumps({"jobs": [{"id": "abc123def456", "last_status": "error"}]}))
+        self.rec["jobs"] = [{"key": "nightly-review", "id": "abc123def456", "profile": "ops"}]
+        canon = self.home / "ws" / "canon"
+        canon.mkdir(parents=True)
+        (canon / "offers.md").write_text("# Offers\n\n## Dates coming up\n\n- 2020-01-01 webinar\n- 2999-01-01 launch\n"
+                                         "\n## Replaced decisions\n\n- 2019-05-05 old price\n")
+        gaps = "\n".join(self.gaps())
+        self.assertIn("ops: scheduled job nightly-review last run: error", gaps)
+        self.assertIn("canon/offers.md: 2020-01-01 passed", gaps)
+        self.assertNotIn("2999", gaps)
+        self.assertNotIn("2019-05-05", gaps)  # replaced decisions are history, not deadlines
+
+    def test_quiet_mode_posts_once_per_change(self):
+        (self.home / "profiles" / "cto" / "memories" / "USER.md").write_text("old")
+        hbt.record_dir("creator").mkdir(parents=True)
+        (hbt.record_dir("creator") / "install.json").write_text(hbt.json.dumps(self.rec))
+        args = hbt.build_parser().parse_args(["check", "creator", "--quiet", "--offline"])
+        orig_load = hbt.load_record
+        hbt.load_record = lambda name: self.rec
+        out = []
+        orig_say = hbt.say
+        hbt.say = out.append
+        try:
+            args.func(args)
+            args.func(args)
+        finally:
+            hbt.load_record, hbt.say = orig_load, orig_say
+        self.assertEqual(len(out), 1, "a second run with the same gaps stays quiet")
 
 
 class Workspace(unittest.TestCase):
@@ -274,7 +407,9 @@ class SlackAndCards(unittest.TestCase):
         cfg, env = hbt.slack_settings(self.by["creative-director"], chans, "U0OWNER1", {})
         self.assertEqual(cfg["slack.free_response_channels"], "C1,C2")
         self.assertEqual(cfg["slack.ignore_other_user_mentions"], "true")
-        self.assertNotIn("slack.allow_bots", cfg)  # no peers: other bots are ignored
+        self.assertEqual(cfg["slack.allow_bots"], "mentions")  # v0.3: hears CTO, but only by mention
+        ops = next(r for r in hbt.load_template("creator").roles if r.kind == "ops")
+        self.assertNotIn("slack.allow_bots", hbt.slack_settings(ops, chans, "U0OWNER1", {})[0])  # no peers
         self.assertEqual(env, {"SLACK_ALLOWED_USERS": "U0OWNER1", "SLACK_HOME_CHANNEL": "C1"})
 
     def test_peers_hear_each_other_only_by_mention(self):

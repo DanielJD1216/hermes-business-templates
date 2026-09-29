@@ -4,7 +4,7 @@ Ask the owner these questions one at a time, then write the answers into the mat
 
 1. What is the channel or brand called, and what is it about in one sentence? (business.md)
 2. Who is it for, and what do they want? (business.md)
-3. What do you sell, and what are the prices? (business.md)
+3. What do you sell, who is each offer for, and what are the prices and deadlines? (offers.md)
 4. Which topics and sponsor categories do you refuse? (business.md)
 5. Describe how you talk in three words. Paste two samples of your writing. (voice.md)
 6. Which words and punctuation do you never use (for example, em dashes)? (voice.md)
