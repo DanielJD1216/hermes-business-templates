@@ -10,6 +10,7 @@ Copy this block once per offer.
 - Who it is for, and who it is not for:
 - The promise, in your words:
 - What they get:
+- Features and benefits, one pair per line (what it does, and what is in it for them):
 - Price, and any deadline:
 - How people buy (link or process):
 - Status (idea, testing, live, paused), with the date:

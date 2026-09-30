@@ -157,7 +157,8 @@ class DriftCheck(unittest.TestCase):
     def test_receivers_join_their_senders_channels(self):
         by = {r.key: r for r in self.tpl.roles}
         self.assertEqual(hbt.peer_channels(self.tpl, by["cto"]),
-                         ["media-video", "media-edit", "media-newsletter", "marketing-distribution", "build-engineering"])
+                         ["media-video", "media-edit", "media-newsletter", "marketing-distribution", "offers-optimization",
+                          "build-engineering"])
         self.assertEqual(hbt.peer_channels(self.tpl, by["creative-director"]), ["build-architect"])
         self.assertEqual(hbt.peer_channels(self.tpl, by["ops"]), [])
         self.assertEqual(hbt.peer_channels(self.tpl, by["cto"], ["cto", "engineer", "ops"]), ["build-engineering"])

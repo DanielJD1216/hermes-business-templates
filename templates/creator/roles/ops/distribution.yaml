@@ -1,5 +1,5 @@
 name: ops
-version: 0.3.0
+version: 0.3.1
 description: "Creator template: Ops, runs scheduled jobs"
 hermes_requires: ">=0.21.0"
 author: "DOO MADE"

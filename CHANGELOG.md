@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1 (2026-09-29)
+
+- New channel `#offers-optimization` for the Creative Director: the offers themselves (promise, who each offer is for, price, features and benefits, proof), worked from `canon/offers.md`. Create it and invite the Creative Director and CTO; setup lists it with the other channels.
+- `canon/offers.md` asks for features and benefits per offer: what it does, and what is in it for them.
+
 ## 0.3.0 (2026-09-29)
 
 Fixes the gaps found by running the same setup for real: bots that could not hand each other work, copies that drifted apart, and nothing that noticed.

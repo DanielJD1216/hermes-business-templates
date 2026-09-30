@@ -16,7 +16,7 @@ It copies a working creator business: one lead per department, the way a normal 
 
 | Bot | Slack channels | Does |
 |---|---|---|
-| Creative Director | `#media-video`, `#media-edit`, `#media-newsletter`, `#marketing-distribution` | Leads Media and Marketing: topics, scripts, edits, newsletter, clips, community and sponsor drafts. 24 playbooks. |
+| Creative Director | `#media-video`, `#media-edit`, `#media-newsletter`, `#marketing-distribution`, `#offers-optimization` | Leads Media and Marketing: topics, scripts, edits, newsletter, clips, community and sponsor drafts. 24 playbooks. |
 | CTO | `#build-architect` | Leads Build: plans, system maps and PRDs. Never builds; hands each build to Engineer on a Kanban card. |
 | Engineer | `#build-engineering` | Builds from the CTO's cards in `<projects>/<project>`, reports progress on the card, and asks the CTO when a plan is vague. |
 | Ops | `#agents-report` (posts only) | No Slack app and no memory. Runs the scheduled jobs: morning approvals list, nightly review, memory and update watchdogs. |

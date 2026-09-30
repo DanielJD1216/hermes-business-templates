@@ -3,7 +3,7 @@
 # v0.3: leads hand work to each other by mention (peers), and hbt check finds drift between the bots.
 name: creator
 title: Creator + Education
-version: 0.3.0
+version: 0.3.1
 workspace_dir: creator
 system_channel: agents-report
 
@@ -13,7 +13,7 @@ roles:
     kind: role
     section: 20 Media and 30 Marketing
     # First channel is the bot's home. The bot answers in all of them without an @mention.
-    channels: [media-video, media-edit, media-newsletter, marketing-distribution]
+    channels: [media-video, media-edit, media-newsletter, marketing-distribution, offers-optimization]
     folder: media
     peers: [cto]          # hands build work to CTO by mention, and takes content work from it
     takes_cards: true     # Ops hands it cards (comment and member-question digests)
