@@ -329,6 +329,8 @@ def slack_settings(role: Role, channels: dict[str, str], owner: str, bots: dict[
     Hermes denies everyone by default, so the owner (and each peer bot) must be on the allowlist.
     """
     cfg: dict[str, str] = {"slack.ignore_other_user_mentions": "true"}
+    if owner:  # "@bot !approve" from a peer bot is a command; only the owner may run commands
+        cfg.update({"slack.allow_admin_from": owner, "slack.group_allow_admin_from": owner})
     ids = [channels[c] for c in role.channels if channels.get(c)]
     if ids:
         cfg["slack.free_response_channels"] = ",".join(ids)
@@ -1421,6 +1423,8 @@ def check_gaps(tpl: Template, rec: dict, live: bool = True) -> list[str]:
         if deaf:
             gaps.append(f"{name}: ignores Slack messages from {', '.join(deaf)}. Fix: ./hbt update {tpl.name}")
         slack = _profile_cfg(name).get("slack") or {}
+        if owner and any(str(slack.get(k) or "").strip() != owner for k in ("allow_admin_from", "group_allow_admin_from")):
+            gaps.append(f"{name}: other bots can run its commands (!approve, !restart). Fix: ./hbt update {tpl.name}")
         if x.peers and (slack.get("allow_bots") != "mentions" or not _truthy(slack.get("strict_mention"))):
             gaps.append(f"{name}: not set to wake on a peer's mention only. Fix: ./hbt update {tpl.name}")
         token = read_env_value(prof / ".env", "SLACK_BOT_TOKEN")

@@ -170,6 +170,13 @@ class DriftCheck(unittest.TestCase):
         rec["jobs"].append({"key": "drift-check"})
         self.assertEqual(hbt.new_jobs(self.tpl, rec), [])
 
+    def test_bots_cannot_run_each_others_commands(self):
+        prof = self.home / "profiles" / "cto"
+        cfg = hbt.yaml.safe_load((prof / "config.yaml").read_text())
+        del cfg["slack"]["group_allow_admin_from"]
+        (prof / "config.yaml").write_text(hbt.yaml.safe_dump(cfg))
+        self.assertIn("cto: other bots can run its commands (!approve, !restart). Fix: ./hbt update creator", self.gaps())
+
     def test_one_bot_without_the_owner_profile_is_a_gap(self):
         (self.home / "profiles" / "engineer" / "memories" / "USER.md").unlink()
         self.assertIn("different USER.md", "\n".join(self.gaps()))
@@ -417,6 +424,8 @@ class SlackAndCards(unittest.TestCase):
         cfg, env = hbt.slack_settings(self.by["cto"], {"build-architect": "C3"}, "U0OWNER1", {"engineer": "U0ENG1234"})
         self.assertEqual(cfg["slack.allow_bots"], "mentions")
         self.assertEqual(cfg["slack.strict_mention"], "true")  # a thread follow-up wakes only the bot mentioned
+        self.assertEqual(cfg["slack.allow_admin_from"], "U0OWNER1")  # a peer's "@cto !approve" is refused
+        self.assertEqual(cfg["slack.group_allow_admin_from"], "U0OWNER1")
         self.assertEqual(env["SLACK_ALLOWED_USERS"], "U0OWNER1,U0ENG1234")
         cfg, env = hbt.slack_settings(self.by["cto"], {}, "U0OWNER1", {})  # before Engineer is connected
         self.assertEqual(env, {"SLACK_ALLOWED_USERS": "U0OWNER1"})

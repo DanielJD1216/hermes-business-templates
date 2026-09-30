@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2 (2026-09-29)
+
+- Security fix: bots that hear each other could run each other's commands, because `@bot !approve` counts as a command and every allowed user could run commands. Commands are now limited to the owner (`slack.allow_admin_from` and `slack.group_allow_admin_from`), and `./hbt check` reports any bot without that limit. Existing installs: run `./hbt update creator`, then restart the gateway.
+
 ## 0.3.1 (2026-09-29)
 
 - New channel `#offers-optimization` for the Creative Director: the offers themselves (promise, who each offer is for, price, features and benefits, proof), worked from `canon/offers.md`. Create it and invite the Creative Director and CTO; setup lists it with the other channels.

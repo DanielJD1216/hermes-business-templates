@@ -3,7 +3,7 @@
 # v0.3: leads hand work to each other by mention (peers), and hbt check finds drift between the bots.
 name: creator
 title: Creator + Education
-version: 0.3.1
+version: 0.3.2
 workspace_dir: creator
 system_channel: agents-report
 

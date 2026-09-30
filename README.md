@@ -31,6 +31,7 @@ Also installed: a shared business folder with `canon/` (your business, offers, v
 - Each bot answers in its own channels without an @mention, and stays quiet when you @mention a different bot there.
 - Bots hand work to each other by @mentioning the other bot in the thread they are working in, with the whole brief in that message. A bot can only reply in its own thread, so setup invites each bot into the channels of the bots that hand it work: CTO into the Creative Director's channels and `#build-engineering`, the Creative Director and Engineer into `#build-architect`.
 - A bot hears another bot only when @mentioned, and a thread follow-up wakes only the bot you mentioned, so they never loop.
+- Only you can run commands such as `!approve` or `!restart`. A bot that mentions another bot with a command gets a refusal.
 - Say "Create a new project called hello world, plan it and build it" in `#build-architect`. The CTO writes the plan, creates a card for Engineer, and the result posts in `#build-engineering`. Ask the Creative Director for a landing page and it hands the build to the CTO the same way.
 
 ## Setup
