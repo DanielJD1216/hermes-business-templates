@@ -908,7 +908,9 @@ def backup_skill_state(tpl_name: str, rec: dict) -> Path:
                 target.parent.mkdir(parents=True, exist_ok=True)
                 if p.is_dir():
                     package_hashes(p)
-                    shutil.copytree(p, target)
+                    # An earlier profile's external root may already have
+                    # archived packages from this same profile tree.
+                    shutil.copytree(p, target, dirs_exist_ok=True)
                 else:
                     shutil.copy2(p, target)
         # Only archive skill packages in profile trees that native deletion removes.
@@ -926,10 +928,16 @@ def backup_skill_state(tpl_name: str, rec: dict) -> Path:
             root = profile_skill_path(raw, src)
             for owner in rec.get("profiles", []):
                 removed = checked_path(hermes_home() / "profiles" / owner, hermes_home() / "profiles")
-                if not root.absolute().is_relative_to(removed):
+                if root.is_relative_to(removed):
+                    endangered = checked_path(root, removed)
+                elif removed.is_relative_to(root):
+                    # Native discovery can start above a deleted profile. Limit
+                    # enumeration to its endangered subtree, not outside packages.
+                    checked_path(root, root)
+                    endangered = removed
+                else:
                     continue
-                checked_path(root, removed)
-                for package in set(skill_packages(root).values()):
+                for package in set(skill_packages(endangered).values()):
                     target = dest / "profiles" / owner / package.relative_to(removed)
                     hashes = package_hashes(package)
                     if not target.exists():

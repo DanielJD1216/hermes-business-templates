@@ -10,7 +10,8 @@ Independent review pending. No tag, published release or client rollout.
 - Record package hashes, native source/version, selections, managed settings, original values and recovery/conflict pointers in the existing install record. Status and offline checks diagnose missing assets, local shadows and unresolved conflicts. Explicit update is the repair/refresh path.
 - Add recoverable migration activation and safe uninstall archives for custom local skills/settings. Preserve modified or unknown shared content and unrelated owner settings/assets. Conflicted updates return exit 2 instead of reporting a clean success.
 - Archive custom external/create-dir skill packages inside removed profiles, recover partially deleted packages without overwriting owner edits, and resolve variable-based external roots in the consuming profile for collision checks.
-- Verify 62 unit tests and 63 real native sandbox CLI/discovery/seeding checks, including baseline migration, partial-deletion rollback/retry, subset/desk policy, missing-package repair and uninstall. Final runs use sandboxed homes and a kernel write boundary. Live Slack, gateway, provider, Docker, memory and release integration remain untested for this candidate.
+- Preserve endangered packages discovered through ancestor roots, including cross-profile archive overlap, without archiving outside packages or arbitrary non-skill files.
+- Verify 63 unit tests. Earlier revisions passed 63 real native sandbox CLI/discovery/seeding checks; the ancestor-root correction adds five focused native gates, including two expected ambiguity refusals and exact-byte preservation after uninstall. Runs use sandboxed homes and a kernel write boundary. Live Slack, gateway, provider, Docker, memory and release integration remain untested for this candidate.
 
 ## 0.3.2 (2026-09-29)
 

@@ -116,6 +116,35 @@ class SharedSkills(unittest.TestCase):
         self.assertFalse((archive / "custom-external/unrelated-secret").exists())
         self.assertEqual(hbt.package_hashes(outside), outside_before)
 
+    def test_uninstall_archives_ancestor_root_packages_only_in_removed_profiles(self):
+        self.apply()
+        custom = put_skill(self.prof / "custom-external", "ancestor-owner", "unique owner bytes")
+        (custom / "binary.dat").write_bytes(b"\x00\xffowner")
+        (custom.parent / "unrelated-secret").write_text("do not archive")
+        outside = put_skill(self.prof.parent / "unrelated-profile", "outside-owner")
+        second = self.prof.parent / "second-removed"
+        second_package = put_skill(second / "skills", "second-owner")
+        second_before = hbt.package_hashes(second_package)
+        self.rec["profiles"].append(second.name)
+        expected = hbt.package_hashes(custom)
+        outside_before = hbt.package_hashes(outside)
+        cfg = hbt._profile_cfg(self.role.key)
+        cfg["skills"]["external_dirs"].insert(0, str(self.prof.parent))
+        (self.prof / "config.yaml").write_text(hbt.yaml.safe_dump(cfg))
+        self.apply()
+        self.apply()
+        hbt.uninstall_shared_skills(self.tpl.name, self.rec, False)
+        archive = Path(self.rec["skill_uninstall_archives"][-1])
+        shutil.rmtree(self.prof)  # Model native whole-profile deletion.
+        self.assertEqual(hbt.package_hashes(archive / "profiles" / self.role.key /
+                                            "custom-external/ancestor-owner"), expected)
+        self.assertFalse((archive / "profiles" / self.role.key /
+                          "custom-external/unrelated-secret").exists())
+        self.assertFalse((archive / "profiles/unrelated-profile").exists())
+        self.assertEqual(hbt.package_hashes(archive / "profiles/second-removed/skills/second-owner"),
+                         second_before)
+        self.assertEqual(hbt.package_hashes(outside), outside_before)
+
     def test_profile_scoped_external_collision_and_diagnostics(self):
         self.apply()
         custom = put_skill(self.prof / "custom-external", "stock", "owner bytes")
