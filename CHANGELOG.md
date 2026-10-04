@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0 (unreleased candidate)
+
+Independent review pending. No tag, published release or client rollout.
+
+- Install authored and explicitly selected native stock packages once in a durable template-owned library. Native `skills.external_dirs` selects exact package roots per role; no new loader, service or dependency.
+- Preserve v0.3.2 role selections, deleted skills, disabled settings and customized whole packages. Capture old staged provenance and durable recovery archives before restaging; omit colliding managed entries rather than relying on native listing precedence.
+- Keep `hermes-agent` native-managed locally, and opt template profiles out of nonessential bundled reseeding. Desks gain no shared roots or mounts.
+- Record package hashes, native source/version, selections, managed settings, original values and recovery/conflict pointers in the existing install record. Status and offline checks diagnose missing assets, local shadows and unresolved conflicts. Explicit update is the repair/refresh path.
+- Add recoverable migration activation and safe uninstall archives for custom local skills/settings. Preserve modified or unknown shared content and unrelated owner settings/assets. Conflicted updates return exit 2 instead of reporting a clean success.
+- Verify 58 unit tests and 52 real native sandbox CLI/discovery/seeding checks, including baseline migration, rollback/retry, subset/desk policy, missing-package repair and uninstall. Final runs use sandboxed homes and a kernel write boundary. Live Slack, gateway, provider, Docker, memory and release integration remain untested for this candidate.
+
 ## 0.3.2 (2026-09-29)
 
 - Security fix: bots that hear each other could run each other's commands, because `@bot !approve` counts as a command and every allowed user could run commands. Commands are now limited to the owner (`slack.allow_admin_from` and `slack.group_allow_admin_from`), and `./hbt check` reports any bot without that limit. Existing installs: run `./hbt update creator`, then restart the gateway.

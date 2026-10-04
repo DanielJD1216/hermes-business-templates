@@ -6,7 +6,7 @@ We provide the foundation only: bots, playbooks, folders, scheduled checks and a
 
 | Template | Status |
 |---|---|
-| Creator + Education | v0.2.0: a department lead per area, one Slack app per bot, guided setup, one desk per outside editor. |
+| Creator + Education | v0.4.0 unreleased candidate: shared skills, protected v0.3.2 migration, guided per-bot setup. Independent review pending. |
 | Project Services | planned |
 | Industrial Supplier | planned |
 
@@ -22,7 +22,7 @@ It copies a working creator business: one lead per department, the way a normal 
 | Ops | `#agents-report` (posts only) | No Slack app and no memory. Runs the scheduled jobs: morning approvals list, nightly review, memory and update watchdogs. |
 | Editor desk | `#ext-editor-<name>`, one per editor | Optional. Answers one outside editor from a brief you write, inside a locked-down container. |
 
-Your own main agent (your assistant) is not installed or changed. Every bot drafts; nothing is published, sent, priced or signed without your `approve`.
+Your own main agent (your assistant) is not replaced. The installer records its limited Kanban and Ops-routing settings changes for uninstall; it does not share the main agent's skills with the bots. Every bot drafts; nothing is published, sent, priced or signed without your `approve`.
 
 Also installed: a shared business folder with `canon/` (your business, offers, voice, brand and standing rules) plus one folder per bot, and a Kanban board named `creator`. Only you edit `canon/`, except `offers.md`: the Creative Director keeps it current and saves a change only after your `approve`.
 
@@ -56,15 +56,31 @@ Then ask your main agent to run the canon interview in `canon/INTERVIEW.md`. `./
 
 ### Keeping the bots in step
 
-Each bot is a separate copy of settings, playbooks and permissions, and copies drift apart. `./hbt check creator` compares them and prints one line per gap with its fix:
+Each bot has separate settings and permissions; selected playbooks now use one shared library. `./hbt check creator` compares installed provenance and prints one line per gap with its fix:
 
-- a bot with a different `USER.md`, or playbooks that differ from the template;
+- a bot with a different `USER.md`, missing or modified shared package files, unresolved migration conflicts, duplicate skill names, missing selected roots or missing bundled opt-out/manual;
 - a tool that is turned on but not signed in, or lost its sign-in;
 - a bot that does not hear another bot that hands it work, or is not in that bot's channel;
 - a scheduled job whose last run failed;
 - a date under "Dates coming up" in `canon/offers.md` that has passed.
 
 Ops runs it every morning and posts only when the gaps change, and once a week while they stay open.
+
+### Shared skills and native compatibility
+
+The durable library lives at `<install-root>/business-templates/creator/skills/`, where install-root is the Hermes home used for the installation. It does not depend on this checkout staying in place:
+
+- `template/<role>/<skill>/` holds the unchanged 24 Creative Director and four Ops playbooks.
+- `bundled/<category>/<skill>/` holds stock packages from the installed Hermes source, preserving their support files and upstream attribution. The installer never uses the owner's writable skills folder, another profile or a personal tap as stock.
+- Each bot gets an actual YAML `skills.external_dirs` list of exact selected package directories, not access to the whole library. Existing custom entries keep their order. Disabled, platform-disabled, auto-load and skill-creation settings remain yours.
+- `hermes-agent` stays native-managed in each profile's local skills folder. The native `.no-bundled-skills` marker prevents nonessential packages from being seeded back into migrated profiles. Explicit `hbt update` refreshes shared stock; there is no background skill sync service.
+- Sharing content grants no tools, MCP access or credentials. Trusted same-user bots are not filesystem-isolated. Desks receive no shared roots or mounts and keep their existing rootless-container policy.
+
+Fresh stock selections are declared in `templates/creator/template.yaml`: ten for the Creative Director, seven for CTO, eleven for Engineer and none for Ops or desks. Migration preserves each existing role's proven, still-present native-bundled selection instead of shrinking it to those defaults. User-deleted packages are not reintroduced, and unknown/local/hub packages stay local. For example, an older Ops profile may retain its pre-existing stock selection, while a fresh Ops profile gets only its authored playbooks plus the native manual.
+
+Compatibility is capability-checked, not inferred from a minimum patch number. Required stock packages, native external roots, disabled handling, essential-only seeding and profile distributions must be available before writes begin. Use Hermes's own dependency-complete Python (`HBT_PYTHON` can select it). Missing features/packages produce an upgrade message. A bundled-source override outside the installed source tree is refused because its provenance is unverified; package-manager layouts using such overrides need separate compatibility review. See the [native skills documentation](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills) and [profile distributions](https://hermes-agent.nousresearch.com/docs/user-guide/profile-distributions).
+
+Native listing precedence is not a safe collision policy: native `skill_view` refuses ambiguous local/external names. Migration therefore keeps a customized local or custom-external package active and omits that package's managed shared entry for the affected bot. Other bots can still use the pristine shared package.
 
 ### Desks for outside editors
 
@@ -92,18 +108,17 @@ All times follow your timezone.
 
 | Area | Result |
 |---|---|
-| Unit tests | 38 pass: template shape, config edits and exact restore, Slack settings, setup order, desk names, and each drift check. |
-| v0.3 in a clean sandbox | Install, simulated connect, `./hbt check` clean; three deliberate breaks, each reported with its fix, and `./hbt update` restored the allowlist; the Ops drift job ran through Hermes cron, posted once, then stayed silent. |
-| Install in a clean sandbox | Passed on Hermes 0.21.5: 4 bots, workspace, board, 5 jobs, 3 Slack app files, the owner's config otherwise unchanged. |
-| Connect and guided setup | Passed in the sandbox against a simulated Slack: refused the main agent's token, a bad token and a reused token; caught a missing invite; resumed mid-way and ran to the end. |
-| Slack and card checks against a live workspace | Passed read-only: token check, channel lookup, spotting a bot's reply, and finding a finished card. |
-| The same bots, settings and CTO to Engineer card flow | Running daily on the setup this template was taken from. |
+| Unit tests | 58 pass: existing installer tests plus package ownership, config/marker preservation, unknown provenance, collisions, dry-run, repeat update, interrupted activation, missing-file repair and protected uninstall. These tests use synthetic fixtures. |
+| Native sandbox execution | 52 CLI/discovery/seeding checks passed using native Hermes `0.21.5+6662.g343500b`, source `343500b3547e12530457c2fda60ec687e25118b4`, with its existing Python 3.11.15 environment. Fresh install, status/offline check, exact shared skill view, disabled refusal, local manual and role/private-owner exclusions passed. |
+| Real v0.3.2 migration | Baseline installer ran in separate homes, followed by pristine and customized updates. Added support bytes, custom external roots, disabled settings and deleted packages survived repeated update. Native reseeding did not recreate nonessential local copies. |
+| Recovery and removal | Injected failure on the second profile's activation restored old packages/settings; retry passed. Missing shared assets were repaired without losing a local shadow. Subset install, existing desk settings and native manual seeding passed without starting Docker. Uninstall preserved custom local/shared bytes, recovery archives and unrelated owner settings/skills. |
+| Isolation | Both HOME and HERMES_HOME were sandboxed before startup, inherited overrides were removed, lazy installs were disabled, jobs used local delivery and checks were offline. Final native/unit runs were additionally kernel write-confined to their evidence directory with Linux Landlock ABI 3. |
 
-**Not yet tested:** a full `./hbt setup` with real Slack apps from start to finish, a Creative Director to CTO handoff through a live gateway, the Slack membership part of `./hbt check` against a live workspace, cards on a separate `creator` board through a live gateway, a desk with long-term memory on, the two paused Ops jobs, a real memory outage, and any chat platform other than Slack. v0.1 installs cannot be updated to v0.2 in place: the bot names changed, so uninstall v0.1 first.
+**Not proven by this candidate:** real Slack onboarding or messages, live gateway handoffs/cards, live OpenViking, actual Docker desk operation, provider sign-in, scheduled job delivery or an actual Hermes self-update. Older live/simulated v0.3 evidence is not a new v0.4 integration result. The managed Python launcher lacked dependencies in a new isolated home with lazy installs disabled; native acceptance used the existing dependency-complete Hermes venv instead, not fabricated CLI results. Complete Hermes's own dependency setup before installing a template. No template release or client rollout has occurred. v0.1 installs still require uninstall before moving to the newer profile names.
 
 ## Requirements
 
-- A Linux server (or WSL2) running Hermes 0.21 or newer, with your main agent connected to Slack.
+- A Linux server (or WSL2) with Hermes installed and its Python dependencies ready. The shared-skills capability checks above must pass; Hermes 0.21 alone is not a compatibility guarantee. Your main agent must be connected to Slack for live onboarding.
 - Your main Hermes profile logged in to a model provider (`hermes model`). The bots use the same login and model settings.
 - Optional: [OpenViking](https://github.com/volcengine/OpenViking) for long-term memory. Without it, bots use Hermes's built-in memory.
 - Optional: rootless Docker, needed only for desks.
@@ -114,7 +129,22 @@ All times follow your timezone.
 cd ~/hermes-business-templates && git pull && ./hbt update creator
 ```
 
-Updates replace template-owned files only: each bot's `SOUL.md`, playbooks and scripts, and the generated `AGENTS.md` files. Your `canon/`, your folders' contents, your `.env` files, memories, sessions and any settings you changed are kept.
+Updates replace template-owned `SOUL.md`, scripts and generated `AGENTS.md` files through native profile distributions. Staged distributions no longer carry skill roots, so native update cannot overwrite customized local playbooks. Template-managed Slack/Kanban wiring is reapplied; unrelated settings, canon, workspace content, credentials, memories and sessions are retained. Shared packages are repaired/refreshed only when missing or still installer-owned, never force-overwritten over edits.
+
+### Migration conflicts and recovery
+
+Run `./hbt update creator --dry-run` first. Preflight reads old staged distributions before restaging, compares complete packages (including support files and additions), and previews removals, selected roots, marker changes and conflicts without writing. Missing/untrustworthy baselines count as unknown, not permission to overwrite.
+
+Before activation, the installer creates a unique durable archive under `<install-root>/business-templates/creator/backups/skills-<id>/`. It contains local skills, relevant config/markers, previous staged distributions, shared assets and the previous install record. The existing `record.json` stores library ownership, package-relative SHA-256 hashes, source/version, role selections, exact managed entries, original settings and archive/conflict references. `status` shows these pointers; `check --offline` checks installed hashes rather than assuming a newer checkout was installed.
+
+An update with retained conflicts exits **2**, and reports them explicitly. A clean update exits **0**. There is no force-overwrite switch or automatic merge:
+
+1. Read `status` and `check --offline`, and copy any newer edits to a separate recovery location before changing them.
+2. To keep a customized local/external package, leave it there. Its shared entry stays omitted and the intentional conflict remains visible. Resolve any pre-existing ambiguity between two user sources yourself; the installer does not delete either.
+3. To return to the managed version, move the entire customized package out of every active discovery root into an archive (do not merely move it to another category in the same skills tree). For a custom external source, remove only that entry from the affected profile's native configuration after preserving it. Run `update` again, then `check --offline`. A modified shared package follows the same rule: preserve/move it first, then let `update` rebuild the missing managed package.
+4. An interrupted migration retains a checkpoint. Retry `update`; it restores absent local copies and the previous managed settings from the recorded archive before replanning. If new owner edits conflict with recovery, it refuses rather than overwriting them. A failed fresh install stays `pending`; run `uninstall` to retain its recovery archives, then retry `install`.
+
+For a manual rollback, pause work in the affected bots and preserve all post-migration edits first. Use the archive's `record.json` and `profiles/<name>/` snapshots together: remove the new managed external entries before restoring old local skill packages, restore the previous marker state, and restore the matching staged `dist/` and native distribution manifest so its stable source remains valid. Move the current library into a separate recovery archive before restoring an older record that does not own it. Merge unrelated later settings rather than blindly replacing an entire config. Verify native skill list/view and `check --offline` before resuming work. Do not erase recovery archives.
 
 ## Uninstall
 
@@ -124,7 +154,7 @@ Updates replace template-owned files only: each bot's `SOUL.md`, playbooks and s
 hermes gateway restart
 ```
 
-Uninstall removes only what the installer recorded in `$HERMES_HOME/business-templates/creator/record.json`, and changed settings go back to your original values. The business folder, long-term memories and your Slack apps are kept unless you remove them.
+Uninstall first archives local skills, settings and conflict data outside each profile, then invokes native profile deletion. Archived custom skills survive but are no longer active in the removed profiles. Only recorded managed external entries and pristine owned shared packages are removed; original marker/settings values are restored where still installer-owned, while later unrelated owner changes remain. Modified or unrecognized shared content and all recovery archives stay in place, with paths printed. Unowned or symlinked library roots are refused. Your default-profile skills and custom external directories are not deleted. The business folder, long-term memories and Slack apps are kept unless you remove them, and the board is archived as before.
 
 ## Memory
 
@@ -136,7 +166,7 @@ With OpenViking running, each bot gets its **own memory account**, so bots canno
 - Slack is the only chat platform tested.
 - Messages you post in `#agents-report` go to Ops, because that route is how Ops posts through your main agent's bot. Keep the channel for system output.
 - Turning on Kanban for the CTO's Slack tools saves Hermes's full default tool list for that bot, so it will not pick up tools Hermes adds to its defaults later. Re-run `hermes -p cto tools enable kanban --platform slack` after a Hermes update if you want them.
-- A full install takes a few minutes: every change is made through the `hermes` command so Hermes checks it.
+- A full install takes a few minutes. Native Hermes handles profiles, board/jobs and regular settings; the installer publishes verified shared packages and atomically updates exact native external-root lists.
 
 ## Tests
 

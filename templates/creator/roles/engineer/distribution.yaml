@@ -1,5 +1,5 @@
 name: engineer
-version: 0.3.2
+version: 0.4.0
 description: "Creator template: Engineer, builds from the CTO plans"
 hermes_requires: ">=0.21.0"
 author: "DOO MADE"

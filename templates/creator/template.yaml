@@ -3,12 +3,15 @@
 # v0.3: leads hand work to each other by mention (peers), and hbt check finds drift between the bots.
 name: creator
 title: Creator + Education
-version: 0.3.2
+version: 0.4.0
+# Unreleased candidate; shared stock is resolved from the client's installed Hermes.
 workspace_dir: creator
 system_channel: agents-report
 
 roles:
   - key: creative-director
+    stock_skills: [grounded-citations, blocked-page-recovery, youtube-content, humanizer, gif-search,
+                   google-workspace, docx, pdf, powerpoint, xlsx]
     title: Creative Director
     kind: role
     section: 20 Media and 30 Marketing
@@ -46,6 +49,8 @@ roles:
       - Overdue invoices are listed.
 
   - key: cto
+    stock_skills: [grounded-citations, blocked-page-recovery, architecture-diagram, codebase-inspection,
+                   github, spike, sdlc-review]
     title: CTO
     kind: role
     section: 50 Build
@@ -59,6 +64,9 @@ roles:
       - No card assigned to engineer has been blocked for more than 24 hours.
 
   - key: engineer
+    stock_skills: [grounded-citations, blocked-page-recovery, github, codebase-inspection,
+                   test-driven-development, systematic-debugging, requesting-code-review, simplify-code,
+                   dogfood, python-debugpy, node-inspect-debugger]
     title: Engineer
     kind: role
     section: 50 Build
@@ -71,6 +79,7 @@ roles:
     builds: true          # works in the projects folder; setup's first card goes to it
 
   - key: ops
+    stock_skills: []
     title: Ops
     kind: ops
     channels: [agents-report]
