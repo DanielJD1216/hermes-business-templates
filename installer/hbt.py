@@ -16,7 +16,9 @@ so uninstall removes exactly what install created and nothing else.
 from __future__ import annotations
 
 import argparse
+import copy
 import datetime as _dt
+import io
 import hashlib
 import json
 import os
@@ -24,6 +26,7 @@ import re
 import shutil
 import subprocess
 import sys
+import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -41,7 +44,7 @@ ROUTE_TAG = "hbt:"  # prefix on every profile route name we add, so we only ever
 # --------------------------------------------------------------------------- helpers
 
 def hermes_home() -> Path:
-    return Path(os.environ.get("HERMES_HOME") or Path.home() / ".hermes").expanduser()
+    return Path(os.environ.get("HERMES_HOME") or Path.home() / ".hermes").expanduser().absolute()
 
 
 def now_iso() -> str:
@@ -99,6 +102,7 @@ class Role:
     takes_cards: bool = False                                # runs Kanban cards in the background
     builds: bool = False                                     # builds projects in the projects folder
     section: str = ""
+    stock_skills: list[str] = field(default_factory=list)
 
     @property
     def channel(self) -> str:
@@ -140,7 +144,8 @@ def load_template(name: str) -> Template:
                     channels=r.get("channels") or [r["channel"]], folder=r["folder"],
                     reads=r.get("reads", []), dirs=r.get("dirs", []), starter_files=r.get("starter_files", {}) or {},
                     checks=r.get("checks", []), peers=r.get("peers", []), slack_toolsets=r.get("slack_toolsets", []),
-                    takes_cards=bool(r.get("takes_cards")), builds=bool(r.get("builds")), section=r.get("section", ""))
+                    takes_cards=bool(r.get("takes_cards")), builds=bool(r.get("builds")), section=r.get("section", ""),
+                    stock_skills=r.get("stock_skills", []))
     roles = [to_role(r) for r in spec["roles"]]
     desks = [to_role(r) for r in spec.get("desks") or []]
     for r in roles + desks:
@@ -413,12 +418,14 @@ def edit_main_config(cfg_path: Path, routes: list[dict], dispatch: bool, dry: bo
     are kept, so an update never overwrites the owner's true original with our own earlier change.
     v0.2 installs pass no routes: each bot has its own Slack app, so nothing needs routing.
     """
+    checked_path(cfg_path, cfg_path.parent)
     y, data = load_yaml_rt(cfg_path)
     prev = previous or {}
     changes: dict = {"routes_added": [],
                      "created_sections": prev.get("created_sections",
                                                   [s for s in ("gateway", "kanban") if s not in data]),
-                     "kanban_before": dict(prev.get("kanban_before") or {})}
+                     "kanban_before": dict(prev.get("kanban_before") or {}),
+                     "kanban_applied": dict(prev.get("kanban_applied") or {})}
     if prev.get("dispatch_changed") and "dispatch_in_gateway" not in changes["kanban_before"]:
         # record shape from v0.1.0 installs
         old = prev.get("dispatch_before")
@@ -437,6 +444,7 @@ def edit_main_config(cfg_path: Path, routes: list[dict], dispatch: bool, dry: bo
     if takers is not None:
         wanted["dispatch_profiles"] = takers
     for key, want in wanted.items():
+        changes["kanban_applied"][key] = want
         cur = kb.get(key, _MISSING)
         if (list(cur) if isinstance(cur, (list, tuple)) else cur) != want:
             changes["kanban_before"].setdefault(key, list(cur) if isinstance(cur, (list, tuple)) else cur)
@@ -454,6 +462,7 @@ def edit_main_config(cfg_path: Path, routes: list[dict], dispatch: bool, dry: bo
 
 
 def revert_main_config(cfg_path: Path, record: dict, dry: bool) -> None:
+    checked_path(cfg_path, cfg_path.parent)
     if not cfg_path.exists():
         return
     y, data = load_yaml_rt(cfg_path)
@@ -474,6 +483,14 @@ def revert_main_config(cfg_path: Path, record: dict, dry: bool) -> None:
     for key, old in kanban_before.items():
         if kb is None:
             break
+        applied = mc.get("kanban_applied", {}).get(key, KANBAN_SETTINGS.get(key, _MISSING))
+        if applied != _MISSING and kb.get(key, _MISSING) != applied:
+            if key == "dispatch_profiles" and isinstance(applied, list) and isinstance(kb.get(key), list):
+                original_names = old if isinstance(old, list) else []
+                added = set(applied) - set(original_names)
+                kb[key] = [p for p in kb[key] if p not in added]
+                restored.append(key)
+            continue  # owner changed this value since install
         if old == _MISSING:
             kb.pop(key, None)
         else:
@@ -531,12 +548,13 @@ def read_env_value(env_path: Path, key: str) -> str:
 
 def preflight(r: Runner) -> dict:
     info: dict = {}
+    checked_path(hermes_home() / "config.yaml", hermes_home())
     hb = shutil.which(r.hermes) or (r.hermes if Path(r.hermes).exists() else None)
     if not hb:
         raise SystemExit("Hermes is not installed. Install it first: curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash")
-    out = subprocess.run([r.hermes, "--version"], capture_output=True, text=True).stdout
+    out = native_skills()["version"]
     m = re.search(r"(\d+\.\d+\.\d+)", out)
-    info["hermes_version"] = m.group(1) if m else "unknown"
+    info["hermes_version"] = out.strip() or "unknown"
     if m and version_tuple(m.group(1)) < MIN_HERMES:
         raise SystemExit(f"Hermes {m.group(1)} is too old; this template needs {'.'.join(map(str, MIN_HERMES))} or newer. Run: hermes update")
     info["docker"] = bool(shutil.which("docker"))
@@ -565,6 +583,9 @@ def load_record(tpl_name: str) -> dict | None:
 
 def save_record(tpl_name: str, rec: dict) -> None:
     d = record_dir(tpl_name)
+    checked_path(d, hermes_home())
+    checked_path(d / "record.json", d)
+    checked_path(d / "record.json.tmp", d)
     d.mkdir(parents=True, exist_ok=True)
     tmp = d / "record.json.tmp"
     tmp.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
@@ -586,12 +607,566 @@ def parse_channels(pairs: list[str]) -> dict[str, str]:
 
 # --------------------------------------------------------------------------- distribution staging
 
+def checked_path(path: Path, root: Path) -> Path:
+    """Reject escapes and symlinks before reading or writing installer-owned trees."""
+    path, root = path.absolute(), root.absolute()
+    if ".." in path.parts or ".." in root.parts:
+        raise SystemExit(f"Shared skills conflict: parent traversal in {path}")
+    if not path.is_relative_to(root):
+        raise SystemExit(f"Shared skills conflict: path escapes owned root: {path}")
+    for part in [path, *path.parents]:
+        if part.is_symlink():
+            raise SystemExit(f"Shared skills conflict: symlink at {part}; resolve it manually.")
+    return path
+
+
+def package_hashes(path: Path) -> dict[str, str]:
+    checked_path(path, path)
+    result = {}
+    for f in sorted(path.rglob("*")):
+        checked_path(f, path)
+        if f.is_file():
+            result[f.relative_to(path).as_posix()] = hashlib.sha256(f.read_bytes()).hexdigest()
+        elif not f.is_dir():
+            raise SystemExit(f"Shared skills conflict: unsupported file at {f}")
+    return result
+
+
+def skill_packages(root: Path) -> dict[str, Path]:
+    """Index package and frontmatter names; never silently choose one duplicate."""
+    checked_path(root, root)
+    result = {}
+    for md in sorted(root.rglob("SKILL.md")):
+        if any(p.startswith(".") for p in md.relative_to(root).parts):
+            continue
+        checked_path(md, root)
+        text = md.read_text(encoding="utf-8")
+        front = yaml.safe_load(text.split("---", 2)[1]) if text.startswith("---\n") else {}
+        for name in {md.parent.name, str((front or {}).get("name", md.parent.name))}:
+            if name in result and result[name] != md.parent:
+                raise SystemExit(f"Shared skills conflict: duplicate name {name} in {root}")
+            result[name] = md.parent
+    return result
+
+
+def native_skills() -> dict:
+    """Resolve stock from the installed Hermes Python, not any user's skills tree."""
+    try:
+        import inspect
+        import hermes_cli
+        sys.path.insert(0, str(Path(hermes_cli.__file__).resolve().parent.parent))
+        from tools import skills_sync as native
+        from agent import skill_utils
+        from hermes_cli import profile_distribution
+        from hermes_cli.version_info import get_version_info
+        assert native.NO_BUNDLED_SKILLS_MARKER == ".no-bundled-skills"
+        assert "hermes-agent" in native.ESSENTIAL_SKILLS
+        assert callable(native._matches_origin_hash)
+        assert "include_runtime_cache" in inspect.signature(native._dir_hash).parameters
+        assert callable(skill_utils.get_external_skills_dirs)
+        assert callable(skill_utils.get_disabled_skill_names)
+        assert "essential_only" in inspect.getsource(native.sync_skills)
+        assert "preserve_config" in inspect.getsource(profile_distribution.update_distribution)
+        root = native._get_bundled_dir().absolute()
+        checked_path(root, root)
+        # An override pointing at personal/hub content is not proof of bundled provenance.
+        shipped_root = Path(native.__file__).resolve().parent.parent / "skills"
+        if root != shipped_root:
+            raise ValueError("unverified bundled-source override; use the installed Hermes stock source")
+        home = hermes_home().absolute()
+        if root == home / "skills" or root.is_relative_to(home / "profiles"):
+            raise ValueError("the bundled resolver points into a user profile")
+        packages = skill_packages(root)
+        if "hermes-agent" not in packages:
+            raise ValueError("essential hermes-agent package missing")
+        version = get_version_info()
+        return {"root": root, "packages": packages,
+                "matches": lambda p, expected: bool(expected) and native._dir_hash(p, include_runtime_cache=True) == expected,
+                "source": str(root), "module": native, "version": version.derived_version,
+                "commit": version.commit}
+    except (ImportError, AttributeError, AssertionError, ValueError) as exc:
+        raise SystemExit("Shared skills need Hermes native external_dirs, essential-only bundled sync and "
+                         "profile distributions. Upgrade Hermes and run hbt with its Python "
+                         "(HBT_PYTHON=<Hermes Python>); no changes made. " + str(exc)) from exc
+
+
+def shared_state(tpl_name: str, rec: dict) -> dict:
+    state = rec.get("shared_skills", {})
+    expected = record_dir(tpl_name) / "skills"
+    checked_path(expected, hermes_home())
+    if "shared_skills" in rec and (not isinstance(state, dict) or state.get("schema") != 1
+                                   or state.get("root") != str(expected.absolute())):
+        raise SystemExit("Shared skills conflict: unknown schema or changed install root; restore the original record.")
+    for rel in state.get("packages", {}):
+        checked_path(expected / rel, expected)
+        if Path(rel).is_absolute() or ".." in Path(rel).parts:
+            raise SystemExit("Shared skills conflict: invalid recorded package path")
+    for name, entry in state.get("profiles", {}).items():
+        if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", name):
+            raise SystemExit("Shared skills conflict: invalid recorded profile name")
+        selected_paths = set()
+        for rel in entry.get("selected", []):
+            if not rel.startswith(("template/", "bundled/")) or Path(rel).name == "hermes-agent":
+                raise SystemExit("Shared skills conflict: invalid recorded selection")
+            selected_paths.add(str(checked_path(expected / rel, expected)))
+        if any(p not in selected_paths for p in entry.get("managed", [])):
+            raise SystemExit("Shared skills conflict: managed path is outside the recorded selection")
+    return state
+
+
+def profile_skill_path(entry: str, prof: Path) -> Path:
+    """Resolve native skill paths without borrowing the installer's HERMES_HOME."""
+    entry = re.sub(r"\$(?:\{HERMES_HOME\}|HERMES_HOME\b)", lambda _: str(prof), entry.strip())
+    path = Path(os.path.expandvars(entry)).expanduser()
+    return path if path.is_absolute() else prof / path
+
+
+def plan_shared_skills(tpl: Template, roles: list[Role], rec: dict, native: dict, fresh: bool = False) -> dict:
+    """Read-only preflight. Capture old distribution provenance before any restaging."""
+    previous = shared_state(tpl.name, rec)
+    root = record_dir(tpl.name) / "skills"
+    package_hashes(root)
+    package_hashes(record_dir(tpl.name) / "dist")
+    state = copy.deepcopy(previous) if previous else {
+        "schema": 1, "root": str(root.absolute()), "packages": {}, "profiles": {}, "backups": []}
+    state.update(source=native["source"], source_version=rec.get("hermes_version", "unknown"),
+                 source_commit=native.get("commit"), migration="planned")
+    sources, removals, source_names = {}, {}, {}
+    state["conflicts"] = []
+    for role in roles:
+        name = tpl.profile(role.key)
+        prof = checked_path(hermes_home() / "profiles" / name, hermes_home() / "profiles")
+        local = skill_packages(prof / "skills")
+        package_hashes(prof / "skills")
+        for filename in ("config.yaml", ".no-bundled-skills", "skills/.bundled_manifest"):
+            checked_path(prof / filename, prof)
+        cfg = _profile_cfg(name)
+        skills = cfg.get("skills", {})
+        if not isinstance(skills, dict):
+            raise SystemExit(f"{name}: skills settings must be a mapping; no changes made.")
+        ext = skills.get("external_dirs", [])
+        if not isinstance(ext, list) or any(not isinstance(p, str) for p in ext):
+            raise SystemExit(f"{name}: skills.external_dirs must be a YAML list of paths; no changes made.")
+        old = state["profiles"].get(name)
+        if old is None:
+            old = {"original_skills": copy.deepcopy(skills), "skills_present": "skills" in cfg,
+                   "original_marker": (prof / ".no-bundled-skills").read_text()
+                   if (prof / ".no-bundled-skills").exists() else None, "managed": [], "selected": []}
+            state["profiles"][name] = old
+        custom_ext = [p for p in ext if p not in old["managed"]]
+        external = set()
+        for entry in custom_ext:
+            if not entry.strip():
+                continue
+            p = profile_skill_path(entry, prof)
+            names = set(skill_packages(p))
+            if names & external:
+                state["conflicts"].append(f"{name}: pre-existing external ambiguity retained: {', '.join(sorted(names & external))}")
+            external.update(names)
+        if external & set(local):
+            state["conflicts"].append(f"{name}: pre-existing local/external ambiguity retained: {', '.join(sorted(external & set(local)))}")
+        manifest_path = prof / "skills" / ".bundled_manifest"
+        manifest = dict(line.split(":", 1) for line in manifest_path.read_text().splitlines() if ":" in line) \
+            if manifest_path.exists() else {}
+        authored = skill_packages(tpl.path / "roles" / role.key / "skills")
+        staged = record_dir(tpl.name) / "dist" / name
+        staged_manifest = staged / "distribution.yaml"
+        installed_manifest = checked_path(prof / "distribution.yaml", prof)
+        installed_origin = (yaml.safe_load(installed_manifest.read_text()) or {}) if installed_manifest.exists() else {}
+        baseline_ok = (installed_origin.get("source") == str(staged) and staged_manifest.is_file()
+                       and str((yaml.safe_load(staged_manifest.read_text()) or {}).get("version")) == rec.get("version"))
+        baseline = skill_packages(staged / "skills") if baseline_ok else {}
+        selected = list(old["selected"]) if previous else []
+        # Validate defaults even during migration, but never resurrect deleted old packages.
+        missing = [s for s in role.stock_skills if s not in native["packages"]]
+        if missing:
+            raise SystemExit(f"Upgrade Hermes: required bundled packages missing: {', '.join(missing)}. No changes made.")
+        if not previous:
+            for skill, src in authored.items():
+                if skill != src.name:
+                    continue
+                if fresh or skill in local:
+                    selected.append(f"template/{role.key}/{src.name}")
+            stock = role.stock_skills if fresh else [s for s in manifest if s in local and s in native["packages"]
+                                                     and re.fullmatch(r"[0-9a-f]{32,64}", manifest[s])]
+            selected += ["bundled/" + native["packages"][s].relative_to(native["root"]).as_posix()
+                         for s in stock if s != "hermes-agent"]
+        old["selected"] = list(dict.fromkeys(selected))
+        old["managed"] = []
+        removals[name] = []
+        for rel in old["selected"]:
+            dest = checked_path(root / rel, root)
+            if Path(rel).is_absolute() or ".." in Path(rel).parts:
+                raise SystemExit("Shared skills conflict: invalid selection")
+            src = tpl.path / "roles" / role.key / "skills" / dest.name if rel.startswith("template/") \
+                else native["packages"].get(dest.name)
+            if src is None or not (src / "SKILL.md").is_file():
+                raise SystemExit(f"Upgrade Hermes or restore source: missing selected package {rel}")
+            hashes = package_hashes(src)
+            if rel in sources and sources[rel] != src:
+                raise SystemExit(f"Shared skills conflict: same-name sources for {rel}")
+            sources[rel] = src
+            prior = previous.get("packages", {}).get(rel)
+            current = package_hashes(dest) if dest.exists() else {}
+            conflict = dest.exists() and (not prior or any(prior["hashes"].get(k) != v for k, v in current.items()))
+            if conflict:
+                state["conflicts"].append(f"shared:{rel}: modified/unowned library package retained")
+            else:
+                state["packages"][rel] = {"hashes": hashes}
+            aliases = set(skill_packages(src))
+            for alias in aliases:
+                if alias in source_names and source_names[alias] != src:
+                    raise SystemExit(f"Shared skills conflict: same-name source collision: {alias}")
+                source_names[alias] = src
+            shadows = {local[s] for s in aliases if s in local}
+            safe = not (aliases & external)
+            if not safe:
+                state["conflicts"].append(f"{name}:{dest.name}: custom external source retained")
+            for path in shadows:
+                package_hashes(path)  # validate the whole tree, including added support files
+                origin = baseline.get(dest.name)
+                pristine = (origin is not None and package_hashes(path) == package_hashes(origin)) \
+                    if rel.startswith("template/") else native["matches"](path, manifest.get(dest.name, ""))
+                # Once migrated, a new local shadow belongs to the user even if bytes match stock.
+                if previous or not pristine:
+                    safe = False
+                    state["conflicts"].append(f"{name}:{dest.name}: customized/unknown local package retained at {path}")
+                elif not conflict:
+                    removals[name].append(path)
+            if safe and not conflict:
+                old["managed"].append(str(dest.absolute()))
+            elif safe and conflict and str(dest.absolute()) in (previous.get("profiles", {}).get(name, {}).get("managed", [])):
+                old["managed"].append(str(dest.absolute()))
+        old["external_dirs"] = custom_ext + old["managed"]
+        # Never remove a local copy unless this profile will receive its shared replacement.
+        removals[name] = [p for p in removals[name] if any(Path(e).name == p.name for e in old["managed"])]
+    state["conflicts"] = sorted(set(state["conflicts"]))
+    for conflict in state["conflicts"]:
+        say("  CONFLICT " + conflict)
+    for name, entry in state["profiles"].items():
+        say(f"  {name}: {len(entry['selected'])} selected, {len(entry['managed'])} shared paths; "
+            f"archive/remove {len(removals.get(name, []))} pristine local packages; enable bundled opt-out")
+    return {"state": state, "sources": sources, "removals": removals}
+
+
+def preview_shared_skills(plan: dict) -> None:
+    state = plan["state"]
+    for rel, source in plan["sources"].items():
+        say(f"  would verify/repair owned shared package: {source} -> {Path(state['root']) / rel}; retain conflicts")
+    for name, paths in plan["removals"].items():
+        for path in paths:
+            say(f"  would archive then remove pristine local package: {path}")
+        entry = state["profiles"][name]
+        say(f"  would set {name} skills.external_dirs to YAML list: {json.dumps(entry['external_dirs'])}")
+        say(f"  would preserve {name} other skills settings and original marker; set native bundled opt-out")
+
+
+def seed_shared_manual(native: dict, name: str) -> None:
+    env = dict(os.environ, HERMES_HOME=str(hermes_home() / "profiles" / name),
+               HERMES_DISABLE_LAZY_INSTALLS="1", PYTHONDONTWRITEBYTECODE="1")
+    source = str(Path(native["module"].__file__).resolve().parent.parent)
+    code = "import sys; sys.path.insert(0, sys.argv[1]); from tools.skills_sync import sync_skills; sync_skills(quiet=True)"
+    subprocess.run([sys.executable, "-c", code, source], env=env, check=True, timeout=60)
+
+
+def configure_desk_skills(tpl: Template, rec: dict, name: str, native: dict) -> None:
+    """Desks gain no shared roots or mounts, only native essential-only seeding."""
+    state = shared_state(tpl.name, rec)
+    if not state:
+        raise SystemExit("Update the template before adding a desk: shared skill ownership is not recorded.")
+    prof = checked_path(hermes_home() / "profiles" / name, hermes_home() / "profiles")
+    marker = checked_path(prof / ".no-bundled-skills", prof)
+    cfg = _profile_cfg(name)
+    skills = cfg.get("skills") or {}
+    state["profiles"].setdefault(name, {"original_skills": copy.deepcopy(skills),
+        "skills_present": "skills" in cfg, "original_marker": marker.read_text() if marker.exists() else None,
+        "selected": [], "managed": [], "external_dirs": list(skills.get("external_dirs", []))})
+    save_record(tpl.name, rec)
+    marker.write_text("hbt shared skills\n")
+    seed_shared_manual(native, name)
+
+
+def atomic_yaml(path: Path, y, data) -> None:
+    checked_path(path, path.parent)
+    out = io.StringIO()
+    y.dump(data, out)
+    temp = path.with_name(path.name + ".hbt-" + uuid.uuid4().hex)
+    temp.write_text(out.getvalue(), encoding="utf-8")
+    os.replace(temp, path)
+
+
+def backup_skill_state(tpl_name: str, rec: dict) -> Path:
+    """Durable full-package snapshot; never reuse/overwrite a previous recovery copy."""
+    dest = checked_path(record_dir(tpl_name) / "backups" / ("skills-" + uuid.uuid4().hex), hermes_home())
+    dest.mkdir(parents=True)
+    for name in rec.get("profiles", []):
+        src = checked_path(hermes_home() / "profiles" / name, hermes_home() / "profiles")
+        for item in ("skills", "config.yaml", ".no-bundled-skills", "distribution.yaml"):
+            p, target = src / item, dest / "profiles" / name / item
+            checked_path(p, src)
+            if p.exists():
+                target.parent.mkdir(parents=True, exist_ok=True)
+                if p.is_dir():
+                    package_hashes(p)
+                    # An earlier profile's external root may already have
+                    # archived packages from this same profile tree.
+                    shutil.copytree(p, target, dirs_exist_ok=True)
+                else:
+                    shutil.copy2(p, target)
+        # Only archive skill packages in profile trees that native deletion removes.
+        # Outside roots remain in place; never copy arbitrary files from a root.
+        settings = _profile_cfg(name).get("skills") or {}
+        roots = settings.get("external_dirs", [])
+        if not isinstance(roots, list) or any(not isinstance(p, str) for p in roots):
+            raise SystemExit(f"{name}: invalid external_dirs; cannot safely archive skills")
+        create_dir = settings.get("create_dir")
+        if create_dir is not None and not isinstance(create_dir, str):
+            raise SystemExit(f"{name}: invalid create_dir; cannot safely archive skills")
+        for raw in roots + ([create_dir] if create_dir else []):
+            if not raw.strip():
+                continue
+            root = profile_skill_path(raw, src)
+            for owner in rec.get("profiles", []):
+                removed = checked_path(hermes_home() / "profiles" / owner, hermes_home() / "profiles")
+                if root.is_relative_to(removed):
+                    endangered = checked_path(root, removed)
+                elif removed.is_relative_to(root):
+                    # Native discovery can start above a deleted profile. Limit
+                    # enumeration to its endangered subtree, not outside packages.
+                    checked_path(root, root)
+                    endangered = removed
+                else:
+                    continue
+                for package in set(skill_packages(endangered).values()):
+                    target = dest / "profiles" / owner / package.relative_to(removed)
+                    hashes = package_hashes(package)
+                    if not target.exists():
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copytree(package, target)
+                    if package_hashes(target) != hashes:
+                        raise SystemExit(f"Skill archive verification failed: {package}; deletion refused")
+    for item in ("dist", "skills"):
+        src = record_dir(tpl_name) / item
+        if src.exists():
+            package_hashes(src)
+            shutil.copytree(src, dest / item)
+    (dest / "record.json").write_text(json.dumps(rec, indent=2) + "\n")
+    say(f"  recovery archive: {dest}")
+    return dest
+
+
+def apply_shared_skills(tpl: Template, rec: dict, plan: dict) -> None:
+    """Publish verified packages, then each profile; journal removals for interrupted retries."""
+    state = plan["state"]
+    backup = backup_skill_state(tpl.name, rec)
+    state["backups"].append(str(backup))
+    state["migration"] = "activating"
+    rec["shared_skills"] = state
+    rec["shared_skills"]["pending"] = {"backup": str(backup), "removals": {
+        name: [str(p) for p in paths] for name, paths in plan["removals"].items()}}
+    save_record(tpl.name, rec)
+    root = Path(state["root"])
+    for rel, src in plan["sources"].items():
+        dest = root / rel
+        want = state["packages"].get(rel, {}).get("hashes")
+        if want != package_hashes(src):  # retained modified/unowned package
+            continue
+        if dest.exists() and package_hashes(dest) != want:
+            old = (json.loads((backup / "record.json").read_text()).get("shared_skills") or {}).get("packages", {}).get(rel)
+            if not old or any(old["hashes"].get(k) != v for k, v in package_hashes(dest).items()):
+                continue
+        if dest.exists() and package_hashes(dest) == want:
+            continue
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        staging = dest.with_name("." + dest.name + ".hbt-" + uuid.uuid4().hex)
+        shutil.copytree(src, staging)
+        if package_hashes(staging) != want:
+            raise SystemExit(f"Package verification failed: {rel}; archive: {backup}")
+        if dest.exists():
+            shutil.rmtree(dest)  # already snapshotted and verified pristine
+        os.replace(staging, dest)
+    for name, entry in state["profiles"].items():
+        prof = hermes_home() / "profiles" / name
+        if not prof.exists() or name in rec.get("desks", {}):
+            continue  # fresh install activates after native profile creation
+        activate_shared_profile(tpl, rec, name, plan["removals"].get(name, []))
+    state.pop("pending", None)
+    state["migration"] = "conflicts" if state["conflicts"] else "active"
+    save_record(tpl.name, rec)
+
+
+def activate_shared_profile(tpl: Template, rec: dict, name: str, removals: list[Path]) -> None:
+    entry = rec["shared_skills"]["profiles"][name]
+    prof = hermes_home() / "profiles" / name
+    y, cfg = load_yaml_rt(prof / "config.yaml")
+    cfg.setdefault("skills", {})["external_dirs"] = entry["external_dirs"]
+    # The journal and archive exist before removal. Recovery also handles partial deletion.
+    for path in removals:
+        shutil.rmtree(path)
+    atomic_yaml(prof / "config.yaml", y, cfg)
+    (prof / ".no-bundled-skills").write_text("hbt shared skills\n")
+
+
+def recover_shared_skills(tpl_name: str, rec: dict, dry: bool) -> None:
+    state = shared_state(tpl_name, rec)
+    pending = state.get("pending")
+    if not pending:
+        return
+    backup = checked_path(Path(pending["backup"]), record_dir(tpl_name) / "backups")
+    say(f"  interrupted skill activation: recovery archive {backup}")
+    if dry:
+        raise SystemExit("Recovery required before planning: run update without --dry-run to restore the checkpoint.")
+    original = json.loads(checked_path(backup / "record.json", backup).read_text())
+    for name, paths in pending["removals"].items():
+        prof = checked_path(hermes_home() / "profiles" / name, hermes_home() / "profiles")
+        if not prof.exists():
+            continue
+        y, cfg = load_yaml_rt(prof / "config.yaml")
+        ext = cfg.setdefault("skills", {}).get("external_dirs", [])
+        old_cfg_path = checked_path(backup / "profiles" / name / "config.yaml", backup)
+        old_cfg = yaml.safe_load(old_cfg_path.read_text()) or {} if old_cfg_path.exists() else {}
+        old_skills = old_cfg.get("skills") or {}
+        old_ext = old_skills.get("external_dirs", [])
+        if ext not in (old_ext, state["profiles"][name]["external_dirs"]):
+            raise SystemExit(f"Recovery conflict: {name} external_dirs changed since checkpoint; retained. Archive: {backup}")
+        if "external_dirs" in old_skills:
+            cfg["skills"]["external_dirs"] = old_ext
+        else:
+            cfg["skills"].pop("external_dirs", None)
+        if not cfg["skills"] and "skills" not in old_cfg:
+            cfg.pop("skills")
+        atomic_yaml(prof / "config.yaml", y, cfg)
+        for raw in paths:
+            dst = checked_path(Path(raw), prof / "skills")
+            src = checked_path(backup / "profiles" / name / dst.relative_to(prof), backup)
+            expected = package_hashes(src)
+            actual = package_hashes(dst)
+            if not (src / "SKILL.md").is_file():
+                raise SystemExit(f"Recovery conflict: incomplete archive for {dst}; retained journal: {backup}")
+            if any(expected.get(k) != v for k, v in actual.items()):
+                raise SystemExit(f"Recovery conflict: owner edits at {dst}; retained journal: {backup}")
+            # Restore missing bytes only. Never overwrite surviving or newly edited files.
+            for rel in expected:
+                target = checked_path(dst / rel, dst)
+                if not target.exists():
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(src / rel, target)
+            if package_hashes(dst) != expected:
+                raise SystemExit(f"Recovery verification failed: {dst}; retained journal: {backup}")
+        marker = prof / ".no-bundled-skills"
+        old_marker = checked_path(backup / "profiles" / name / ".no-bundled-skills", backup)
+        if marker.exists() and marker.read_text() == "hbt shared skills\n":
+            if old_marker.exists():
+                shutil.copy2(old_marker, marker)
+            else:
+                marker.unlink()
+    root = record_dir(tpl_name) / "skills"
+    for rel, info in state["packages"].items():
+        dest = checked_path(root / rel, root)
+        old_package = backup / "skills" / rel
+        actual = package_hashes(dest)
+        before = package_hashes(old_package)
+        if actual and actual not in (info["hashes"], before):
+            raise SystemExit(f"Recovery conflict at {dest}; owner edits retained. Archive: {backup}")
+        if dest.exists():
+            shutil.rmtree(dest)
+        if old_package.exists():
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(old_package, dest)
+    if original.get("shared_skills"):
+        rec["shared_skills"] = original["shared_skills"]
+    else:
+        rec.pop("shared_skills", None)
+    save_record(tpl_name, rec)
+
+
+def shared_gaps(tpl_name: str, rec: dict) -> list[str]:
+    state = shared_state(tpl_name, rec)
+    if not state:
+        return []
+    gaps = ["Shared skills conflict: " + c + ". See recovery archives and README; update does not overwrite custom work."
+            for c in state.get("conflicts", [])]
+    if state.get("migration") == "activating":
+        gaps.append("Shared skills activation interrupted. Fix: hbt update " + tpl_name)
+    root = Path(state["root"])
+    for rel, info in state["packages"].items():
+        if package_hashes(root / rel) != info["hashes"]:
+            gaps.append(f"Shared skills: missing/changed package {rel}. Fix: hbt update {tpl_name}; customized files are retained.")
+    for name, entry in state["profiles"].items():
+        prof = hermes_home() / "profiles" / name
+        cfg = _profile_cfg(name)
+        ext = (cfg.get("skills") or {}).get("external_dirs", [])
+        local = skill_packages(prof / "skills")
+        if not (prof / ".no-bundled-skills").exists():
+            gaps.append(f"{name}: bundled opt-out missing. Fix: hbt update {tpl_name}")
+        if "hermes-agent" not in local:
+            gaps.append(f"{name}: local hermes-agent missing. Fix: preserve any manual edits, then "
+                        f"hermes -p {name} skills reset hermes-agent --restore.")
+        seen = set(local)
+        for path in ext:
+            if not path.strip():
+                continue
+            p = profile_skill_path(path, prof)
+            names = set(skill_packages(p))
+            duplicate = names & seen
+            if duplicate:
+                gaps.append(f"{name}: duplicate/ambiguous local or external skills: {', '.join(sorted(duplicate))}. Fix: hbt update {tpl_name} and resolve retained sources manually.")
+            seen.update(names)
+        for path in entry["managed"]:
+            if path not in ext or not Path(path).is_dir():
+                gaps.append(f"{name}: selected root missing: {path}. Fix: hbt update {tpl_name}")
+    return gaps
+
+def uninstall_shared_skills(tpl_name: str, rec: dict, dry: bool) -> None:
+    state = shared_state(tpl_name, rec)
+    if dry:
+        say("  would archive all local skills/settings and remove only recorded pristine shared assets")
+        return
+    archive = backup_skill_state(tpl_name, rec)
+    rec.setdefault("skill_uninstall_archives", []).append(str(archive))
+    for name, entry in state.get("profiles", {}).items():
+        prof = hermes_home() / "profiles" / name
+        if not prof.exists():
+            continue
+        y, cfg = load_yaml_rt(prof / "config.yaml")
+        skills = cfg.get("skills", {})
+        current = skills.get("external_dirs", [])
+        if isinstance(current, list):
+            remaining = [p for p in current if p not in entry["managed"]]
+            if not remaining and "external_dirs" not in entry["original_skills"]:
+                skills.pop("external_dirs", None)
+            else:
+                skills["external_dirs"] = remaining
+        if not skills and not entry["skills_present"]:
+            cfg.pop("skills", None)
+        atomic_yaml(prof / "config.yaml", y, cfg)
+        marker = prof / ".no-bundled-skills"
+        if marker.exists() and marker.read_text() == "hbt shared skills\n":
+            if entry["original_marker"] is None:
+                marker.unlink()
+            else:
+                marker.write_text(entry["original_marker"])
+        restored = archive / "restored" / name
+        restored.mkdir(parents=True)
+        shutil.copy2(prof / "config.yaml", restored / "config.yaml")
+    root = record_dir(tpl_name) / "skills"
+    for rel, info in state.get("packages", {}).items():
+        dest = checked_path(root / rel, root)
+        if dest.exists() and package_hashes(dest) == info["hashes"]:
+            shutil.rmtree(dest)
+        elif dest.exists():
+            say(f"  retained modified shared package: {dest}")
+    say(f"  custom local skills/settings retained in {archive}; removed profiles no longer load them")
+    say(f"  any unrecognized shared content remains at {root}")
+    save_record(tpl_name, rec)
+
+
 def stage_distribution(tpl: Template, role: Role, name: str | None = None) -> Path:
     """Copy the role's distribution to a stable place, so `hermes profile update` can find it again."""
     dest = record_dir(tpl.name) / "dist" / (name or tpl.profile(role.key))
     if dest.exists():
         shutil.rmtree(dest)
-    shutil.copytree(tpl.path / "roles" / role.key, dest)
+    shutil.copytree(tpl.path / "roles" / role.key, dest, ignore=shutil.ignore_patterns("skills"))
     return dest
 
 
@@ -743,10 +1318,18 @@ def cmd_install(a: argparse.Namespace) -> int:
             say("Cancelled.")
             return 1
 
-    rec = {"template": tpl.name, "version": tpl.version, "installed_at": now_iso(), "hermes_version": info["hermes_version"],
+    rec = {"template": tpl.name, "version": "pending", "target_version": tpl.version,
+           "installed_at": now_iso(), "hermes_version": info["hermes_version"],
            "workspace": str(ws), "workspace_created": not ws.exists(), "profiles": [], "jobs": [], "board": None, "main_config": {},
            "memory": {"enabled": memory, "endpoint": a.memory_endpoint, "accounts": []}, "channels": channels,
            "bots": {}, "owner": owner, "projects": projects, "manifests": {}, "setup": {}, "repo_path": str(REPO_ROOT)}
+
+    native = native_skills()
+    skills_plan = plan_shared_skills(tpl, roles, rec, native, fresh=True)
+    if a.dry_run:
+        preview_shared_skills(skills_plan)
+    else:
+        apply_shared_skills(tpl, rec, skills_plan)
 
     def checkpoint():
         if not a.dry_run:
@@ -767,6 +1350,10 @@ def cmd_install(a: argparse.Namespace) -> int:
         clear_deleted_marker(name, record_dir(tpl.name) / "backups", a.dry_run)
         r.hermes_cmd("profile", "install", str(src), "-y")
         rec["profiles"].append(name)
+        checkpoint()
+        if not a.dry_run:
+            activate_shared_profile(tpl, rec, name, [])
+            seed_shared_manual(native, name)
         checkpoint()
         sets = {"terminal.cwd": str(ws / role.folder)}
         if a.timezone:
@@ -818,7 +1405,8 @@ def cmd_install(a: argparse.Namespace) -> int:
 
     # 4. kanban board
     say("4/6 kanban board")
-    boards = r.hermes_cmd("kanban", "boards", "list", check=False, mutate=False)
+    # Native read commands bootstrap config/logs on a new home, so dry-run must not invoke them.
+    boards = "" if a.dry_run else r.hermes_cmd("kanban", "boards", "list", check=False, mutate=False)
     if re.search(rf"(^|\s){re.escape(tpl.name)}(\s|$)", boards or ""):
         say(f"  board {tpl.name} already exists; reusing it (uninstall will leave it)")
     else:
@@ -844,11 +1432,15 @@ def cmd_install(a: argparse.Namespace) -> int:
     # 6. main profile: kanban settings (and the Ops route, once the system channel is known)
     say("6/6 main profile")
     wire_system_channel(r, tpl, rec, a.dry_run)
+    rec["version"] = tpl.version
+    rec.pop("target_version", None)
     checkpoint()
 
-    say("\nDone." if not a.dry_run else "\nDry run complete. Nothing was changed.")
+    say("\nInstalled with unresolved skill conflicts; see status/check and recovery archives."
+        if skills_plan["state"]["conflicts"] and not a.dry_run else
+        "\nDone." if not a.dry_run else "\nDry run complete. Nothing was changed.")
     say(f"Next: ./hbt setup {tpl.name}  (connects each bot to Slack, one step at a time)")
-    return 0
+    return 2 if skills_plan["state"]["conflicts"] else 0
 
 
 def cmd_connect(a: argparse.Namespace) -> int:
@@ -1108,9 +1700,23 @@ def cmd_update(a: argparse.Namespace) -> int:
     rec = load_record(tpl.name)
     if not rec:
         raise SystemExit(f"{tpl.name} is not installed here (no record in {record_dir(tpl.name)}).")
+    if rec.get("target_version"):
+        raise SystemExit("Fresh installation is incomplete. Run uninstall to preserve recovery archives, then retry install.")
     r = Runner(a.hermes, a.dry_run, a.verbose)
-    preflight(r)
+    info = preflight(r)
+    recover_shared_skills(tpl.name, rec, a.dry_run)
     installed = [x for x in tpl.roles if tpl.profile(x.key) in rec["profiles"]]
+    native = native_skills()
+    rec["hermes_version"] = info["hermes_version"]
+    skills_plan = plan_shared_skills(tpl, installed, rec, native)
+    if a.dry_run:
+        preview_shared_skills(skills_plan)
+    else:
+        try:
+            apply_shared_skills(tpl, rec, skills_plan)
+        except (Exception, SystemExit):
+            recover_shared_skills(tpl.name, rec, False)
+            raise
     ws = Path(rec["workspace"])
     rec.setdefault("channels", {}).update(parse_channels(a.channel))
     say(f"Updating {tpl.name} {rec['version']} -> {tpl.version} ({'dry run' if a.dry_run else 'live'})")
@@ -1119,6 +1725,8 @@ def cmd_update(a: argparse.Namespace) -> int:
         if not a.dry_run:
             stage_distribution(tpl, role)
         r.hermes_cmd("profile", "update", name, "-y")
+        if not a.dry_run:
+            seed_shared_manual(native, name)
         if role.kind == "ops":
             for k, v in OPS_CONFIG.items():
                 r.hermes_cmd("config", "set", k, v, profile=name)
@@ -1133,6 +1741,7 @@ def cmd_update(a: argparse.Namespace) -> int:
         desk = next((d for d in tpl.desks if d.key == entry.get("desk", name)), None)
         if desk:
             if not a.dry_run:
+                configure_desk_skills(tpl, rec, name, native)
                 stage_distribution(tpl, desk, name)
             r.hermes_cmd("profile", "update", name, "-y")
             for k, v in desk_config(ws / entry.get("folder", desk.folder), entry["channel"]).items():
@@ -1160,10 +1769,12 @@ def cmd_update(a: argparse.Namespace) -> int:
             s["installed_version"] = tpl.version
             settings.write_text(json.dumps(s, indent=2) + "\n", encoding="utf-8")
         save_record(tpl.name, rec)
-    say("Done." if not a.dry_run else "Dry run complete. Nothing was changed.")
+    say("Updated with unresolved skill conflicts; see status/check and recovery archives."
+        if skills_plan["state"]["conflicts"] and not a.dry_run else
+        "Done." if not a.dry_run else "Dry run complete. Nothing was changed.")
     if not a.dry_run:
         say("Restart the gateway once so the bots pick up the changes: hermes gateway restart")
-    return 0
+    return 2 if skills_plan["state"]["conflicts"] else 0
 
 
 # --------------------------------------------------------------------------- desks (Q20, Q26)
@@ -1255,6 +1866,8 @@ def cmd_desk(a: argparse.Namespace) -> int:
         raise SystemExit("Name at least one guest: --guest U0123ABCD")
     r = Runner(a.hermes, a.dry_run, a.verbose)
     preflight(r)
+    if not shared_state(tpl.name, rec):
+        raise SystemExit("Update the template before adding a desk: shared skill ownership is not recorded.")
     folder = Path(rec["workspace"]) / folder_rel
     say(f"Adding {desk.title} for {a.name} ({name}) {'dry run' if a.dry_run else 'live'}: folder {folder}, "
         f"channel {cid}, {len(guests)} guest(s)")
@@ -1273,6 +1886,8 @@ def cmd_desk(a: argparse.Namespace) -> int:
         if not a.dry_run:
             rec["profiles"].append(name)
             save_record(tpl.name, rec)
+    if not a.dry_run:
+        configure_desk_skills(tpl, rec, name, native_skills())
     sets = desk_config(folder, cid)
     sets.update({f"model.{k}": v for k, v in read_main_model(hermes_home() / "config.yaml").items()})
     for k, v in sets.items():
@@ -1299,6 +1914,7 @@ def cmd_uninstall(a: argparse.Namespace) -> int:
     rec = load_record(a.template)
     if not rec:
         raise SystemExit(f"{a.template} is not installed here (no record in {record_dir(a.template)}).")
+    checked_path(hermes_home() / "config.yaml", hermes_home())
     if a.delete_workspace and not rec.get("workspace_created", False):
         raise SystemExit(f"{rec['workspace']} existed before the install, so hbt will not delete it. Remove it yourself if you mean to.")
     r = Runner(a.hermes, a.dry_run, a.verbose)
@@ -1312,6 +1928,7 @@ def cmd_uninstall(a: argparse.Namespace) -> int:
         if input("Proceed? [y/N] ").strip().lower() not in ("y", "yes"):
             say("Cancelled.")
             return 1
+    uninstall_shared_skills(a.template, rec, a.dry_run)
     revert_main_config(hermes_home() / "config.yaml", rec, a.dry_run)
     for name in rec["profiles"]:
         if (hermes_home() / "profiles" / name).exists():
@@ -1339,6 +1956,16 @@ def cmd_status(a: argparse.Namespace) -> int:
         return 1
     tpl = load_template(a.template)
     say(f"{a.template} v{rec['version']} installed {rec['installed_at']}")
+    if rec.get("target_version"):
+        say(f"  INCOMPLETE installation, target {rec['target_version']}; archive with uninstall before retrying install")
+    state = shared_state(a.template, rec)
+    if state:
+        say(f"  shared library: {state['root']}; source: {state['source']} ({state['source_version']})")
+        say(f"  migration: {state['migration']}; recovery archives: {', '.join(state['backups'])}")
+        for name, entry in state["profiles"].items():
+            say(f"  {name} selected packages: {', '.join(entry['selected'])}")
+        for conflict in state.get("conflicts", []):
+            say("  CONFLICT " + conflict)
     for name in rec["profiles"]:
         key = next((x.key for x in tpl.roles if tpl.profile(x.key) == name), "")
         slack = f"Slack <@{rec['bots'][key]}>" if key in (rec.get("bots") or {}) else ""
@@ -1385,8 +2012,9 @@ def check_gaps(tpl: Template, rec: dict, live: bool = True) -> list[str]:
     if len(set(users.values())) > 1:  # a missing file counts: that bot knows nothing about you
         gaps.append("The bots have different USER.md files, so they describe you differently. "
                     "Fix: copy the one you want to every bot's memories/USER.md.")
-    # 2. Template playbooks: each role still has the version the template shipped.
-    for x in installed:
+    # 2. Use installed provenance, not a newer checkout, to diagnose shared assets.
+    gaps.extend(shared_gaps(tpl.name, rec))
+    for x in ([] if rec.get("shared_skills") else installed):
         src = tpl.path / "roles" / x.key / "skills"
         stale = sorted(f.parent.name for f in src.rglob("SKILL.md")
                        if _sha(f) != _sha(home / "profiles" / tpl.profile(x.key) / "skills" / f.relative_to(src)))

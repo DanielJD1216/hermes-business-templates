@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.0 (unreleased candidate)
+
+Independent review pending. No tag, published release or client rollout.
+
+- Install authored and explicitly selected native stock packages once in a durable template-owned library. Native `skills.external_dirs` selects exact package roots per role; no new loader, service or dependency.
+- Preserve v0.3.2 role selections, deleted skills, disabled settings and customized whole packages. Capture old staged provenance and durable recovery archives before restaging; omit colliding managed entries rather than relying on native listing precedence.
+- Keep `hermes-agent` native-managed locally, and opt template profiles out of nonessential bundled reseeding. Desks gain no shared roots or mounts.
+- Record package hashes, native source/version, selections, managed settings, original values and recovery/conflict pointers in the existing install record. Status and offline checks diagnose missing assets, local shadows and unresolved conflicts. Explicit update is the repair/refresh path.
+- Add recoverable migration activation and safe uninstall archives for custom local skills/settings. Preserve modified or unknown shared content and unrelated owner settings/assets. Conflicted updates return exit 2 instead of reporting a clean success.
+- Archive custom external/create-dir skill packages inside removed profiles, recover partially deleted packages without overwriting owner edits, and resolve variable-based external roots in the consuming profile for collision checks.
+- Preserve endangered packages discovered through ancestor roots, including cross-profile archive overlap, without archiving outside packages or arbitrary non-skill files.
+- Verify 63 unit tests. Earlier revisions passed 63 real native sandbox CLI/discovery/seeding checks; the ancestor-root correction adds five focused native gates, including two expected ambiguity refusals and exact-byte preservation after uninstall. Runs use sandboxed homes and a kernel write boundary. Live Slack, gateway, provider, Docker, memory and release integration remain untested for this candidate.
+
 ## 0.3.2 (2026-09-29)
 
 - Security fix: bots that hear each other could run each other's commands, because `@bot !approve` counts as a command and every allowed user could run commands. Commands are now limited to the owner (`slack.allow_admin_from` and `slack.group_allow_admin_from`), and `./hbt check` reports any bot without that limit. Existing installs: run `./hbt update creator`, then restart the gateway.
