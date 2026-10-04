@@ -174,6 +174,14 @@ class SharedSkills(unittest.TestCase):
         self.assertEqual(hbt.package_hashes(archive / "profiles/engineer/skills/custom"), before)
 
     def test_schema_and_symlink_rejected_before_mutation(self):
+        target = self.home / "owner-config.yaml"
+        target.write_text("owner_setting: keep\n")
+        link = self.home / "linked-config.yaml"
+        link.symlink_to(target)
+        with self.assertRaisesRegex(SystemExit, "symlink"):
+            hbt.edit_main_config(link, [], True, False, self.home / "backup")
+        self.assertEqual(target.read_text(), "owner_setting: keep\n")
+        link.unlink()
         self.apply()
         before = hbt.package_hashes(self.home)
         self.rec["shared_skills"]["schema"] = 99

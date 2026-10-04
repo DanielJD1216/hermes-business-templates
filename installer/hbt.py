@@ -418,6 +418,7 @@ def edit_main_config(cfg_path: Path, routes: list[dict], dispatch: bool, dry: bo
     are kept, so an update never overwrites the owner's true original with our own earlier change.
     v0.2 installs pass no routes: each bot has its own Slack app, so nothing needs routing.
     """
+    checked_path(cfg_path, cfg_path.parent)
     y, data = load_yaml_rt(cfg_path)
     prev = previous or {}
     changes: dict = {"routes_added": [],
@@ -461,6 +462,7 @@ def edit_main_config(cfg_path: Path, routes: list[dict], dispatch: bool, dry: bo
 
 
 def revert_main_config(cfg_path: Path, record: dict, dry: bool) -> None:
+    checked_path(cfg_path, cfg_path.parent)
     if not cfg_path.exists():
         return
     y, data = load_yaml_rt(cfg_path)
@@ -546,6 +548,7 @@ def read_env_value(env_path: Path, key: str) -> str:
 
 def preflight(r: Runner) -> dict:
     info: dict = {}
+    checked_path(hermes_home() / "config.yaml", hermes_home())
     hb = shutil.which(r.hermes) or (r.hermes if Path(r.hermes).exists() else None)
     if not hb:
         raise SystemExit("Hermes is not installed. Install it first: curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash")
@@ -1864,6 +1867,7 @@ def cmd_uninstall(a: argparse.Namespace) -> int:
     rec = load_record(a.template)
     if not rec:
         raise SystemExit(f"{a.template} is not installed here (no record in {record_dir(a.template)}).")
+    checked_path(hermes_home() / "config.yaml", hermes_home())
     if a.delete_workspace and not rec.get("workspace_created", False):
         raise SystemExit(f"{rec['workspace']} existed before the install, so hbt will not delete it. Remove it yourself if you mean to.")
     r = Runner(a.hermes, a.dry_run, a.verbose)
