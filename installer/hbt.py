@@ -714,6 +714,13 @@ def shared_state(tpl_name: str, rec: dict) -> dict:
     return state
 
 
+def profile_skill_path(entry: str, prof: Path) -> Path:
+    """Resolve native skill paths without borrowing the installer's HERMES_HOME."""
+    entry = re.sub(r"\$(?:\{HERMES_HOME\}|HERMES_HOME\b)", lambda _: str(prof), entry.strip())
+    path = Path(os.path.expandvars(entry)).expanduser()
+    return path if path.is_absolute() else prof / path
+
+
 def plan_shared_skills(tpl: Template, roles: list[Role], rec: dict, native: dict, fresh: bool = False) -> dict:
     """Read-only preflight. Capture old distribution provenance before any restaging."""
     previous = shared_state(tpl.name, rec)
@@ -751,9 +758,7 @@ def plan_shared_skills(tpl: Template, roles: list[Role], rec: dict, native: dict
         for entry in custom_ext:
             if not entry.strip():
                 continue
-            p = Path(os.path.expandvars(entry.strip())).expanduser()
-            if not p.is_absolute():
-                p = prof / p
+            p = profile_skill_path(entry, prof)
             names = set(skill_packages(p))
             if names & external:
                 state["conflicts"].append(f"{name}: pre-existing external ambiguity retained: {', '.join(sorted(names & external))}")
@@ -906,6 +911,32 @@ def backup_skill_state(tpl_name: str, rec: dict) -> Path:
                     shutil.copytree(p, target)
                 else:
                     shutil.copy2(p, target)
+        # Only archive skill packages in profile trees that native deletion removes.
+        # Outside roots remain in place; never copy arbitrary files from a root.
+        settings = _profile_cfg(name).get("skills") or {}
+        roots = settings.get("external_dirs", [])
+        if not isinstance(roots, list) or any(not isinstance(p, str) for p in roots):
+            raise SystemExit(f"{name}: invalid external_dirs; cannot safely archive skills")
+        create_dir = settings.get("create_dir")
+        if create_dir is not None and not isinstance(create_dir, str):
+            raise SystemExit(f"{name}: invalid create_dir; cannot safely archive skills")
+        for raw in roots + ([create_dir] if create_dir else []):
+            if not raw.strip():
+                continue
+            root = profile_skill_path(raw, src)
+            for owner in rec.get("profiles", []):
+                removed = checked_path(hermes_home() / "profiles" / owner, hermes_home() / "profiles")
+                if not root.absolute().is_relative_to(removed):
+                    continue
+                checked_path(root, removed)
+                for package in set(skill_packages(root).values()):
+                    target = dest / "profiles" / owner / package.relative_to(removed)
+                    hashes = package_hashes(package)
+                    if not target.exists():
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copytree(package, target)
+                    if package_hashes(target) != hashes:
+                        raise SystemExit(f"Skill archive verification failed: {package}; deletion refused")
     for item in ("dist", "skills"):
         src = record_dir(tpl_name) / item
         if src.exists():
@@ -961,7 +992,7 @@ def activate_shared_profile(tpl: Template, rec: dict, name: str, removals: list[
     prof = hermes_home() / "profiles" / name
     y, cfg = load_yaml_rt(prof / "config.yaml")
     cfg.setdefault("skills", {})["external_dirs"] = entry["external_dirs"]
-    # The journal and archive exist before removal. Retry restores absent copies if activation fails.
+    # The journal and archive exist before removal. Recovery also handles partial deletion.
     for path in removals:
         shutil.rmtree(path)
     atomic_yaml(prof / "config.yaml", y, cfg)
@@ -1000,10 +1031,20 @@ def recover_shared_skills(tpl_name: str, rec: dict, dry: bool) -> None:
         for raw in paths:
             dst = checked_path(Path(raw), prof / "skills")
             src = checked_path(backup / "profiles" / name / dst.relative_to(prof), backup)
-            if not dst.exists():
-                package_hashes(src)
-                dst.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copytree(src, dst)
+            expected = package_hashes(src)
+            actual = package_hashes(dst)
+            if not (src / "SKILL.md").is_file():
+                raise SystemExit(f"Recovery conflict: incomplete archive for {dst}; retained journal: {backup}")
+            if any(expected.get(k) != v for k, v in actual.items()):
+                raise SystemExit(f"Recovery conflict: owner edits at {dst}; retained journal: {backup}")
+            # Restore missing bytes only. Never overwrite surviving or newly edited files.
+            for rel in expected:
+                target = checked_path(dst / rel, dst)
+                if not target.exists():
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(src / rel, target)
+            if package_hashes(dst) != expected:
+                raise SystemExit(f"Recovery verification failed: {dst}; retained journal: {backup}")
         marker = prof / ".no-bundled-skills"
         old_marker = checked_path(backup / "profiles" / name / ".no-bundled-skills", backup)
         if marker.exists() and marker.read_text() == "hbt shared skills\n":
@@ -1057,9 +1098,7 @@ def shared_gaps(tpl_name: str, rec: dict) -> list[str]:
         for path in ext:
             if not path.strip():
                 continue
-            p = Path(os.path.expandvars(path.strip())).expanduser()
-            if not p.is_absolute():
-                p = prof / p
+            p = profile_skill_path(path, prof)
             names = set(skill_packages(p))
             duplicate = names & seen
             if duplicate:

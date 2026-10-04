@@ -96,6 +96,77 @@ class SharedSkills(unittest.TestCase):
         self.apply()
         self.assertEqual(hbt.package_hashes(self.local_stock), before)
 
+    def test_uninstall_archives_internal_external_and_creation_packages(self):
+        self.apply()
+        external = put_skill(self.prof / "custom-external", "owner-only", "external bytes")
+        created = put_skill(self.prof / "my-skills", "owner-created", "creation bytes")
+        outside = put_skill(self.home / "outside", "untouched", "outside bytes")
+        (external / "binary.dat").write_bytes(b"\x00\xffowner")
+        (external.parent / "unrelated-secret").write_text("do not archive")
+        expected = {p.relative_to(self.prof): hbt.package_hashes(p) for p in [external, created]}
+        outside_before = hbt.package_hashes(outside)
+        cfg = hbt._profile_cfg(self.role.key)
+        cfg["skills"]["external_dirs"] += ["${HERMES_HOME}/custom-external", str(outside)]
+        (self.prof / "config.yaml").write_text(hbt.yaml.safe_dump(cfg))
+        hbt.uninstall_shared_skills(self.tpl.name, self.rec, False)
+        archive = Path(self.rec["skill_uninstall_archives"][-1]) / "profiles" / self.role.key
+        shutil.rmtree(self.prof)  # Model native whole-profile deletion.
+        for rel, hashes in expected.items():
+            self.assertEqual(hbt.package_hashes(archive / rel), hashes)
+        self.assertFalse((archive / "custom-external/unrelated-secret").exists())
+        self.assertEqual(hbt.package_hashes(outside), outside_before)
+
+    def test_profile_scoped_external_collision_and_diagnostics(self):
+        self.apply()
+        custom = put_skill(self.prof / "custom-external", "stock", "owner bytes")
+        before = hbt.package_hashes(custom)
+        for raw in ["${HERMES_HOME}/custom-external", "$HERMES_HOME/custom-external", "custom-external"]:
+            with self.subTest(raw=raw):
+                cfg = hbt._profile_cfg(self.role.key)
+                shared = str(Path(self.rec["shared_skills"]["root"]) / "bundled/category/stock")
+                cfg["skills"]["external_dirs"] = [raw, shared]
+                (self.prof / "config.yaml").write_text(hbt.yaml.safe_dump(cfg))
+                self.assertIn("duplicate/ambiguous", "\n".join(hbt.shared_gaps(self.tpl.name, self.rec)))
+                self.apply()
+                ext = hbt._profile_cfg(self.role.key)["skills"]["external_dirs"]
+                self.assertEqual(ext[0], raw)
+                self.assertNotIn(shared, ext)
+                self.assertTrue(any("custom external" in c for c in self.rec["shared_skills"]["conflicts"]))
+                self.assertEqual(hbt.package_hashes(custom), before)
+                # Restore recorded ownership for the next independent string variant.
+                self.rec["shared_skills"]["profiles"][self.role.key]["managed"].append(shared)
+
+    def test_partial_deletion_recovery_restores_bytes_and_selection(self):
+        path = self.prof / "skills/authored"
+        before = hbt.package_hashes(path)
+        original = shutil.rmtree
+        def partial(target, *args, **kwargs):
+            if Path(target) == path:
+                (path / "SKILL.md").unlink()
+                raise OSError("injected partial deletion")
+            return original(target, *args, **kwargs)
+        with patch.object(hbt.shutil, "rmtree", side_effect=partial):
+            with self.assertRaisesRegex(OSError, "partial deletion"):
+                self.apply()
+        self.assertTrue(path.is_dir())
+        hbt.recover_shared_skills(self.tpl.name, self.rec, False)
+        self.assertEqual(hbt.package_hashes(path), before)
+        self.apply()
+        self.assertIn("template/engineer/authored", self.rec["shared_skills"]["profiles"][self.role.key]["selected"])
+        self.assertEqual(self.rec["shared_skills"]["migration"], "active")
+
+    def test_recovery_keeps_journal_and_owner_edits(self):
+        path = self.prof / "skills/authored"
+        with patch.object(hbt, "atomic_yaml", side_effect=OSError("injected")):
+            with self.assertRaises(OSError):
+                self.apply()
+        put_skill(path.parent, path.name, "new owner edit")
+        before = hbt.package_hashes(path)
+        with self.assertRaisesRegex(SystemExit, "owner edits"):
+            hbt.recover_shared_skills(self.tpl.name, self.rec, False)
+        self.assertIn("pending", self.rec["shared_skills"])
+        self.assertEqual(hbt.package_hashes(path), before)
+
     def test_unknown_authored_baseline_is_not_permission(self):
         shutil.rmtree(hbt.record_dir(self.tpl.name) / "dist")
         self.apply()
