@@ -212,13 +212,18 @@ def collect(root, p, state):
                         continue
                     if not valid_record(item, path.stem, p["mode"]):
                         raise Refused("ineligible-draft")
-                    if wa.get_pending(wa.MEMORY, path.stem) != item:
-                        raise Refused("changed-draft")
                     key = name + ":" + path.stem
                     sha = digest(raw)
+                    attempt = state["attempts"].get(key)
+                    # Identity survives retain/error and policy/snapshot changes.
+                    # Older unpinned attempts require owner recovery, not repinning.
+                    if attempt is not None and attempt.get("hash") != sha:
+                        raise Refused("changed-draft-identity")
                     prior = state["receipts"].get(key)
                     if prior and (prior["hash"] != sha or prior["status"] not in {"applied", "discarded"}):
                         raise Refused("recovery-required")
+                    if wa.get_pending(wa.MEMORY, path.stem) != item:
+                        raise Refused("changed-draft")
                     store = native_store(home)
                     target = item["payload"]["target"]
                     if not store.target_enabled(target):
@@ -297,16 +302,22 @@ def reviewer_child():
     # Streaming uses the native primary route without the non-streaming implicit
     # cross-provider recovery ladder. The parent enforces a wall-clock deadline.
     options = {k: model[k] for k in ("base_url", "api_mode") if model.get(k)}
-    stream = call_llm(provider=model["provider"], model=model["default"], **options,
+    response = call_llm(provider=model["provider"], model=model["default"], **options,
                       messages=[{"role": "system", "content": RULES}, {"role": "user", "content": data}],
                       tools=[], stream=True, timeout=120, max_tokens=4096)
+    # Native subscription adapters can return a completed message even with
+    # stream=True. Keep the same single call and text-only validation for both.
+    completed = hasattr(response, "choices")
     text = ""
-    for chunk in stream:
+    for chunk in ([response] if completed else response):
         for choice in getattr(chunk, "choices", []):
-            delta = getattr(choice, "delta", None)
-            if getattr(delta, "tool_calls", None):
+            part = getattr(choice, "message" if completed else "delta", None)
+            if getattr(part, "tool_calls", None) or getattr(part, "function_call", None):
                 raise Refused("reviewer-tool-call")
-            text += getattr(delta, "content", None) or ""
+            content = getattr(part, "content", None)
+            if content is not None and not isinstance(content, str):
+                raise Refused("invalid-reviewer-content")
+            text += content or ""
             if len(text.encode()) > MAX_INPUT:
                 raise Refused("reviewer-output-limit")
     print(text, end="")
@@ -460,7 +471,7 @@ def run(ops_home=None, reviewer=review):
             for d in fresh:
                 previous = state["attempts"].get(d["key"], {})
                 count = previous.get("count", 0) if previous.get("fingerprint") == d["fingerprint"] else 0
-                state["attempts"][d["key"]] = {"fingerprint": d["fingerprint"], "count": count + 1}
+                state["attempts"][d["key"]] = {"hash": d["hash"], "fingerprint": d["fingerprint"], "count": count + 1}
             persist(state_path, state, root)
             data = encoded({"rules": RULES, "drafts": [d["review"] for d in fresh]})
             answers = decisions(reviewer(data, ops_home), fresh)
