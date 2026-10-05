@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.0 (unreleased candidate)
+
+Independent review pending. No tag, published release, live installation or client rollout.
+
+- Add explicit `--memory-review off|add-only|add-replace` to install/update. Default to off, preserve recorded policy on ordinary update, and enroll only installed non-Ops roles.
+- Add the initially paused 21:30 native Ops script job with local-only delivery. Preserve owner pauses, schedules and deletions; reconcile interrupted creation using exact ownership evidence rather than a job name.
+- Review original background memory proposals only. Keep native pins, validation, enabled flags, limits and atomic batches. Forbid automatic remove, edited operations, shared USER.md writes, default-profile fan-out and tool-enabled reviewer sessions.
+- Bound text-only auxiliary review to one child invocation, 20 drafts, 128 KiB input and a 120-second wall deadline. Add private preimage archives, durable receipts, cleanup-only recovery, unknown-outcome retention, bounded retries and process exclusion.
+- Add a global zero-write uninstall refusal gate for unowned jobs, unsafe paths and uncovered owner data. Preserve current covered memory/draft bytes, settings/skills, narrowly identified config backups and native logs before profile deletion. Refuse rather than relocate an unrelated job or treat a byte archive as a running workload.
+- Add synthetic validation, native memory and native cron ownership tests. Exercise isolated native install/upgrade, dry-run/refusal, exact-byte preservation and uninstall without live providers, Slack, OpenViking or a gateway. Fixture results do not prove model judgment, authentication or production scheduling.
+
 ## 0.4.0 (unreleased candidate)
 
 Independent review pending. No tag, published release or client rollout.
