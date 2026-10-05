@@ -56,6 +56,19 @@ def encoded(value):
     return json.dumps(value, sort_keys=True, ensure_ascii=False).encode()
 
 
+def native_runtime():
+    """Resolve native code from the installed package, never a workstation path."""
+    try:
+        import hermes_cli
+        root = Path(hermes_cli.__file__).resolve().parent.parent
+        if not (root / "tools/memory_tool.py").is_file():
+            raise Refused("native-memory-interface-unavailable")
+        if str(root) not in sys.path:
+            sys.path.insert(0, str(root))
+    except ImportError:
+        raise Refused("native-runtime-unavailable-use-Hermes-Python") from None
+
+
 def strict_json(raw):
     def pairs(items):
         result = {}
@@ -269,6 +282,7 @@ def reviewer_child():
         pending = strict_json(safe(home / "pending/memory" / (draft["id"] + ".json"), home).read_bytes())
         if not valid_record(pending, draft["id"], p["mode"]) or pending.get("payload") != draft["payload"]:
             raise Refused("changed-reviewer-input")
+    native_runtime()
     from hermes_cli.config import load_config_readonly
     from agent.auxiliary_client import call_llm
     cfg = load_config_readonly()
@@ -416,6 +430,7 @@ def run(ops_home=None, reviewer=review):
     root, p = policy(ops_home)
     if p["mode"] == "off":
         return 0
+    native_runtime()
     import fcntl
     from tools import write_approval as wa
     from tools.memory_tool import MemoryStore, apply_memory_pending, load_on_disk_store
@@ -474,6 +489,9 @@ if __name__ == "__main__":
             raise Refused("unsupported-arguments")
         else:
             run()
+    except Refused as exc:
+        print(f"Memory review retained drafts: {exc}; check native compatibility and local recovery state.", file=sys.stderr)
+        sys.exit(1)
     except Exception:
         # Native/provider exception text can contain memory or credentials.
         print("Memory review retained drafts: check policy, native compatibility and local recovery state.", file=sys.stderr)
