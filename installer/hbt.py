@@ -16,6 +16,7 @@ so uninstall removes exactly what install created and nothing else.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import copy
 import datetime as _dt
 import io
@@ -29,6 +30,7 @@ import sys
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import NoReturn
 
 try:
     import yaml
@@ -39,6 +41,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 TEMPLATES_DIR = REPO_ROOT / "templates"
 MIN_HERMES = (0, 21, 0)
 ROUTE_TAG = "hbt:"  # prefix on every profile route name we add, so we only ever remove our own
+MEMORY_REVIEW_KEY = "memory-draft-review"
+MEMORY_REVIEW_MODES = ("off", "add-only", "add-replace")
 
 
 # --------------------------------------------------------------------------- helpers
@@ -376,7 +380,7 @@ def new_jobs(tpl: Template, rec: dict) -> list[dict]:
     """Template jobs this install does not have yet. A job the owner removed stays in the record, so it is not re-added."""
     have = {j.get("key") for j in rec.get("jobs", [])}
     memory = bool((rec.get("memory") or {}).get("enabled"))
-    return [j for j in tpl.jobs if j["key"] not in have and not (j.get("requires") == "openviking" and not memory)]
+    return [j for j in tpl.jobs if j["key"] != MEMORY_REVIEW_KEY and j["key"] not in have and not (j.get("requires") == "openviking" and not memory)]
 
 
 def job_args(tpl, job: dict, ops_role, target: str, workdir: Path) -> list[str]:
@@ -576,9 +580,30 @@ def record_dir(tpl_name: str) -> Path:
     return hermes_home() / "business-templates" / tpl_name
 
 
+def unique_json(raw):
+    def pairs(items):
+        result = {}
+        for key, value in items:
+            if key in result:
+                raise ValueError("duplicate JSON key")
+            result[key] = value
+        return result
+    return json.loads(raw, object_pairs_hook=pairs,
+                      parse_constant=lambda _: (_ for _ in ()).throw(ValueError("invalid JSON number")))
+
+
 def load_record(tpl_name: str) -> dict | None:
     p = record_dir(tpl_name) / "record.json"
-    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+    checked_path(p, hermes_home())
+    if not p.exists():
+        return None
+    try:
+        result = unique_json(p.read_bytes())
+        if not isinstance(result, dict):
+            raise ValueError()
+        return result
+    except (OSError, ValueError):
+        raise SystemExit("Installation record is unreadable or malformed; restore it before retry.") from None
 
 
 def save_record(tpl_name: str, rec: dict) -> None:
@@ -588,8 +613,16 @@ def save_record(tpl_name: str, rec: dict) -> None:
     checked_path(d / "record.json.tmp", d)
     d.mkdir(parents=True, exist_ok=True)
     tmp = d / "record.json.tmp"
-    tmp.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    with tmp.open("w", encoding="utf-8") as stream:
+        stream.write(json.dumps(rec, indent=2) + "\n")
+        stream.flush()
+        os.fsync(stream.fileno())
     os.replace(tmp, d / "record.json")
+    fd = os.open(d, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
 
 
 def parse_channels(pairs: list[str]) -> dict[str, str]:
@@ -898,7 +931,7 @@ def atomic_yaml(path: Path, y, data) -> None:
 def backup_skill_state(tpl_name: str, rec: dict) -> Path:
     """Durable full-package snapshot; never reuse/overwrite a previous recovery copy."""
     dest = checked_path(record_dir(tpl_name) / "backups" / ("skills-" + uuid.uuid4().hex), hermes_home())
-    dest.mkdir(parents=True)
+    dest.mkdir(parents=True, mode=0o700)
     for name in rec.get("profiles", []):
         src = checked_path(hermes_home() / "profiles" / name, hermes_home() / "profiles")
         for item in ("skills", "config.yaml", ".no-bundled-skills", "distribution.yaml"):
@@ -1262,7 +1295,7 @@ def wire_system_channel(r: Runner, tpl: Template, rec: dict, dry: bool) -> bool:
         routes = [{"name": f"{ROUTE_TAG}{tpl.name}:{ops.key}", "platform": "slack", "chat_id": cid,
                    "profile": tpl.profile(ops.key)}]
         for j in rec.get("jobs", []):
-            if j.get("id"):
+            if j.get("id") and j.get("key") != MEMORY_REVIEW_KEY:
                 r.hermes_cmd("cron", "edit", j["id"], "--deliver", f"slack:{cid}", profile=j["profile"])
     changes = edit_main_config(hermes_home() / "config.yaml", routes, dispatch=True, dry=dry,
                                backup_dir=record_dir(tpl.name) / "backups", previous=rec.get("main_config"),
@@ -1275,6 +1308,122 @@ def wire_system_channel(r: Runner, tpl: Template, rec: dict, dry: bool) -> bool:
 
 
 # --------------------------------------------------------------------------- commands
+
+def memory_review_policy(tpl: Template, rec: dict, mode: str | None) -> dict:
+    previous = rec.get("memory_review")
+    if previous is not None and (not isinstance(previous, dict) or type(previous.get("schema_version")) is not int or previous.get("schema_version") != 1
+            or previous.get("mode") not in MEMORY_REVIEW_MODES or previous.get("install_root") != str(hermes_home())):
+        raise SystemExit("Memory review policy is invalid; restore the installation record before retry.")
+    if mode is not None and mode not in MEMORY_REVIEW_MODES:
+        raise SystemExit("Unknown memory review mode.")
+    if previous is not None:
+        enrollment = previous.get("enrolled")
+        permitted = {tpl.profile(role.key) for role in tpl.roles if role.kind != "ops"} & set(rec["profiles"])
+        if (not isinstance(enrollment, list) or any(not isinstance(n, str) or n not in permitted for n in enrollment)
+                or len(enrollment) != len(set(enrollment)) or not isinstance(previous.get("policy_at"), str)
+                or not isinstance(previous.get("job"), dict)):
+            raise SystemExit("Memory review enrollment or ownership record is invalid; restore it before retry.")
+    result = copy.deepcopy(previous) if previous else {
+        "schema_version": 1, "mode": "off", "install_root": str(hermes_home()),
+        "state_path": str(record_dir(tpl.name) / "memory-review/state.json"),
+        "recovery_path": str(record_dir(tpl.name) / "backups/memory-review"),
+        "policy_at": now_iso(), "enrolled": [], "job": {}}
+    if mode is not None:
+        result["mode"], result["policy_at"] = mode, now_iso()
+    result["enrolled"] = [tpl.profile(role.key) for role in tpl.roles
+        if role.kind != "ops" and tpl.profile(role.key) in rec["profiles"]]
+    for key, relative in (("state_path", "memory-review/state.json"), ("recovery_path", "backups/memory-review")):
+        if result.get(key) != str(record_dir(tpl.name) / relative):
+            raise SystemExit("Memory review path changed; restore the recorded installation root.")
+        checked_path(Path(result[key]), hermes_home())
+    return result
+
+
+def create_memory_review_job(policy: dict) -> dict:
+    """Use native cron in an Ops-scoped process with a persisted ownership nonce."""
+    import hermes_cli
+    source = str(Path(hermes_cli.__file__).resolve().parent.parent)
+    code = ("import json,sys; sys.path.insert(0,sys.argv[1]); from cron.jobs import create_job; "
+            "p=json.load(sys.stdin); j=create_job(None,'30 21 * * *',name='hbt:creator:memory-draft-review',"
+            "script='hbt_memory_review.py',no_agent=True,deliver='local',failure_deliver='local',"
+            "origin={'hbt_owner':p['job']['owner']},paused=True,paused_reason='Memory review requires explicit owner opt-in'); "
+            "print(json.dumps(j))")
+    result = subprocess.run([sys.executable, "-c", code, source], input=json.dumps(policy), text=True,
+        capture_output=True, timeout=60, env={**os.environ, "HERMES_HOME": str(hermes_home() / "profiles/ops")})
+    if result.returncode:
+        raise SystemExit("Native memory-review job creation failed; retry update to reconcile the ownership checkpoint.")
+    return json.loads(result.stdout)
+
+
+def sync_memory_review(tpl: Template, rec: dict, mode: str | None, runner: Runner) -> None:
+    with uninstall_review_lock(tpl.name, runner.dry_run):
+        _sync_memory_review_locked(tpl, rec, mode, runner)
+
+
+def _sync_memory_review_locked(tpl: Template, rec: dict, mode: str | None, runner: Runner) -> None:
+    policy = memory_review_policy(tpl, rec, mode)
+    if not tpl.ops or tpl.profile(tpl.ops.key) not in rec["profiles"]:
+        return
+    jobs = read_jobs_without_bootstrap("ops")
+    identity = policy["job"]
+    same_name = [j for j in jobs if j.get("name") == f"{ROUTE_TAG}{tpl.name}:{MEMORY_REVIEW_KEY}"]
+    current = None
+    if identity.get("id"):
+        current = next((j for j in jobs if j["id"] == identity["id"]), None)
+    elif identity.get("owner"):
+        matches = [j for j in jobs if j.get("origin") == {"hbt_owner": identity["owner"]}]
+        if len(matches) > 1:
+            raise SystemExit("Memory review ownership checkpoint is ambiguous; reconcile jobs manually.")
+        current = matches[0] if matches else None
+    if same_name and (len(same_name) != 1 or same_name[0] != current):
+        raise SystemExit("Memory review found a same-name job without exact ownership; no adoption or deletion is authorized.")
+    if current and (current.get("origin") != {"hbt_owner": identity.get("owner")}
+            or current.get("name") != f"{ROUTE_TAG}{tpl.name}:{MEMORY_REVIEW_KEY}"
+            or current.get("script") != "hbt_memory_review.py" or current.get("no_agent") is not True
+            or current.get("deliver") != "local" or current.get("failure_deliver", "local") != "local"
+            or (identity.get("created_at") and identity["created_at"] != current.get("created_at"))):
+        raise SystemExit("Memory review job identity or local-only delivery changed; resolve the conflict before retry.")
+    if runner.dry_run:
+        say(f"  would set memory review policy: {policy['mode']}; local job only; preserve owner pauses/deletions")
+        return
+    rec["memory_review"] = policy
+    settings_path = checked_path(hermes_home() / "profiles/ops/hbt-settings.json", hermes_home())
+    settings = json.loads(settings_path.read_bytes())
+    if "install_root" in settings and settings["install_root"] != str(hermes_home()):
+        raise SystemExit("Ops install-root reference conflicts with this installation; owner settings were retained.")
+    settings["install_root"] = str(hermes_home())
+    from utils import atomic_json_write
+    atomic_json_write(settings_path, settings)
+    save_record(tpl.name, rec)
+    if current is None and not identity.get("id"):
+        identity.setdefault("owner", uuid.uuid4().hex)
+        save_record(tpl.name, rec)
+        current = create_memory_review_job(policy)
+    if current is None:
+        say("  memory review job was deleted by its owner; kept deleted")
+        return
+    identity.update({"id": current["id"], "profile": "ops", "created_at": current["created_at"],
+        "script": current["script"], "deliver": current["deliver"], "schedule": current["schedule"],
+        "enabled": current["enabled"], "state": current["state"]})
+    entry = {"key": MEMORY_REVIEW_KEY, "id": current["id"], "profile": "ops"}
+    existing = [j for j in rec["jobs"] if j.get("key") == MEMORY_REVIEW_KEY]
+    if existing and existing != [entry]:
+        raise SystemExit("Memory review recorded job identities disagree; reconcile the record.")
+    if not existing:
+        rec["jobs"].append(entry)
+    save_record(tpl.name, rec)
+    if policy["mode"] == "off":
+        runner.hermes_cmd("cron", "pause", current["id"], profile="ops")
+    elif mode is not None:
+        runner.hermes_cmd("cron", "resume", current["id"], profile="ops")
+    verified = next((j for j in read_jobs_without_bootstrap("ops") if j["id"] == current["id"]), None)
+    if verified is None or verified.get("deliver") != "local" or verified.get("script") != "hbt_memory_review.py":
+        raise SystemExit("Memory review job readback failed; inspect the recorded ownership checkpoint.")
+    if policy["mode"] == "off" and verified.get("enabled"):
+        raise SystemExit("Memory review job did not pause.")
+    identity.update({k: verified[k] for k in ("enabled", "state", "schedule")})
+    save_record(tpl.name, rec)
+
 
 def cmd_install(a: argparse.Namespace) -> int:
     tpl = load_template(a.template)
@@ -1420,6 +1569,8 @@ def cmd_install(a: argparse.Namespace) -> int:
     if ops:
         target = f"slack:{channels[tpl.system_channel]}" if channels.get(tpl.system_channel) else "local"
         for job in tpl.jobs:
+            if job["key"] == MEMORY_REVIEW_KEY:
+                continue
             if job.get("requires") == "openviking" and not memory:
                 continue
             args = job_args(tpl, job, ops, target, ws / ops.folder)
@@ -1430,6 +1581,7 @@ def cmd_install(a: argparse.Namespace) -> int:
         say(f"  {len(rec['jobs']) if not a.dry_run else len(tpl.jobs)} job(s) delivering to {target}")
 
     # 6. main profile: kanban settings (and the Ops route, once the system channel is known)
+    sync_memory_review(tpl, rec, getattr(a, "memory_review", None), r)
     say("6/6 main profile")
     wire_system_channel(r, tpl, rec, a.dry_run)
     rec["version"] = tpl.version
@@ -1700,9 +1852,10 @@ def cmd_update(a: argparse.Namespace) -> int:
     rec = load_record(tpl.name)
     if not rec:
         raise SystemExit(f"{tpl.name} is not installed here (no record in {record_dir(tpl.name)}).")
-    if rec.get("target_version"):
+    if rec.get("target_version") and not (rec.get("memory_review") or {}).get("job", {}).get("owner"):
         raise SystemExit("Fresh installation is incomplete. Run uninstall to preserve recovery archives, then retry install.")
     r = Runner(a.hermes, a.dry_run, a.verbose)
+    memory_review_policy(tpl, rec, getattr(a, "memory_review", None))
     info = preflight(r)
     recover_shared_skills(tpl.name, rec, a.dry_run)
     installed = [x for x in tpl.roles if tpl.profile(x.key) in rec["profiles"]]
@@ -1760,9 +1913,11 @@ def cmd_update(a: argparse.Namespace) -> int:
             rec.setdefault("jobs", []).append({"key": job["key"], "id": m.group(1) if m else None,
                                                "profile": tpl.profile(ops.key)})
             say(f"  new scheduled job: {job['key']}")
+    sync_memory_review(tpl, rec, getattr(a, "memory_review", None), r)
     wire_system_channel(r, tpl, rec, a.dry_run)
     if not a.dry_run:
         rec["version"], rec["updated_at"] = tpl.version, now_iso()
+        rec.pop("target_version", None)
         settings = hermes_home() / "profiles" / tpl.profile(ops.key) / "hbt-settings.json" if ops else None
         if settings and settings.exists():
             s = json.loads(settings.read_text(encoding="utf-8"))
@@ -1910,13 +2065,245 @@ def cmd_desk(a: argparse.Namespace) -> int:
     return 0
 
 
+def read_jobs_without_bootstrap(profile: str) -> list[dict]:
+    """Read all native jobs without creating a store, lock, log or repair file."""
+    path = checked_path(hermes_home() / "profiles" / profile / "cron/jobs.json", hermes_home())
+    if not path.exists():
+        return []
+    try:
+        if not path.is_file() or not path.stat().st_mode & 0o444:
+            raise ValueError()
+        data = unique_json(path.read_bytes())
+        jobs = data["jobs"] if isinstance(data, dict) else data
+        if not isinstance(jobs, list):
+            raise ValueError()
+        ids = []
+        for job in jobs:
+            if not isinstance(job, dict) or not isinstance(job.get("id"), str) or not re.fullmatch(r"[0-9a-f]{12}", job["id"]):
+                raise ValueError()
+            ids.append(job["id"])
+        if len(set(ids)) != len(ids):
+            raise ValueError()
+        return jobs
+    except (OSError, ValueError, KeyError, TypeError):
+        raise SystemExit(f"Uninstall refused: {profile}/cron/jobs.json is unreadable or malformed; repair it before retry.") from None
+
+
+def private_archive_file(source: Path, target: Path, expected: str) -> None:
+    """Copy only a preflight-covered file, then verify bytes and private permissions."""
+    checked_path(source, source)
+    checked_path(target, target)
+    missing = []
+    parent = target.parent
+    while not parent.exists():
+        missing.append(parent)
+        parent = parent.parent
+    for directory in reversed(missing):
+        directory.mkdir(mode=0o700)
+    fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(fd, "wb") as out:
+        out.write(source.read_bytes())
+        out.flush()
+        os.fsync(out.fileno())
+    if _sha(source) != expected or _sha(target) != expected or target.stat().st_mode & 0o077:
+        raise SystemExit("Uninstall preservation verification failed; no unsafe deletion is authorized.")
+    fd = os.open(target.parent, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+@contextlib.contextmanager
+def uninstall_review_lock(template: str, dry: bool):
+    if dry:
+        yield
+        return
+    import fcntl
+    folder = checked_path(record_dir(template) / "memory-review", hermes_home())
+    folder.mkdir(mode=0o700, parents=True, exist_ok=True)
+    path = checked_path(folder / "state.lock", folder)
+    fd = os.open(path, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+    try:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise SystemExit("Memory review coordination refused: a run holds the lock; pause its job and retry after it stops.") from None
+        yield
+    finally:
+        os.close(fd)
+
+
+def uninstall_inventory(template: str, rec: dict, delete_workspace: bool = False) -> dict:
+    """Global, zero-write refusal gate. Familiar directories do not establish ownership."""
+    def refuse(name, rel, reason) -> NoReturn:
+        raise SystemExit(f"Uninstall refused: {name}/{rel}: {reason}. Preserve uncovered data outside deletion roots or relocate the unrelated workload and verify it before retry.")
+
+    tpl = load_template(template)
+    names = rec.get("profiles")
+    if (not isinstance(names, list) or any(not isinstance(n, str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]*", n) or n == "default" for n in names)
+            or len(set(names)) != len(names)):
+        refuse("record", "profiles", "invalid profile identity")
+    roots = [checked_path(hermes_home() / "profiles" / n, hermes_home() / "profiles") for n in names]
+    if delete_workspace:
+        roots.append(checked_path(Path(rec["workspace"]), Path(rec["workspace"])))
+    archive_root = checked_path(record_dir(template) / "backups", hermes_home())
+    if any(archive_root.is_relative_to(root) for root in roots):
+        refuse("record", "backups", "recovery location is inside a deletion root")
+    if "memory_review" in rec:
+        policy = memory_review_policy(tpl, rec, None)
+        for recovery in (Path(policy["state_path"]).parent, Path(policy["recovery_path"])):
+            if any(recovery.is_relative_to(root) for root in roots):
+                refuse("record", "memory_review", "recovery state is inside a deletion root")
+            package_hashes(recovery)
+    state = shared_state(template, rec)
+    if state.get("pending") or state.get("migration") == "activating":
+        refuse("record", "shared_skills", "interrupted activation requires explicit update recovery first")
+    owned = {}
+    for job in rec.get("jobs", []):
+        if (not isinstance(job, dict) or job.get("profile") not in names
+                or not isinstance(job.get("id"), str) or not re.fullmatch(r"[0-9a-f]{12}", job["id"])):
+            refuse("record", "jobs", "invalid recorded job identity")
+        key = job["profile"], job["id"]
+        if key in owned:
+            refuse(*key, "duplicate recorded identity")
+        owned[key] = job
+    # Coverage is the same bounded discovery as backup_skill_state, including ancestor roots.
+    packages = set()
+    for name, prof in zip(names, roots):
+        cfg_path = checked_path(prof / "config.yaml", prof)
+        try:
+            cfg = yaml.safe_load(cfg_path.read_text()) if cfg_path.exists() else {}
+            settings = (cfg or {}).get("skills") or {}
+            external = settings.get("external_dirs", [])
+            create = settings.get("create_dir")
+            if not isinstance(external, list) or any(not isinstance(p, str) for p in external) or (create is not None and not isinstance(create, str)):
+                raise ValueError()
+            for raw in external + ([create] if create else []):
+                if not raw.strip():
+                    continue
+                origin = profile_skill_path(raw, prof)
+                for removed in roots[:len(names)]:
+                    endangered = origin if origin.is_relative_to(removed) else removed if removed.is_relative_to(origin) else None
+                    if endangered is not None:
+                        packages.update(skill_packages(checked_path(endangered, removed)).values())
+        except (OSError, ValueError, TypeError, AttributeError, yaml.YAMLError):
+            refuse(name, "config.yaml", "unverifiable skill coverage")
+    archives = list(state.get("backups", [])) + rec.get("skill_uninstall_archives", []) + rec.get("memory_uninstall_archives", [])
+    for raw in archives:
+        saved = checked_path(Path(raw), archive_root)
+        if any(saved.is_relative_to(root) for root in roots) or not saved.is_dir():
+            refuse("record", "backups", "unverifiable recorded archive")
+    result = {}
+    for name, prof in zip(names, roots):
+        if not prof.exists():
+            result[name] = {}
+            continue
+        if not prof.is_dir():
+            refuse(name, ".", "profile root is not a directory")
+        role_key = (rec.get("desks", {}).get(name) or {}).get("desk", name)
+        role = next((r for r in tpl.roles + tpl.desks if r.key == role_key), None)
+        if role is None:
+            refuse(name, "distribution.yaml", "unknown installed role")
+        manifest_path = checked_path(prof / "distribution.yaml", prof)
+        if manifest_path.exists():
+            manifest = yaml.safe_load(manifest_path.read_bytes())
+            if not isinstance(manifest, dict) or manifest.get("source") != str(record_dir(template) / "dist" / name):
+                refuse(name, "distribution.yaml", "distribution source identity changed")
+        jobs = read_jobs_without_bootstrap(name)
+        for job in jobs:
+            owner = owned.get((name, job["id"]))
+            if not owner or job.get("name") != f"{ROUTE_TAG}{template}:{owner['key']}":
+                refuse(name, "cron/" + job["id"], "job ownership is not established; preserving bytes does not preserve a running job")
+            if owner["key"] == MEMORY_REVIEW_KEY:
+                identity = (rec.get("memory_review") or {}).get("job", {})
+                if (identity.get("id") != job["id"] or identity.get("profile") != name
+                        or job.get("created_at") != identity.get("created_at")
+                        or job.get("origin") != {"hbt_owner": identity.get("owner")}
+                        or job.get("script") != "hbt_memory_review.py" or job.get("no_agent") is not True):
+                    refuse(name, "cron/" + job["id"], "memory review identity changed")
+        dist = checked_path(record_dir(template) / "dist" / name, record_dir(template))
+        files = {}
+        for directory, dirs, leaves in os.walk(prof, followlinks=False, onerror=lambda exc: refuse(name, ".", "unreadable directory")):
+            for leaf in dirs + leaves:
+                checked_path(Path(directory) / leaf, prof)
+            for leaf in leaves:
+                path = Path(directory) / leaf
+                rel = path.relative_to(prof).as_posix()
+                if not path.is_file() or not path.stat().st_mode & 0o444:
+                    refuse(name, rel, "unreadable or nonregular file")
+                try:
+                    sha = _sha(path)
+                except OSError:
+                    refuse(name, rel, "unreadable file")
+                covered = (rel in {"config.yaml", ".no-bundled-skills", "distribution.yaml"}
+                    or rel.startswith(("skills/", "memories/", "pending/memory/"))
+                    or any(path.is_relative_to(p) for p in packages)
+                    or re.fullmatch(r"backups/config/config\.yaml\.good\.[^/]+", rel)
+                    or re.fullmatch(r"logs/(agent|errors)\.log(?:\.[1-9][0-9]*)?", rel))
+                # Native POSIX rotating handlers use numeric suffixes. Cron's lock is empty scaffolding.
+                disposable = rel == "cron/jobs.json" or (rel == "cron/.jobs.lock" and path.stat().st_size == 0)
+                if rel == ".env":
+                    # set_env_values({}, dry=False) writes exactly one newline on
+                    # an unconfigured fresh role. No key, comment or secret qualifies.
+                    disposable = path.read_bytes() == b"\n"
+                if rel == "SOUL.md" or rel.startswith("scripts/"):
+                    source = checked_path(dist / rel, dist)
+                    shipped = tpl.path / "roles" / role.key / rel
+                    disposable = source.is_file() and shipped.is_file() and _sha(source) == _sha(shipped) == sha
+                if rel == "hbt-settings.json" and name == "ops":
+                    # Only reconstructible installer output is disposable. Extra or
+                    # customized settings need an existing verified archive.
+                    expected = {"template": template, "installed_version": rec["version"],
+                        "repo_path": rec.get("repo_path", ""), "workspace": rec["workspace"],
+                        "timezone": (yaml.safe_load((prof / "config.yaml").read_text()) or {}).get("timezone", ""),
+                        "openviking_endpoint": "", "openviking_embed_endpoint": "",
+                        "openviking_services": [], "openviking_fix_hint": ""}
+                    actual = json.loads(path.read_bytes())
+                    if "memory_review" in rec:
+                        expected["install_root"] = str(hermes_home())
+                    # A missing install timezone is deliberately stored as empty.
+                    if actual.get("timezone") == "":
+                        expected["timezone"] = ""
+                    disposable = actual == expected
+                if not covered and not disposable:
+                    covered = any(_sha(checked_path(Path(saved) / "profiles" / name / rel, Path(saved))) == sha for saved in archives)
+                if not covered and not disposable:
+                    refuse(name, rel, "current bytes have no verified preservation coverage or disposable provenance")
+                stat = path.stat()
+                files[rel] = {"sha256": sha, "preserve": bool(covered),
+                              "mode": stat.st_mode & 0o777, "size": stat.st_size, "mtime_ns": stat.st_mtime_ns}
+        result[name] = files
+    return result
+
+
+def archive_uninstall_inventory(template: str, rec: dict, inventory: dict) -> Path:
+    folder = checked_path(record_dir(template) / "backups" / ("memory-uninstall-" + uuid.uuid4().hex), hermes_home())
+    folder.parent.mkdir(mode=0o700, exist_ok=True)
+    folder.mkdir(mode=0o700)
+    for name, files in inventory.items():
+        for rel, info in files.items():
+            if info["preserve"]:
+                private_archive_file(hermes_home() / "profiles" / name / rel,
+                                     folder / "profiles" / name / rel, info["sha256"])
+    from utils import atomic_json_write
+    atomic_json_write(folder / "inventory.json", inventory, mode=0o600, fsync_dir=True)
+    if json.loads((folder / "inventory.json").read_bytes()) != inventory:
+        raise SystemExit("Uninstall archive inventory verification failed; deletion refused.")
+    rec.setdefault("memory_uninstall_archives", []).append(str(folder))
+    save_record(template, rec)
+    return folder
+
+
 def cmd_uninstall(a: argparse.Namespace) -> int:
+    checked_path(record_dir(a.template) / "record.json", hermes_home())
     rec = load_record(a.template)
     if not rec:
         raise SystemExit(f"{a.template} is not installed here (no record in {record_dir(a.template)}).")
     checked_path(hermes_home() / "config.yaml", hermes_home())
     if a.delete_workspace and not rec.get("workspace_created", False):
         raise SystemExit(f"{rec['workspace']} existed before the install, so hbt will not delete it. Remove it yourself if you mean to.")
+    inventory = uninstall_inventory(a.template, rec, a.delete_workspace)
     r = Runner(a.hermes, a.dry_run, a.verbose)
     say(f"Uninstalling {a.template} ({'dry run' if a.dry_run else 'live'})")
     say(f"  profiles: {', '.join(rec['profiles']) or 'none'}")
@@ -1928,19 +2315,46 @@ def cmd_uninstall(a: argparse.Namespace) -> int:
         if input("Proceed? [y/N] ").strip().lower() not in ("y", "yes"):
             say("Cancelled.")
             return 1
-    uninstall_shared_skills(a.template, rec, a.dry_run)
-    revert_main_config(hermes_home() / "config.yaml", rec, a.dry_run)
-    for name in rec["profiles"]:
-        if (hermes_home() / "profiles" / name).exists():
-            r.hermes_cmd("profile", "delete", name, "-y")
+    final = inventory
+    with uninstall_review_lock(a.template, a.dry_run):
+        if not a.dry_run:
+            if uninstall_inventory(a.template, rec, a.delete_workspace) != inventory:
+                raise SystemExit("Uninstall refused: inventory changed; retry after stopping writers.")
+            archive_uninstall_inventory(a.template, rec, inventory)
+            if uninstall_inventory(a.template, rec, a.delete_workspace) != inventory:
+                raise SystemExit("Uninstall stopped: inventory changed during preservation; no profile deletion performed.")
+        uninstall_shared_skills(a.template, rec, a.dry_run)
+        if not a.dry_run:
+            # Native cron operations may append profile logs. Preserve their final
+            # bytes after stopping owned jobs, never assume the first archive suffices.
+            uninstall_inventory(a.template, rec, a.delete_workspace)
+            for job in rec.get("jobs", []):
+                if any(j["id"] == job["id"] for j in read_jobs_without_bootstrap(job["profile"])):
+                    r.hermes_cmd("cron", "remove", job["id"], profile=job["profile"])
+            final = uninstall_inventory(a.template, rec, a.delete_workspace)
+            for name in rec["profiles"]:
+                if read_jobs_without_bootstrap(name):
+                    raise SystemExit(f"Uninstall stopped: {name} still has a job; no profile deletion performed.")
+            archive_uninstall_inventory(a.template, rec, final)
+        revert_main_config(hermes_home() / "config.yaml", rec, a.dry_run)
+        for name in rec["profiles"]:
+            if (hermes_home() / "profiles" / name).exists():
+                if not a.dry_run:
+                    latest = uninstall_inventory(a.template, rec, a.delete_workspace)
+                    if any(latest[n] != final[n] for n in rec["profiles"] if (hermes_home() / "profiles" / n).exists()):
+                        raise SystemExit("Uninstall stopped: profile data changed during teardown; preserve the changes and retry. Some earlier profiles may already be removed.")
+                r.hermes_cmd("profile", "delete", name, "-y")
+                if not a.dry_run and (hermes_home() / "profiles" / name).exists():
+                    raise SystemExit(f"Uninstall stopped: {name} still exists after native deletion; inspect partial state and recovery archives.")
     if rec.get("board"):
         # Archives the board (recoverable under kanban/boards/_archived); tasks are never hard-deleted by us.
-        r.hermes_cmd("kanban", "boards", "rm", rec["board"], check=False)
+        r.hermes_cmd("kanban", "boards", "rm", rec["board"])
         say(f"  board {rec['board']}: archived" if not a.dry_run else "")
     if a.delete_workspace:
         say(f"  delete {rec['workspace']}")
         if not a.dry_run:
-            shutil.rmtree(rec["workspace"], ignore_errors=True)
+            if Path(rec["workspace"]).exists():
+                shutil.rmtree(rec["workspace"])
     if not a.dry_run:
         shutil.rmtree(record_dir(a.template) / "dist", ignore_errors=True)
         done = record_dir(a.template) / f"record.uninstalled.{_dt.datetime.now():%Y%m%d-%H%M%S}.json"
@@ -1956,6 +2370,12 @@ def cmd_status(a: argparse.Namespace) -> int:
         return 1
     tpl = load_template(a.template)
     say(f"{a.template} v{rec['version']} installed {rec['installed_at']}")
+    policy = memory_review_policy(tpl, rec, None)
+    say(f"  memory review: {policy['mode']}; enrolled: {', '.join(policy['enrolled']) or 'none'}; delivery: local only")
+    say(f"  memory review job: {policy.get('job', {}).get('id', 'not installed')}")
+    say(f"  memory review recovery: {policy['recovery_path']}; state: {policy['state_path']}")
+    for gap in memory_review_gaps(tpl, rec):
+        say("  " + gap)
     if rec.get("target_version"):
         say(f"  INCOMPLETE installation, target {rec['target_version']}; archive with uninstall before retrying install")
     state = shared_state(a.template, rec)
@@ -1995,11 +2415,39 @@ def _truthy(v) -> bool:
     return str(v).strip().lower() in ("true", "yes", "on", "1")
 
 
+def memory_review_gaps(tpl: Template, rec: dict) -> list[str]:
+    if "memory_review" not in rec:
+        return []
+    p = memory_review_policy(tpl, rec, None)
+    gaps = []
+    identity = p.get("job", {})
+    job = next((j for j in read_jobs_without_bootstrap("ops") if j["id"] == identity.get("id")), None)
+    if job is None:
+        gaps.append("Memory review job is missing; a deleted recorded job stays deleted. Inspect the installation record.")
+    elif job.get("deliver") != "local" or job.get("script") != "hbt_memory_review.py":
+        gaps.append("Memory review job conflicts with local-only ownership. Resolve its identity before update.")
+    elif not job.get("enabled") or job.get("state") == "paused":
+        gaps.append(f"Memory review job is paused ({p['mode']}); ordinary updates preserve owner pauses.")
+    path = checked_path(Path(p["state_path"]), hermes_home())
+    if path.exists():
+        try:
+            state = json.loads(path.read_bytes())
+            receipts = state["receipts"]
+            pending = sum(r.get("status") != "complete" for r in receipts.values())
+            attempts = sum(a.get("count", 0) >= 3 for a in state["attempts"].values())
+            if pending or attempts:
+                gaps.append(f"Memory review recovery: unfinished={pending}; attempt-limited={attempts}; inspect {path} locally.")
+        except (OSError, ValueError, KeyError, TypeError, AttributeError):
+            gaps.append("Memory review recovery state is unreadable or invalid; keep drafts pending and reconcile it locally.")
+    return gaps
+
+
 def check_gaps(tpl: Template, rec: dict, live: bool = True) -> list[str]:
     """Drift between what the template set up and what is true now, one line per gap with its fix.
     Each check is a gap that broke a real install: copies drifting apart, a handoff nobody hears,
     a tool that lost its sign-in, a failing job. ``live`` adds the Slack membership checks."""
     gaps: list[str] = []
+    gaps.extend(memory_review_gaps(tpl, rec))
     home = hermes_home()
     installed = [x for x in tpl.roles if tpl.profile(x.key) in rec.get("profiles", [])]
     bots = [x for x in installed if x.kind != "ops"]
@@ -2143,6 +2591,7 @@ def build_parser() -> argparse.ArgumentParser:
     i.add_argument("--channel", action="append", default=[], metavar="NAME=ID", help="Slack channel ID, e.g. media-video=C0123ABCD (repeat)")
     i.add_argument("--timezone", help="IANA timezone for alert times, e.g. America/Vancouver")
     i.add_argument("--no-memory", action="store_true", help="skip OpenViking; bots use built-in memory")
+    i.add_argument("--memory-review", choices=MEMORY_REVIEW_MODES, help="opt in to original background drafts; add-replace can remove facts from an entry (default: off)")
     i.add_argument("--require-memory", action="store_true", help="fail if OpenViking is not reachable")
     i.add_argument("--memory-endpoint", default="http://127.0.0.1:1933")
     i.add_argument("--memory-prefix", default=None, help="OpenViking account prefix (default: the template name)")
@@ -2160,6 +2609,7 @@ def build_parser() -> argparse.ArgumentParser:
     u = sub.add_parser("update", help="re-apply template files after git pull")
     common(u, confirm=False)
     u.add_argument("--channel", action="append", default=[], metavar="NAME=ID")
+    u.add_argument("--memory-review", choices=MEMORY_REVIEW_MODES, help="explicit memory review policy; omission preserves the recorded mode")
     u.set_defaults(func=cmd_update)
 
     k = sub.add_parser("desk", help="add or refresh one outside person's desk (needs rootless Docker)")

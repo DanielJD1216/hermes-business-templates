@@ -3,7 +3,7 @@
 # v0.3: leads hand work to each other by mention (peers), and hbt check finds drift between the bots.
 name: creator
 title: Creator + Education
-version: 0.4.0
+version: 0.5.0
 # Unreleased candidate; shared stock is resolved from the client's installed Hermes.
 workspace_dir: creator
 system_channel: agents-report
@@ -118,6 +118,11 @@ desks:
         - Captions:
 
 jobs:
+  - key: memory-draft-review
+    schedule: "30 21 * * *"
+    script: hbt_memory_review.py
+    no_agent: true
+    paused_reason: "Requires explicit --memory-review opt-in; local delivery only."
   - key: memory-watchdog
     schedule: "*/5 * * * *"
     script: hbt_memory_watch.py

@@ -6,7 +6,7 @@ We provide the foundation only: bots, playbooks, folders, scheduled checks and a
 
 | Template | Status |
 |---|---|
-| Creator + Education | v0.4.0 unreleased candidate: shared skills, protected v0.3.2 migration, guided per-bot setup. Independent review pending. |
+| Creator + Education | v0.5.0 unreleased candidate: opt-in local memory-draft review, global uninstall refusal and private recovery archives. Independent review pending. |
 | Project Services | planned |
 | Industrial Supplier | planned |
 
@@ -99,12 +99,19 @@ All times follow your timezone.
 |---|---|---|
 | Morning approvals list | 07:30 daily | Every card waiting for your approval, or "Nothing waiting for approval." |
 | Nightly review | 21:00 daily | Each bot's failed checks with the file or card behind them, or "All nightly checks passed." |
+| Memory-draft review | 21:30 daily, initially paused | Local count summary only. Never posts drafts, memory or a model summary to Slack. Requires explicit opt-in. |
 | Memory watchdog | every 5 minutes | Only when memory goes down, every 6 hours while it stays down, and when it recovers. |
 | Update check | Mondays 09:00 | Only when a newer template version exists. |
 | Drift check | 08:00 daily | Only when `./hbt check` finds new gaps, and weekly while they stay open. |
 | Comment pull, member questions | paused | Resume once you drop exports into `ops/incoming/`. |
 
 ## What has been tested
+
+The v0.5.0 memory-review checks use synthetic drafts and deterministic reviewer fixtures. Native memory storage, pending proposals, cron job creation and script execution, profile installation/update and whole-profile uninstall were exercised in disposable homes on Hermes source `7565f6477c211c315110fc12173e500f013366fc`, using Python 3.11.15. Both `HOME` and `HERMES_HOME` were set before native imports. Network and mount namespaces hid the live Hermes tree; filesystem audit guards restricted reads/writes and refused external-memory initialization. These checks are not a claim of containment against hostile native subprocesses.
+
+The tested scenarios include add and pinned replacement, discard archives, invalid-response refusal before mutation, native batch limits/security scanning, stale pins, replay protection, unknown-outcome retention, cleanup-only retry, bounded attempts, concurrent process exclusion and a real reviewer-child wall timeout. Fixtures replace the auxiliary transport before provider resolution. Installer checks include a real v0.4.0 upgrade, explicit enable/disable, owner-paused job retention, deleted-job retention, exact-nonce creation recovery, same-name ownership refusal, local-only wiring, zero-write dry-run, whole-uninstall refusal and exact-byte archival before native deletion.
+
+No live provider call, model judgment-quality evaluation, provider sign-in, live scheduler/gateway operation, Slack delivery, live OpenViking, production installation or release was tested or authorized. The following table records earlier shared-skills evidence, not new memory-review results:
 
 | Area | Result |
 |---|---|
@@ -154,13 +161,62 @@ For a manual rollback, pause work in the affected bots and preserve all post-mig
 hermes gateway restart
 ```
 
-Uninstall first archives local skills, settings and conflict data outside each profile, then invokes native profile deletion. It also archives whole skill packages discovered through custom `external_dirs` and `create_dir` locations inside profiles being removed, retaining their profile-relative paths. It does not archive arbitrary non-skill files from these custom roots. Archived custom skills survive but are no longer active in the removed profiles. Only recorded managed external entries and pristine owned shared packages are removed; original marker/settings values are restored where still installer-owned, while later unrelated owner changes remain. Modified or unrecognized shared content and all recovery archives stay in place, with paths printed. Unowned or symlinked library roots are refused. Your default-profile skills and custom external directories outside removed profiles are not deleted. The business folder, long-term memories and Slack apps are kept unless you remove them, and the board is archived as before.
+Uninstall now starts with one read-only preflight of **every recorded profile**, including Ops and desks. An unrelated job, ambiguous identity, unsafe path, unreadable store or uncovered owner file refuses the entire uninstall before backups, job changes, profile deletion, configuration writes or board archival. Paused and disabled owner jobs also block removal. `--yes` and `--delete-workspace` do not bypass this gate. Dry-run performs the same checks without writing.
+
+Resolve the reported conflict before retrying. Move uncovered files outside all deletion roots yourself, preserving their bytes. For an unrelated job, explicitly relocate the workload and verify its operation under the new identity before removing the old job yourself. **Backing up jobs.json does not preserve a running job.** The installer does not relocate workloads, infer ownership from a job name or report partial profile retention as successful uninstall. An interrupted shared-skills checkpoint requires explicit `update` recovery before uninstall.
+
+After all profiles pass, uninstall takes the memory-review run lock and preserves the current covered bytes outside the profiles. It stops only confirmed installer-owned jobs, verifies their removal, preserves logs changed by teardown, and checks the inventory again before native whole-profile deletion. A later race or preservation failure stops unsafe deletion but can leave archives, stopped jobs or earlier removed profiles. This is an all-or-nothing precheck, not a transaction or automatic rollback over native deletion.
+
+Preservation coverage is deliberately bounded:
+
+- Existing local `skills/`, `config.yaml`, `.no-bundled-skills` and `distribution.yaml`, plus complete discovered skill packages under endangered `external_dirs`/`create_dir` roots. Non-skill siblings are not covered.
+- All remaining `memories/` and `pending/memory/` files, regardless of enrollment, origin or eligibility. Review receipts/state and review archives remain outside deletion roots.
+- Regular `backups/config/config.yaml.good.*`, `logs/agent.log`, `logs/errors.log`, and their native positive-integer rotated log variants. These are preserved data, not disposable files. Changed/customized bytes in this narrow coverage receive new archives; a stale archive never justifies deletion of newer bytes.
+
+New memory/uninstall archives use directories with mode `0700`, files with mode `0600`, verified SHA-256 hashes and an inventory of original size, mode and modification time. Existing shared-skills recovery copies retain source file metadata inside a private archive root. Archives are never pruned here. Already-preserved data qualifies only when its exact current bytes match a known recorded archive. Disposable exceptions are limited to verified shipped SOUL/scripts, the validated owned cron store, its empty native lock, reconstructible unmodified Ops settings and the exact one-newline `.env` produced for an unconfigured role. Any nonempty credential/settings content in `.env`, unknown script, session, non-memory pending file, extra log or other uncovered file refuses removal.
+
+Archived custom skills survive but are no longer active in removed profiles. Only recorded managed external entries and pristine owned shared packages are removed; original marker/settings values are restored where still installer-owned. Modified/unrecognized shared content and all recovery archives remain. Default-profile skills, custom external directories outside removed profiles, external memories and Slack apps are not deleted. The business folder stays unless explicitly requested for removal, and the board is archived.
 
 Custom path strings and their order remain unchanged. Planning, checks and archival resolve `${HERMES_HOME}` and relative skill paths against the consuming profile, not the installer home. Archival includes endangered packages even when a configured root is an ancestor of a removed profile; it excludes packages in unrelated profiles. Regression checks exercised a partial package deletion, native collision refusal followed by successful custom loading, and exact archived bytes after native whole-profile deletion. A focused five-gate native regression verified ancestor-root preservation and outside-package exclusion. Its two update attempts correctly refused duplicate native manuals exposed by the broad root; uninstall still preserved the custom package.
 
 ## Memory
 
 With OpenViking running, each bot gets its **own memory account**, so bots cannot see each other's memories. Facts every bot needs belong in `canon/`, not in shared memory. Ops keeps no memory. Bots that run Kanban cards save memories without an approval prompt, because a card runs in the background where nobody can click one.
+
+### Optional native memory-draft review
+
+Fresh installation and legacy upgrade default to `off`. To authorize review, use one explicit owner command:
+
+```bash
+./hbt update creator --memory-review add-only
+./hbt update creator --memory-review add-replace
+./hbt update creator --memory-review off
+```
+
+The same option is available on `install`. An ordinary `update` preserves the recorded mode and owner-paused state; a deliberately deleted recorded job stays deleted. The installer stores the policy, enrolled installed non-Ops roles, timestamp, stable installation root, recovery paths and exact owned job identity in its existing `record.json`. Ops settings receive only an installation-root reference; unrelated keys remain unchanged. A create-before-checkpoint interruption is reconciled by the persisted ownership nonce, never by adopting a matching name.
+
+- `add-only` authorizes applying original add proposals and rejecting eligible proposals. `add-replace` additionally authorizes original, pinned **whole-entry replacements**. Replacement can remove facts from the active entry; the full preimage is retained.
+- Automatic `remove` is always forbidden. A batch with remove or an unauthorized replace remains pending as a whole, even when the reviewer requests discard. Discard rejects a proposal; it does not delete an existing memory entry.
+- Only native pending records with `subsystem=memory` and `origin=background_review` from enrolled roles qualify. Default, Ops, desks and unrelated profiles are not enrolled. Foreground and unknown origins stay pending.
+- Each draft uses its original profile and `memory` or `user` target. There is no shared USER.md and no default-profile fan-out. Different profile-local USER.md files can be intentional; the older drift check's suggestion to copy them is not a requirement of this feature.
+- The reviewer can return only apply/discard/retain decisions and reasons. It cannot supply edited operations, new content, paths or policy. Missing decisions retain. Invalid or duplicate decisions reject the entire response before memory or queue mutation.
+- Original pins, native enabled flags, configured limits, threat scanning and per-batch atomicity remain authoritative. Opt-in does not enable a disabled target, change native approval flags or change background proposal generation.
+
+Ops calls its existing selected model/provider through the native text-only auxiliary interface in a child process. There are no tools, normal chat sessions, agent construction, OpenViking calls, reviewer memory writes or transcript learning. The implementation supplies no API key, hardcoded model or new fallback provider. Unsupported native interfaces or unresolved Ops configuration retain drafts with a local error. Existing provider authentication is still required for a real nonempty review and has not been tested by fixtures.
+
+Each run admits at most 20 eligible drafts and 128 KiB of serialized input. Oversized drafts are retained, not truncated. There is one reviewer invocation and no script-level model retry, with a maximum 120-second child wall deadline or a lower native cron script timeout. After three unsuccessful attempts for an unchanged input/policy fingerprint, that draft remains for owner review. Off and empty eligible queues do not call a reviewer or create recovery archives. A nonblocking kernel lock excludes overlapping scheduled/manual runs.
+
+Before apply or discard, the script saves exact pending bytes, memory bytes or an absence marker, checksums and policy/source fingerprints in a unique private directory under `<install-root>/business-templates/creator/backups/memory-review/`. The memory preimage is captured inside the native mutation lock. Compact receipts at `memory-review/state.json` record preparation before mutation and completion around queue cleanup. If apply succeeds but cleanup fails, later runs only retry cleanup. A prepared/unknown outcome, changed/reused ID, changed draft or conflicting target requires recovery; matching current text alone never authorizes replay. Separate drafts can finish independently; there is no multi-profile transaction.
+
+### Owner recovery and restoration
+
+1. Read `./hbt status creator` for the exact job and recovery paths. Pause the owned job with `hermes -p ops cron pause <job-id>` and stop manual runs. Preserve later owner edits before any restoration.
+2. Inspect the exact profile/ID receipt locally. Verify its `archive_sha256` against `preimage.json`, then verify the pending and memory SHA-256 values after Base64 decoding. Confirm the profile, target and original pending ID. Do not put archive content in a chat or report.
+3. First restore into a separate disposable home. Restore decoded pending bytes to that profile's `pending/memory/<id>.json`. Restore decoded memory bytes to `memories/MEMORY.md` or `memories/USER.md`, or preserve the recorded absence. Verify byte equality and native loading there. Do not overwrite newer production memory automatically.
+4. Reconcile any later edits and unknown mutation outcome yourself. Prefer retaining completed receipts for replay protection. Clear only the exact recovery/attempt record after reconciliation and resolution of its pending file; never delete the whole state file or archive tree to force a retry.
+5. Use the existing native pending-review interface for any proposal that still needs individual owner judgment. Resume only the confirmed owned job after the policy, memory and queue agree.
+
+`status` and `check --offline` expose policy, job state, counts and recovery pointers, never memory prose or raw reviewer output. The memory-draft job's delivery remains local through install, update and Slack connection. It does not replace the separate 21:00 operational/Kanban review or the memory watchdog.
 
 ## Known limits
 
