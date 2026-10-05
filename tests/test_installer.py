@@ -10,6 +10,7 @@ import re
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -456,10 +457,22 @@ class SlackAndCards(unittest.TestCase):
 class GuidedSetup(unittest.TestCase):
     """Setup works out the one next action from what is already true, so it can stop and resume anywhere."""
 
+    def setUp(self):
+        self.home = tempfile.TemporaryDirectory()
+        self.addCleanup(self.home.cleanup)
+        self.root = Path(self.home.name)
+        self.home_patch = patch.object(hbt, "hermes_home", return_value=self.root)
+        self.home_patch.start()
+        self.addCleanup(self.home_patch.stop)
+        for role in hbt.load_template("creator").roles:
+            profile = self.root / "profiles" / role.key
+            profile.mkdir(parents=True)
+            (profile / "config.yaml").write_text("{}\n")
+
     def test_steps_come_one_at_a_time_in_order(self):
         tpl = hbt.load_template("creator")
         self.assertEqual(hbt.next_setup_step(tpl, None), ("install", None))
-        rec = {"profiles": ["creative-director", "cto", "engineer", "ops"], "bots": {}, "setup": {}}
+        rec = {"version": tpl.version, "profiles": ["creative-director", "cto", "engineer", "ops"], "bots": {}, "setup": {}}
         seen = []
         for _ in range(20):
             step, role = hbt.next_setup_step(tpl, rec)
@@ -482,6 +495,43 @@ class GuidedSetup(unittest.TestCase):
             "connect:creative-director", "channels:creative-director", "connect:cto", "channels:cto",
             "connect:engineer", "channels:engineer", "system-channel", "restart",
             "test:creative-director", "test:cto", "test:engineer", "first-card:engineer", "done"])
+
+    def test_incomplete_install_refuses_setup_and_status_without_writes(self):
+        import copy
+        tpl = hbt.load_template("creator")
+        valid = {"version": tpl.version, "profiles": ["cto"], "setup": {}}
+        cases = [valid | {"version": "pending"}, valid | {"target_version": tpl.version},
+                 valid | {"profiles": []}, valid | {"version": ""},
+                 valid | {"shared_skills": {"profiles": {"cto": {}, "engineer": {}}}},
+                 valid | {"shared_skills": {"pending": {"backup": "fixture"}}},
+                 valid | {"shared_skills": {"migration": "activating"}}]
+        for rec in cases:
+            with self.subTest(rec=rec):
+                before = copy.deepcopy(rec)
+                self.assertEqual(hbt.next_setup_step(tpl, rec), ("recover", None))
+                with patch.object(hbt, "load_record", return_value=rec), \
+                     patch.object(hbt, "save_record", side_effect=AssertionError("write")), \
+                     patch.object(hbt, "_wait", side_effect=AssertionError("prompt")), \
+                     patch.object(hbt, "slack_api", side_effect=AssertionError("transport")), \
+                     patch.object(hbt, "say") as say:
+                    args = hbt.build_parser().parse_args(["setup", "creator"])
+                    self.assertEqual(hbt.cmd_setup(args), 1)
+                    self.assertEqual(hbt.cmd_status(args), 1)
+                    self.assertIn("uninstall creator", say.call_args.args[0])
+                self.assertEqual(rec, before)
+        (self.root / "profiles/cto/config.yaml").unlink()
+        self.assertEqual(hbt.next_setup_step(tpl, valid), ("recover", None))
+
+    def test_legitimate_subset_and_deleted_role(self):
+        tpl = hbt.load_template("creator")
+        rec = {"version": tpl.version, "profiles": ["cto"], "bots": {"cto": "U00000002"},
+               "shared_skills": {"profiles": {"cto": {}}},
+               "setup": {"channels_ok": ["cto"], "tested": ["cto"], "restarted": "fixture"}}
+        self.assertEqual(hbt.next_setup_step(tpl, rec), ("done", None))
+        marker = self.root / "profiles/.deleted/cto"
+        marker.parent.mkdir()
+        marker.touch()
+        self.assertEqual(hbt.next_setup_step(tpl, rec), ("recover", None))
 
     def test_one_desk_per_editor(self):
         tpl = hbt.load_template("creator")
