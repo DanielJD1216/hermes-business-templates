@@ -1651,11 +1651,37 @@ def cmd_connect(a: argparse.Namespace) -> int:
 
 # --------------------------------------------------------------------------- guided setup
 
+def setup_install_incomplete(tpl: Template, rec: dict) -> bool:
+    """Do not turn an interrupted install or missing selected role into setup success."""
+    profiles = rec.get("profiles") or []
+    state = rec.get("shared_skills") or {}
+    selected = set(state.get("profiles") or {})
+    return bool(
+        not rec.get("version") or rec["version"] == "pending" or rec.get("target_version")
+        or state.get("pending") or state.get("migration") == "activating"
+        or not profiles or not selected.issubset(profiles)
+        or not any(tpl.profile(role.key) in profiles for role in tpl.roles)
+        or any(not profile_is_live(name)
+               or not (hermes_home() / "profiles" / name / "config.yaml").is_file()
+               for name in profiles)
+    )
+
+
+def setup_recovery_hint(tpl: Template) -> str:
+    return (f"Installation is incomplete; setup cannot continue. Inspect `./hbt status {tpl.name}` "
+            f"and the recovery archives in {record_dir(tpl.name)}. "
+            f"For an interrupted fresh install, run `./hbt uninstall {tpl.name}` to preserve archives, "
+            "resolve any ownership refusal, then retry install. "
+            f"For an interrupted update, run `./hbt update {tpl.name}`. Do not mark the record complete manually.")
+
+
 def next_setup_step(tpl: Template, rec: dict | None) -> tuple[str, Role | None]:
     """The single next thing the owner has to do, worked out from what is already true.
     Setup can stop anywhere and pick up here: nothing but the record and Slack decide the step."""
     if not rec:
         return "install", None
+    if setup_install_incomplete(tpl, rec):
+        return "recover", None
     done = rec.get("setup") or {}
     bots = [x for x in tpl.roles if x.kind != "ops" and tpl.profile(x.key) in rec["profiles"]]
     for role in bots:
@@ -1705,9 +1731,13 @@ def cmd_setup(a: argparse.Namespace) -> int:
     while True:
         rec = load_record(tpl.name)
         step, role = next_setup_step(tpl, rec)
-        done = (rec or {}).setdefault("setup", {})
+        done = (rec or {}).get("setup") or {}
 
-        if step == "install":
+        if step == "recover":
+            say(setup_recovery_hint(tpl))
+            return 1
+
+        elif step == "install":
             say("This installs: " + ", ".join(f"{x.title}" for x in tpl.roles) + ". Ops runs scheduled jobs and has no Slack app.")
             tz = _ask("Your timezone (for the morning list)", _system_timezone())
             projects = _ask("Folder where Engineer builds your projects", str(Path.home() / "projects"))
@@ -1802,7 +1832,7 @@ def cmd_setup(a: argparse.Namespace) -> int:
                 say(f"! No finished card yet. Look at the board with `hermes kanban --board {tpl.name} list`, then try again.")
 
         else:
-            say("\nSetup is complete. Every bot answered and your first card was built.")
+            say("\nSetup is complete for the installed roles. Required bot replies and build checks passed.")
             if tpl.desks:
                 d = tpl.desks[0]
                 say(f"When an outside editor starts working with you, give them their own desk:\n"
@@ -2369,6 +2399,9 @@ def cmd_status(a: argparse.Namespace) -> int:
         say(f"{a.template}: not installed")
         return 1
     tpl = load_template(a.template)
+    if setup_install_incomplete(tpl, rec):
+        say(setup_recovery_hint(tpl))
+        return 1
     say(f"{a.template} v{rec['version']} installed {rec['installed_at']}")
     policy = memory_review_policy(tpl, rec, None)
     say(f"  memory review: {policy['mode']}; enrolled: {', '.join(policy['enrolled']) or 'none'}; delivery: local only")
