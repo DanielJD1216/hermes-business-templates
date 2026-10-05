@@ -121,7 +121,8 @@ class DriftCheck(unittest.TestCase):
         for r in self.tpl.roles:
             prof = self.home / "profiles" / self.tpl.profile(r.key)
             (prof / "memories").mkdir(parents=True)
-            (prof / "memories" / "USER.md").write_text("owner profile")
+            (prof / "memories" / "USER.md").write_bytes(f"Synthetic {r.key} context\r\n".encode())
+            (prof / "memories" / "MEMORY.md").write_bytes(b"Synthetic role memory\r\n\x00")
             src = TPL / "roles" / r.key / "skills"
             for f in src.rglob("*"):
                 if f.is_file():
@@ -135,6 +136,12 @@ class DriftCheck(unittest.TestCase):
             slack = {k.split(".", 1)[1]: v for k, v in cfg.items()}
             (prof / "config.yaml").write_text(hbt.yaml.safe_dump({"slack": slack}))
 
+        for parent in (self.home, self.home / "profiles" / "desk-sentinel"):
+            (parent / "memories").mkdir(parents=True)
+            (parent / "memories" / "USER.md").write_bytes(b"Synthetic excluded context\r\n")
+        # A missing memory directory must stay absent too.
+        (self.home / "profiles" / "desk-empty").mkdir()
+
     def tearDown(self):
         if self._old is None:
             hbt.os.environ.pop("HERMES_HOME", None)
@@ -142,8 +149,44 @@ class DriftCheck(unittest.TestCase):
             hbt.os.environ["HERMES_HOME"] = self._old
         self.tmp.cleanup()
 
+    def memory_snapshot(self):
+        roots = [self.home, *(self.home / "profiles").iterdir()]
+        state = {}
+        for root in roots:
+            memory = root / "memories"
+            for path in [memory, memory / "USER.md", memory / "MEMORY.md", *memory.rglob("*")]:
+                state[str(path.relative_to(self.home))] = (
+                    path.read_bytes() if path.is_file() else "directory" if path.is_dir() else None)
+        return state
+
+    def command(self, quiet=False):
+        hbt.record_dir("creator").mkdir(parents=True, exist_ok=True)
+        (hbt.record_dir("creator") / "record.json").write_text(hbt.json.dumps(self.rec))
+        args = hbt.build_parser().parse_args(["check", "creator", "--offline"] + (["--quiet"] if quiet else []))
+        before = self.memory_snapshot()
+        out = []
+        try:
+            with patch.object(hbt, "say", out.append):
+                self.assertEqual(args.func(args), 0)
+        finally:
+            self.assertEqual(self.memory_snapshot(), before)
+        return out
+
     def gaps(self):
-        return hbt.check_gaps(self.tpl, self.rec, live=False)
+        before = self.memory_snapshot()
+        try:
+            gaps = hbt.check_gaps(self.tpl, self.rec, live=False)
+        finally:
+            self.assertEqual(self.memory_snapshot(), before)
+        ordinary = self.command()
+        expected = (f"{self.tpl.title} check: {len(gaps)} gap(s).\n" + "\n".join(f"- {g}" for g in gaps)
+                    if gaps else f"{self.tpl.title} check: no gaps.")
+        self.assertEqual(ordinary, [expected])
+        quiet = self.command(quiet=True)
+        self.assertIn(quiet, [ordinary, []] if gaps else [[]])
+        self.assertEqual(self.command(quiet=True), [])
+        self.assertEqual(self.memory_snapshot(), before)
+        return gaps
 
     def test_a_fresh_install_has_no_gaps(self):
         self.assertEqual(self.gaps(), [])
@@ -178,9 +221,23 @@ class DriftCheck(unittest.TestCase):
         (prof / "config.yaml").write_text(hbt.yaml.safe_dump(cfg))
         self.assertIn("cto: other bots can run its commands (!approve, !restart). Fix: ./hbt update creator", self.gaps())
 
-    def test_one_bot_without_the_owner_profile_is_a_gap(self):
+    def test_one_bot_without_user_memory_has_no_gap(self):
         (self.home / "profiles" / "engineer" / "memories" / "USER.md").unlink()
-        self.assertIn("different USER.md", "\n".join(self.gaps()))
+        self.assertEqual(self.gaps(), [])
+
+    def test_all_role_user_memories_absent_has_no_gap(self):
+        for role in self.tpl.roles:
+            (self.home / "profiles" / role.key / "memories" / "USER.md").unlink()
+        self.assertEqual(self.gaps(), [])
+
+    def test_subset_ignores_uninstalled_roles_but_not_missing_profiles(self):
+        import shutil
+        self.rec["profiles"] = ["engineer", "ops"]
+        for name in ("creative-director", "cto"):
+            shutil.rmtree(self.home / "profiles" / name)
+        self.assertEqual(self.gaps(), [])
+        shutil.rmtree(self.home / "profiles" / "engineer")
+        self.assertIn("engineer: profile is missing. Fix: ./hbt update creator", self.gaps())
 
     def test_drifted_copies_and_missing_sign_ins_are_found(self):
         (self.home / "profiles" / "cto" / "memories" / "USER.md").write_text("old positioning")
@@ -190,7 +247,7 @@ class DriftCheck(unittest.TestCase):
             {"slack": {"allow_bots": "mentions", "strict_mention": True},
              "mcp_servers": {"vidiq": {"auth": "oauth"}, "malloy": {"auth": "oauth", "enabled": False}}}))
         gaps = "\n".join(self.gaps())
-        self.assertIn("different USER.md", gaps)
+        self.assertNotIn("USER.md", gaps)
         self.assertIn("creative-director: 1 playbook(s) differ", gaps)
         self.assertIn("cto: vidiq is on but not signed in", gaps)
         self.assertNotIn("malloy", gaps)  # turned off, so not a gap
@@ -226,21 +283,68 @@ class DriftCheck(unittest.TestCase):
         self.assertNotIn("2019-05-05", gaps)  # replaced decisions are history, not deadlines
 
     def test_quiet_mode_posts_once_per_change(self):
-        (self.home / "profiles" / "cto" / "memories" / "USER.md").write_text("old")
-        hbt.record_dir("creator").mkdir(parents=True)
-        (hbt.record_dir("creator") / "install.json").write_text(hbt.json.dumps(self.rec))
-        args = hbt.build_parser().parse_args(["check", "creator", "--quiet", "--offline"])
-        orig_load = hbt.load_record
-        hbt.load_record = lambda name: self.rec
-        out = []
-        orig_say = hbt.say
-        hbt.say = out.append
-        try:
-            args.func(args)
-            args.func(args)
-        finally:
-            hbt.load_record, hbt.say = orig_load, orig_say
-        self.assertEqual(len(out), 1, "a second run with the same gaps stays quiet")
+        skill = next((self.home / "profiles" / "ops" / "skills").rglob("SKILL.md"))
+        original = skill.read_bytes()
+        skill.write_bytes(original + b"\nlocal edit")
+        out = self.command(quiet=True)
+        self.assertEqual(len(out), 1)
+        self.assertIn("1 gap(s)", out[0])
+        self.assertIn("ops: 1 playbook(s) differ", out[0])
+        self.assertEqual(self.command(quiet=True), [])
+        skill.write_bytes(original)
+        self.assertEqual(self.command(quiet=True), [])
+        self.assertEqual(self.gaps(), [])
+        self.assertEqual(hbt.json.loads((hbt.record_dir("creator") / "check-state.json").read_bytes()), {})
+
+    def test_obsolete_user_warning_cache_clears_without_memory_changes(self):
+        old = ("The bots have different USER.md files, so they describe you differently. "
+               "Fix: copy the one you want to every bot's memories/USER.md.")
+        state = hbt.record_dir("creator") / "check-state.json"
+        state.parent.mkdir(parents=True)
+        state.write_text(hbt.json.dumps({"key": hbt.hashlib.sha256(old.encode()).hexdigest(),
+                                         "posted": hbt._dt.date.today().isoformat()}))
+        self.assertEqual(self.gaps(), [])
+        self.assertEqual(state.read_bytes(), b"{}\n")
+
+    def review_fixture(self):
+        policy = hbt.memory_review_policy(self.tpl, self.rec, "add-only")
+        policy["job"] = {"id": "0123456789ab"}
+        self.rec["memory_review"] = policy
+        jobs = self.home / "profiles" / "ops" / "cron" / "jobs.json"
+        jobs.parent.mkdir(parents=True)
+        job = {"id": "0123456789ab", "deliver": "local", "script": "hbt_memory_review.py", "enabled": True}
+        jobs.write_text(hbt.json.dumps({"jobs": [job]}))
+        return policy, jobs, job
+
+    def test_memory_review_missing_and_conflicting_jobs_remain_gaps(self):
+        _, jobs, job = self.review_fixture()
+        self.assertEqual(self.gaps(), [])
+        jobs.unlink()
+        self.assertEqual(len(self.gaps()), 1)
+        self.assertIn("Memory review job is missing", self.gaps()[0])
+        job["deliver"] = "slack:synthetic"
+        jobs.write_text(hbt.json.dumps({"jobs": [job]}))
+        self.assertEqual(len(self.gaps()), 1)
+        self.assertIn("Memory review job conflicts with local-only ownership", self.gaps()[0])
+
+    def test_memory_review_unfinished_and_invalid_recovery_remain_gaps(self):
+        policy, _, _ = self.review_fixture()
+        state = Path(policy["state_path"])
+        state.parent.mkdir(parents=True, exist_ok=True)
+        state.write_text(hbt.json.dumps({"receipts": {"synthetic": {"status": "prepared"}},
+                                         "attempts": {"synthetic": {"count": 3}}}))
+        self.assertEqual(len(self.gaps()), 1)
+        self.assertIn("Memory review recovery: unfinished=1; attempt-limited=1", self.gaps()[0])
+        state.write_text("not JSON")
+        self.assertEqual(self.gaps(), ["Memory review recovery state is unreadable or invalid; "
+                                       "keep drafts pending and reconcile it locally."])
+
+    def test_invalid_memory_review_policy_still_refuses(self):
+        policy, _, _ = self.review_fixture()
+        policy["mode"] = "invalid"
+        for check in (self.gaps, self.command, lambda: self.command(quiet=True)):
+            with self.assertRaisesRegex(SystemExit, "Memory review policy is invalid"):
+                check()
 
 
 class Workspace(unittest.TestCase):

@@ -58,7 +58,7 @@ Then ask your main agent to run the canon interview in `canon/INTERVIEW.md`. `./
 
 Each bot has separate settings and permissions; selected playbooks now use one shared library. `./hbt check creator` compares installed provenance and prints one line per gap with its fix:
 
-- a bot with a different `USER.md`, missing or modified shared package files, unresolved migration conflicts, duplicate skill names, missing selected roots or missing bundled opt-out/manual;
+- missing or modified shared package files, unresolved migration conflicts, duplicate skill names, missing selected roots or missing bundled opt-out/manual;
 - a tool that is turned on but not signed in, or lost its sign-in;
 - a bot that does not hear another bot that hands it work, or is not in that bot's channel;
 - a scheduled job whose last run failed;
@@ -198,7 +198,7 @@ The same option is available on `install`. An ordinary `update` preserves the re
 - `add-only` authorizes applying original add proposals and rejecting eligible proposals. `add-replace` additionally authorizes original, pinned **whole-entry replacements**. Replacement can remove facts from the active entry; the full preimage is retained.
 - Automatic `remove` is always forbidden. A batch with remove or an unauthorized replace remains pending as a whole, even when the reviewer requests discard. Discard rejects a proposal; it does not delete an existing memory entry.
 - Only native pending records with `subsystem=memory` and `origin=background_review` from enrolled roles qualify. Default, Ops, desks and unrelated profiles are not enrolled. Foreground and unknown origins stay pending.
-- Each draft uses its original profile and `memory` or `user` target. There is no shared USER.md and no default-profile fan-out. Different profile-local USER.md files can be intentional; the older drift check's suggestion to copy them is not a requirement of this feature.
+- Each draft uses its original profile and `memory` or `user` target. There is no shared USER.md and no default-profile fan-out. Profile-local USER.md differences or absence alone are not drift; no cross-profile copying is required.
 - The reviewer can return only apply/discard/retain decisions and reasons. It cannot supply edited operations, new content, paths or policy. Missing decisions retain. Invalid or duplicate decisions reject the entire response before memory or queue mutation.
 - Original pins, native enabled flags, configured limits, threat scanning and per-batch atomicity remain authoritative. Opt-in does not enable a disabled target, change native approval flags or change background proposal generation.
 

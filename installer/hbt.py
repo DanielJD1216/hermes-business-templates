@@ -2488,11 +2488,7 @@ def check_gaps(tpl: Template, rec: dict, live: bool = True) -> list[str]:
     for x in installed:
         if not (home / "profiles" / tpl.profile(x.key)).is_dir():
             gaps.append(f"{tpl.profile(x.key)}: profile is missing. Fix: ./hbt update {tpl.name}")
-    # 1. The owner profile: every bot answers from the same USER.md.
-    users = {x.key: _sha(home / "profiles" / tpl.profile(x.key) / "memories" / "USER.md") for x in bots}
-    if len(set(users.values())) > 1:  # a missing file counts: that bot knows nothing about you
-        gaps.append("The bots have different USER.md files, so they describe you differently. "
-                    "Fix: copy the one you want to every bot's memories/USER.md.")
+
     # 2. Use installed provenance, not a newer checkout, to diagnose shared assets.
     gaps.extend(shared_gaps(tpl.name, rec))
     for x in ([] if rec.get("shared_skills") else installed):
