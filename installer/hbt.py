@@ -1699,8 +1699,8 @@ def setup_completion(tpl: Template, rec: dict) -> None:
         "The build demonstration was not run because the installed CTO/Engineer pair is absent.")
     if tpl.ops and tpl.profile(tpl.ops.key) in rec["profiles"]:
         if rec.get("setup", {}).get("system_channel_ok") == "skipped":
-            say(f"Ops output stays local on this server (`hermes -p {tpl.profile(tpl.ops.key)} cron list`). "
-                "Slack delivery was not tested.")
+            say(f"The main-agent Slack routing check was skipped. Ops job delivery is unverified; "
+                f"inspect `hermes -p {tpl.profile(tpl.ops.key)} cron list`. Slack delivery was not tested.")
         else:
             say(f"Ops is configured for #{tpl.system_channel}; this setup did not test job delivery.")
 
@@ -1824,8 +1824,9 @@ def cmd_setup(a: argparse.Namespace) -> int:
         elif step == "system-channel":
             token = read_env_value(hermes_home() / ".env", "SLACK_BOT_TOKEN")
             if not token:
-                say(f"! Your main agent has no Slack bot on this server, so Ops output stays on the server "
-                    f"(`hermes -p {tpl.profile(tpl.ops.key)} cron list`).")
+                say(f"! Your main agent has no Slack bot on this server; the main-agent Slack routing check is skipped. "
+                    f"Existing job delivery settings are unchanged and unverified; "
+                    f"inspect `hermes -p {tpl.profile(tpl.ops.key)} cron list`.")
                 _with_setup(tpl.name, done | {"system_channel_ok": "skipped"})
                 continue
             found = find_channels(token, [tpl.system_channel]).get(tpl.system_channel)

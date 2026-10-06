@@ -125,8 +125,59 @@ class RoleSelection(unittest.TestCase):
                         self.assertNotIn("demonstration passed", text)
                     if wanted == "ops":
                         self.assertIn("No conversational bots", text)
-                    self.assertIn("Ops output stays local", text)
+                    self.assertIn("Ops job delivery is unverified", text)
                     self.assertIn("Slack delivery was not tested", text)
+
+    def test_connect_then_skipped_main_route_preserves_delivery_on_setup_rerun(self):
+        rec = self.record("creative-director")
+        rec["setup"].pop("system_channel_ok")
+        hbt.save_record("creator", rec)
+        role = next(r for r in self.tpl.roles if r.key == "creative-director")
+        jobs = self.home / "cron/jobs.json"
+        jobs.parent.mkdir()
+        jobs.write_text(json.dumps([{"id": "000000000001", "deliver": "local", "state": "paused"}]))
+
+        def native(*args, **kwargs):
+            if args[:2] == ("cron", "edit"):
+                self.assertEqual(args, ("cron", "edit", "000000000001", "--deliver", "slack:C00000001"))
+                state = json.loads(jobs.read_text())
+                state[0]["deliver"] = args[4]
+                jobs.write_text(json.dumps(state))
+            return ""
+
+        # Exercise real connect and wire_system_channel, replacing only external edges.
+        with patch.object(hbt, "read_env_value", return_value="synthetic-token"), \
+             patch.object(hbt, "slack_api", return_value={"ok": True, "user_id": rec["bots"][role.key]}), \
+             patch.object(hbt, "find_channels", return_value={
+                 name: {"id": "C00000001", "member": True}
+                 for name in role.channels + [self.tpl.system_channel]}), \
+             patch.object(hbt.Runner, "hermes_cmd", side_effect=native) as commands, patch.object(hbt, "say"):
+            args = hbt.build_parser().parse_args(["connect", "creator", role.key])
+            self.assertEqual(hbt.cmd_connect(args), 0)
+        self.assertTrue(any(c.args[:2] == ("cron", "edit") for c in commands.call_args_list))
+        self.assertEqual(json.loads(jobs.read_text())[0],
+                         {"id": "000000000001", "deliver": "slack:C00000001", "state": "paused"})
+        before = hbt.package_hashes(self.root)
+        with patch.object(hbt, "_wait", side_effect=AssertionError("prompt")), \
+             patch.object(hbt.Runner, "hermes_cmd", side_effect=AssertionError("native call on resume")), \
+             patch.object(hbt, "slack_api", side_effect=AssertionError("Slack access")), patch.object(hbt, "say") as say:
+            self.assertEqual(hbt.cmd_setup(self.args), 0)
+            self.assertEqual(hbt.cmd_status(self.args), 0)
+            after = hbt.package_hashes(self.root)
+            record_path = str((hbt.record_dir("creator") / "record.json").relative_to(self.root))
+            self.assertEqual([p for p in before.keys() | after.keys() if before.get(p) != after.get(p)], [record_path])
+            for _ in range(2):
+                self.assertEqual(hbt.cmd_setup(self.args), 0)
+                self.assertEqual(hbt.cmd_status(self.args), 0)
+                self.assertEqual(after, hbt.package_hashes(self.root))
+        current = hbt.load_record("creator")
+        self.assertEqual(current["setup"]["system_channel_ok"], "skipped")
+        self.assertNotIn("first_card", current["setup"])
+        text = "\n".join(c.args[0] for c in say.call_args_list)
+        self.assertIn("main-agent Slack routing check is skipped", text)
+        self.assertIn("Ops job delivery is unverified", text)
+        self.assertNotIn("Ops output stays local", text)
+        self.assertNotIn("Ops output stays on the server", text)
 
     def test_legacy_without_ops_is_not_expanded(self):
         rec = self.record("cto", legacy=True)
