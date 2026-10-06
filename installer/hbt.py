@@ -1814,22 +1814,35 @@ def cmd_setup(a: argparse.Namespace) -> int:
 
         elif step == "first-card":
             lead = next(x for x in tpl.roles if role.key in x.peers and "kanban" in x.slack_toolsets)
+            projects = rec.get("projects")
+            if not isinstance(projects, str) or not os.path.isabs(projects):
+                say("! The recorded absolute projects folder is missing; setup cannot identify the hello-world card. "
+                    "Inspect ./hbt status before retrying. Setup remains incomplete.")
+                return 1
+            expected_workspace = os.path.normpath(os.path.join(projects, "hello-world"))
             since = time.time()
             _wait(f"Step: your first build. In #{lead.channel}, post:\n"
                   f"  Create a new project called \"hello world\". Plan a tiny hello world script and execute.\n"
                   f"  {lead.title} plans it and hands it to {role.title} on a card; the result posts in #{role.channel}.")
-            say("  Waiting up to 10 minutes for the card to finish...")
+            say(_owner_review_guidance(tpl.name))
+            say("  Waiting up to 10 minutes for the matching card to reach Done after owner review...")
             card = None
             for _ in range(60):
-                card = _finished_card(Runner(a.hermes, False, a.verbose), tpl, tpl.profile(role.key), since)
+                card = _finished_card(Runner(a.hermes, False, a.verbose), tpl, tpl.profile(role.key),
+                                      since, expected_workspace)
                 if card:
                     break
                 time.sleep(10)
             if card:
-                _with_setup(tpl.name, done | {"first_card": card.get("id")})
+                _with_setup(tpl.name, done | {"first_card": card["id"]})
                 say(f"  Card {card.get('id')} is done: {card.get('title')}. Your build team works.")
             else:
-                say(f"! No finished card yet. Look at the board with `hermes kanban --board {tpl.name} list`, then try again.")
+                say(f"! No unique completed hello-world card yet. Setup remains incomplete. "
+                    f"Inspect `hermes kanban --board {tpl.name} list`. "
+                    "A draft in review needs your verdict in its original approval thread; "
+                    "changes, archive, blocked work or text-only approval do not finish setup. "
+                    "No automatic approval was recorded.")
+                return 1
 
         else:
             say("\nSetup is complete for the installed roles. Required bot replies and build checks passed.")
@@ -1857,24 +1870,58 @@ def _system_timezone() -> str:
     return p.read_text(encoding="utf-8").strip() if p.is_file() else ""
 
 
-def _finished_card(r: Runner, tpl: Template, assignee: str, since: float) -> dict | None:
+def _owner_review_guidance(board: str, card_id: str = "<card-id>") -> str:
+    return ("Engineer hands a checked draft to review, without reviewer reassignment. "
+            "Inspect the draft and record one verdict on that exact card in its original approval thread. "
+            "Use the card ID from that thread in place of <card-id> when needed:\n"
+            f'  Approve draft: !kanban --board {board} complete {card_id} --summary "Owner approved this draft only"\n'
+            f'  Request changes: !kanban --board {board} reopen-review {card_id} --reason "<required changes>"\n'
+            f"  Reject/stop card: !kanban --board {board} archive {card_id}\n"
+            "Archive keeps the record and stops active work; it is not Done. "
+            "For a terminal fallback, replace !kanban with hermes kanban in the same command. "
+            "This is one decision, not a second confirmation. !approve is for tool approval, not a card verdict. "
+            "Conversational approve/change/reject is intent, not proof of a recorded board outcome. "
+            "Draft completion does not authorize publishing, deployment, external sends, scheduling or signing.")
+
+
+def _finished_card(r: Runner, tpl: Template, assignee: str, since: float,
+                   expected_workspace: str) -> dict | None:
+    import math
+    import time
+    if (not isinstance(expected_workspace, str) or not os.path.isabs(expected_workspace)
+            or isinstance(since, bool) or not isinstance(since, (int, float)) or not math.isfinite(since)):
+        return None
     out = r.hermes_cmd("kanban", "--board", tpl.name, "list", "--assignee", assignee, "--status", "done", "--json",
                        check=False, mutate=False)
     try:
-        cards = json.loads(out or "[]")
-    except json.JSONDecodeError:
+        cards = json.loads(out)
+    except (json.JSONDecodeError, TypeError):
         return None
-    cards = cards.get("tasks", cards) if isinstance(cards, dict) else cards
-    for c in cards or []:
-        created = c.get("created_at") or 0
+    cards = cards.get("tasks") if isinstance(cards, dict) else cards
+    if not isinstance(cards, list) or any(not isinstance(c, dict) for c in cards):
+        return None
+    matches = []
+    for c in cards:
+        workspace = c.get("workspace_path")
+        if (c.get("status") != "done" or c.get("assignee") != assignee
+                or c.get("workspace_kind") != "dir" or not isinstance(workspace, str)
+                or not os.path.isabs(workspace)
+                or os.path.normpath(workspace) != os.path.normpath(expected_workspace)
+                or not isinstance(c.get("id"), str) or not re.fullmatch(r"t_[0-9a-f]{8}", c["id"])):
+            continue
+        created = c.get("created_at")
         if isinstance(created, str):
             try:
-                created = _dt.datetime.fromisoformat(created).timestamp()
-            except ValueError:
-                created = 0
+                parsed = _dt.datetime.fromisoformat(created)
+                created = parsed.timestamp() if parsed.tzinfo is not None else None
+            except (ValueError, OverflowError, OSError):
+                created = None
+        if (isinstance(created, bool) or not isinstance(created, (int, float))
+                or created <= 0 or created > time.time() or not math.isfinite(created)):
+            continue
         if created >= since - 60:
-            return c
-    return None
+            matches.append(c)
+    return matches[0] if len(matches) == 1 else None
 
 
 def cmd_update(a: argparse.Namespace) -> int:
