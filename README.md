@@ -44,15 +44,25 @@ cd ~/hermes-business-templates
 
 Setup walks you through one action at a time and checks each one before the next. You can stop anywhere; run it again and it picks up where you left off.
 
-1. Asks for your timezone, your projects folder and your Slack member ID, then installs the bots, folders, board and jobs.
+1. Shows a role checklist, all selected by default. Press Enter for all, type `ops` for Ops only, or enter comma-separated role keys such as `creative-director,cto`. Ops is required and is always included. Setup rejects unknown keys and separator-only input before installation. It then asks for your timezone, a projects folder if Engineer is selected, and your Slack member ID (optional for Ops only), and installs only the selected profiles and their assets.
 2. For each bot: prints its Slack app file. You create the app, then paste its two tokens into a hidden prompt. Setup checks them with Slack and refuses a token another bot already uses.
 3. Finds each bot's channels by name and tells you which ones still need `/invite`.
-4. Points Ops at `#agents-report` through your main agent's bot.
+4. Points Ops at `#agents-report` through your main agent's bot. When that bot is absent, setup skips the main-agent routing check, leaves existing job delivery settings unchanged, and reports Ops delivery as unverified. Configuration is not proof of job delivery.
 5. Asks you to run `hermes gateway restart` once.
 6. Asks you to post "what's your job here?" in each bot's channel and waits for the right bot to answer.
-7. Your first build: the hello-world card from CTO to Engineer. Engineer hands the checked draft to manual owner review, without reviewer reassignment. Inspect the draft and record your verdict on that exact card in its original approval thread, as below. Setup waits for a unique Done Engineer card in the recorded `<projects>/hello-world` folder, not any unrelated completed build.
+7. When both CTO and Engineer are installed, your first build is their hello-world card. Engineer hands the checked draft to manual owner review, without reviewer reassignment. Inspect the draft and record your verdict on that exact card in its original approval thread, as below. Setup waits for a unique Done Engineer card in the recorded `<projects>/hello-world` folder, not any unrelated completed build. Without both roles, setup explicitly reports that the demonstration was not run, and records no first-card result. Ops-only installs have no conversational bot reply tests.
 
 Then ask your main agent to run the canon interview in `canon/INTERVIEW.md`. `./hbt status creator` shows what is installed and the next setup step.
+
+Rerunning setup keeps the recorded roles and prior checks; it does not reopen role selection, add missing peers or remove roles. An incomplete installation or a deleted recorded profile requires recovery, not a smaller replacement selection. Only installed peers appear in invitations, allowlists and the generated roster. Report missing-role dependencies to the owner rather than substituting another role.
+
+### Missing prerequisites
+
+The launcher checks for Hermes and a Python that imports both PyYAML and ruamel.yaml without starting the native launcher. Explicit `--hermes`, `HBT_HERMES` and `HBT_PYTHON` overrides must be usable; invalid overrides produce a diagnostic rather than selecting another installation. Global options precede the subcommand.
+
+On interactive `./hbt setup creator`, missing prerequisites offer a default-No prompt to display the [official Linux/WSL installation instructions](https://hermes-agent.nousresearch.com/docs/getting-started/installation/) only. Explicit `y` or `yes` prints the owner-run command; hbt never downloads, installs, runs a package manager or continues setup. The official installer can install dependencies and change your environment. Provider login belongs in native secure setup, never chat. With an existing Hermes installation, this is a repair/reference handoff, not a claim that Hermes is absent.
+
+Decline, empty/invalid input, EOF and redirected stdin exit nonzero. Piped `yes` and `install --yes` are not bootstrap consent. Even accepting instructions exits with prerequisites unresolved. After separately reviewing and completing native setup or repair, reload the shell if needed and run `./hbt setup creator` again. It rediscovers prerequisites, then uses the normal capability checks and incomplete-install recovery gate. There is no stored consent or installation-success flag. This template still targets Linux/WSL; native macOS and clean-VM acceptance remain unverified.
 
 ### Approving a checked draft
 
