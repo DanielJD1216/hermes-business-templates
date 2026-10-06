@@ -12,11 +12,11 @@ metadata:
 **Trigger:** the weekly card from Ops.
 
 ## Steps
-1. Group the week's questions.
-2. Send the top themes to Video as a Kanban card.
+1. Group the week's questions into themes.
+2. Record the digest on the existing Ops-origin card. The Creative Director owns the Video workstream; reference the top themes in the existing media/video/topic-queue.md workflow. Reuse the current card, not a new self-handoff card.
 
 ## Done when
-The card exists.
+The digest is on the existing card and its top themes are referenced in media/video/topic-queue.md.
 
 ## Approval
 Post the result in its own thread and move the card to review. Nothing leaves the business without the owner's `approve`.

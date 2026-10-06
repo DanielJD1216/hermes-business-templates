@@ -2,7 +2,8 @@
 """Weekly template update check for the Ops role (no-agent cron job).
 
 Prints one line when the template repository has a newer version than the one
-installed, and stays silent otherwise. Never changes anything.
+installed, and stays silent otherwise. Fetches Git refs and records the last
+announced version in local state; never applies a template update.
 Settings come from ../hbt-settings.json (written by the installer).
 """
 from __future__ import annotations
@@ -57,7 +58,7 @@ def main() -> int:
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     STATE_PATH.write_text(json.dumps({"announced": latest}) + "\n", encoding="utf-8")
     print(f":package: Template update available: {template} {installed} -> {latest}. "
-          f"To update, run on the server: cd {repo} && git pull && ./hbt update")
+          f"To update, run on the server: cd {repo} && git pull && ./hbt update {template}")
     return 0
 
 

@@ -2,7 +2,12 @@
 
 ## 0.5.0 (unreleased candidate)
 
-Independent review pending. No tag, published release, live installation or client rollout.
+Memory review, B1 recovery refusal and G1/G3/G4 have completed bounded independent review and merged privately. G5 documentation/output cleanup awaits independent review. No tag, published release, live installation or client rollout.
+
+- G1 preserves profile-local memory: differences or absence of USER.md alone no longer produce equality/copy advice.
+- G3 retains manual owner approval and reports an original approval-thread link only with valid provenance; missing links are explicit.
+- G4 adds the guided role checklist and consent-gated, instruction-only prerequisite handoff. Skipped Ops routing leaves existing job delivery settings unchanged and delivery unverified.
+- G5 reconciles historical proof and the unreleased native notification dependency, clarifies optional-service prerequisites and logical-account limits, keeps Video work inside the Creative Director's current card where possible, and includes the selected template in update advice. No new profile, service, version or approval policy.
 
 - Add explicit `--memory-review off|add-only|add-replace` to install/update. Default to off, preserve recorded policy on ordinary update, and enroll only installed non-Ops roles.
 - Add the initially paused 21:30 native Ops script job with local-only delivery. Preserve owner pauses, schedules and deletions; reconcile interrupted creation using exact ownership evidence rather than a job name.
@@ -13,7 +18,7 @@ Independent review pending. No tag, published release, live installation or clie
 
 ## 0.4.0 (unreleased candidate)
 
-Independent review pending. No tag, published release or client rollout.
+Shared-skills implementation completed bounded independent review and merged privately. No tag, published release or client rollout.
 
 - Install authored and explicitly selected native stock packages once in a durable template-owned library. Native `skills.external_dirs` selects exact package roots per role; no new loader, service or dependency.
 - Preserve v0.3.2 role selections, deleted skills, disabled settings and customized whole packages. Capture old staged provenance and durable recovery archives before restaging; omit colliding managed entries rather than relying on native listing precedence.
