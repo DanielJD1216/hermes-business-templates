@@ -6,7 +6,7 @@ We provide the foundation only: bots, playbooks, folders, scheduled checks and a
 
 | Template | Status |
 |---|---|
-| Creator + Education | v0.5.0 unreleased candidate: opt-in local memory-draft review, global uninstall refusal and private recovery archives. Independent review pending. |
+| Creator + Education | v0.5.0 unreleased candidate. Shared skills, memory review, recovery refusal and the G1/G3/G4 corrections have completed bounded independent review. G5 documentation/output cleanup awaits independent review. No release or live acceptance. |
 | Project Services | planned |
 | Industrial Supplier | planned |
 
@@ -20,7 +20,7 @@ It copies a working creator business: one lead per department, the way a normal 
 | CTO | `#build-architect` | Leads Build: plans, system maps and PRDs. Never builds; hands each build to Engineer on a Kanban card. |
 | Engineer | `#build-engineering` | Builds from the CTO's cards in `<projects>/<project>`, reports progress on the card, and asks the CTO when a plan is vague. |
 | Ops | `#agents-report` (posts only) | No Slack app and no memory. Runs the scheduled jobs: morning approvals list, nightly review, memory and update watchdogs. |
-| Editor desk | `#ext-editor-<name>`, one per editor | Optional. Answers one outside editor from a brief you write, inside a locked-down container. |
+| Editor desk | `#ext-editor-<name>`, one per editor | Optional. Intended to answer one outside editor from your brief under the rootless-container policy below; actual enforcement needs final selected-path acceptance. |
 
 Your own main agent (your assistant) is not replaced. The installer records its limited Kanban and Ops-routing settings changes for uninstall; it does not share the main agent's skills with the bots. Every bot drafts; nothing is published, sent, priced or signed without your `approve`.
 
@@ -98,7 +98,7 @@ Ops runs it every morning and posts only when the gaps change, and once a week w
 
 The durable library lives at `<install-root>/business-templates/creator/skills/`, where install-root is the Hermes home used for the installation. It does not depend on this checkout staying in place:
 
-- `template/<role>/<skill>/` holds the unchanged 24 Creative Director and four Ops playbooks.
+- `template/<role>/<skill>/` holds 24 Creative Director and four Ops playbooks, including the approval and workstream-ownership corrections described below.
 - `bundled/<category>/<skill>/` holds stock packages from the installed Hermes source, preserving their support files and upstream attribution. The installer never uses the owner's writable skills folder, another profile or a personal tap as stock.
 - Each bot gets an actual YAML `skills.external_dirs` list of exact selected package directories, not access to the whole library. Existing custom entries keep their order. Disabled, platform-disabled, auto-load and skill-creation settings remain yours.
 - `hermes-agent` stays native-managed in each profile's local skills folder. The native `.no-bundled-skills` marker prevents nonessential packages from being seeded back into migrated profiles. Explicit `hbt update` refreshes shared stock; there is no background skill sync service.
@@ -117,7 +117,9 @@ Native listing precedence is not a safe collision policy: native `skill_view` re
 ./hbt desk creator desk-editor --name sam --tokens      # hidden prompt for the desk's Slack tokens
 ```
 
-Each editor gets their own Slack app, channel and folder (`desks/editor-sam`). A desk answers only its guests, only in its channel, with file tools only, inside rootless Docker with no network, and it sees nothing but its own folder. Desks install only where rootless Docker runs.
+Each editor gets their own Slack app, channel and folder (`desks/editor-sam`). The configured policy is guest/channel-restricted access, file tools only, an own-folder rootless container and no network. Actual container and native-tool enforcement remains unverified until final selected-path acceptance; configuration alone is not isolation proof.
+
+The owner must separately supply working rootless Docker for the same operating-system user that runs Hermes. Follow the [official rootless Docker instructions](https://docs.docker.com/engine/security/rootless/) for prerequisites, subordinate user/group IDs and user-daemon/context setup. hbt checks that the selected daemon answers as rootless. It does not install Docker, disable a rootful daemon or configure host services.
 
 ### Scheduled jobs
 
@@ -135,28 +137,38 @@ All times follow your timezone.
 
 ## What has been tested
 
-The v0.5.0 memory-review checks use synthetic drafts and deterministic reviewer fixtures. Native memory storage, pending proposals, cron job creation and script execution, profile installation/update and whole-profile uninstall were exercised in disposable homes on Hermes source `7565f6477c211c315110fc12173e500f013366fc`, using Python 3.11.15. Both `HOME` and `HERMES_HOME` were set before native imports. Network and mount namespaces hid live profile/credential trees and exposed only read-only native code at the installed package's source path; filesystem audit guards restricted reads/writes and refused external-memory initialization. The script resolves native source from the installed `hermes_cli` package and fails closed if that runtime is unavailable. These checks are not a claim of containment against hostile native subprocesses or a test of a live client's runtime layout.
+The following is historical evidence from completed bounded independent reviews, not checks rerun for the G5 documentation/output cleanup. Each template revision is the reviewed source head, not its merge commit. The native revisions and runtime identify only the paths exercised; they are not a minimum-version guarantee.
 
-The tested scenarios include add and pinned replacement, discard archives, invalid-response refusal before mutation, native batch limits/security scanning, stale pins, replay protection, unknown-outcome retention, cleanup-only retry, bounded attempts, concurrent process exclusion and a real reviewer-child wall timeout. Fixtures replace the auxiliary transport before provider resolution. Installer checks include a real v0.4.0 upgrade, explicit enable/disable, owner-paused job retention, deleted-job retention, exact-nonce creation recovery, same-name ownership refusal, local-only wiring, zero-write dry-run, whole-uninstall refusal and exact-byte archival before native deletion.
-
-No live provider call, model judgment-quality evaluation, provider sign-in, live scheduler/gateway operation, Slack delivery, live OpenViking, production installation or release was tested or authorized. The following table records earlier shared-skills evidence, not new memory-review results:
-
-| Area | Result |
+| Reviewed scope and template revision | Recorded checks and limits |
 |---|---|
-| Unit tests | 63 pass: existing installer tests plus package ownership, config/marker preservation, unknown provenance, collisions, dry-run, repeat update, interrupted activation, missing-file repair and protected uninstall. These tests use synthetic fixtures. |
-| Native sandbox execution | 63 CLI/discovery/seeding checks passed using native Hermes `0.21.5+6662.g343500b`, source `343500b3547e12530457c2fda60ec687e25118b4`, with its existing Python 3.11.15 environment. Fresh install, status/offline check, exact shared skill view, disabled refusal, local manual and role/private-owner exclusions passed. |
-| Real v0.3.2 migration | Baseline installer ran in separate homes, followed by pristine and customized updates. Added support bytes, custom external roots, disabled settings and deleted packages survived repeated update. Native reseeding did not recreate nonessential local copies. |
-| Recovery and removal | Injected failure on the second profile's activation restored old packages/settings; retry passed. Missing shared assets were repaired without losing a local shadow. Subset install, existing desk settings and native manual seeding passed without starting Docker. Uninstall preserved custom local/shared bytes, recovery archives and unrelated owner settings/skills. |
-| Isolation | Both HOME and HERMES_HOME were sandboxed before startup, inherited overrides were removed, lazy installs were disabled, jobs used local delivery and checks were offline. Final native/unit runs were additionally kernel write-confined to their evidence directory with Linux Landlock ABI 3. |
+| Shared skills, v0.4.0 candidate: `8da75ed05040520655ca995c31fe71b1dcfa625f` | Final review passed 63 unit tests and five focused native gates. Earlier 63 broader native CLI/discovery/seeding checks used Hermes `343500b3547e12530457c2fda60ec687e25118b4` (`0.21.5+6662.g343500b`), Python 3.11.15; those broader checks were not all rerun at the final head. |
+| Memory review, v0.5.0 candidate: `759b18efe6d484e8d7720d08c5b5d7bab17af432` | 131 isolated tests and five native scenario runners. Hermes `7565f6477c211c315110fc12173e500f013366fc`, preinstalled Python 3.11.15. Synthetic drafts and deterministic reviewer fixtures, not model-quality proof. |
+| B1 incomplete-install recovery refusal: `703c1598f94ffb1da0982c5b1707b80611b143d7` | 133 tests, no skips, and six safe checkpoints including that suite. Preinstalled Python 3.11.15 with the local unreleased B2 native candidate identified below. Not clean managed bootstrap. |
+| G1 profile-local memory drift correction: `2e03fe30ef64e33143f316fd508a3af7fdf24551` | 19 focused tests: equality/copy advice removed and memory bytes preserved. No native/B2 mount. |
+| G3 manual approval and truthful thread links: `7678a5e47c51c52dbbdad809b34b3e8b66e0e400` | 38 focused tests plus seven native tests. Python 3.11.15, Hermes `7565f6477c211c315110fc12173e500f013366fc`. Manual owner flow and provenance formatting, not live Slack proof. |
+| G4 role selection and prerequisite handoff: `f198181e0061fff91a730a7cb3e67c30f4db4f6a` | Final review passed 132 local tests; 52 native opt-in tests were skipped, not passed. Python 3.11.15 with three read-only utilities from Hermes `7565f6477c211c315110fc12173e500f013366fc`, not full native compatibility. Skipped Ops routing preserves existing job delivery settings and leaves delivery unverified. |
 
-**Not proven by this candidate:** real Slack onboarding or messages, live gateway handoffs/cards, live OpenViking, actual Docker desk operation, provider sign-in, scheduled job delivery or an actual Hermes self-update. Older live/simulated v0.3 evidence is not a new v0.4 integration result. The managed Python launcher lacked dependencies in a new isolated home with lazy installs disabled; native acceptance used the existing dependency-complete Hermes venv instead, not fabricated CLI results. Complete Hermes's own dependency setup before installing a template. No template release or client rollout has occurred. v0.1 installs still require uninstall before moving to the newer profile names.
+Shared-skills evidence includes real v0.3.2 sandbox migration, pristine and customized repeat updates, preserved support bytes/custom roots/disabled settings/deleted packages, native reseeding exclusion, injected activation recovery, and exact-byte archival before native whole-profile deletion. Broad-root ambiguity correctly refused updates rather than deleting a custom package. Existing desk settings were checked without starting Docker.
+
+Memory-review evidence exercises native memory storage, pending proposals, cron creation and script execution, profile installation/update and whole-profile uninstall in disposable homes. It covers pinned add/replacement, discard archives, invalid-response refusal, batch limits/security scanning, stale pins, replay/unknown-outcome handling, cleanup-only retry, bounded attempts, process exclusion and the reviewer-child wall timeout. Deterministic fixtures replace auxiliary transport before provider resolution. Owner pauses/deletions, exact-nonce recovery, same-name refusal, local-only delivery configuration, zero-write dry-run and preservation/refusal checks were exercised; these are not real scheduling or external delivery tests.
+
+Historical isolation set `HOME` and `HERMES_HOME` before startup, removed inherited overrides and disabled lazy installs. Shared-skills final checks used kernel write confinement; later native scenarios used network/mount namespaces to hide live credentials/profiles and read-only native code plus scoped filesystem guards. A fresh HOME with preinstalled dependencies is not clean bootstrap. The managed launcher lacked dependencies in an isolated home with lazy installs disabled, so native acceptance used the existing dependency-complete Python environment. No hostile-process containment or client-runtime compatibility is implied.
+
+G5 fresh verification is narrower: offline update-advice tests execute the actual checker with a stubbed remote version, parse the selected template argument without applying an update, and verify silence, deduplication and preservation of synthetic settings/memory/job sentinels. Documentation assertions and existing TemplateShape checks cover ownership, approvals, optional-service limits, privacy and role/skill shape. These checks use preinstalled Python 3.11.15 with task-local homes and network/filesystem restrictions; they do not run a native lifecycle or B2 candidate. Exact-head commands, counts and logs belong to the G5 review evidence, separate from the historical table.
+
+### G2: installed native notification ownership remains open
+
+B1 notification checks depended on **LOCAL unreleased** native candidate `8776cac768ca810c1a6ce60acf2a95ffe617d5cf`, based on `7565f6477c211c315110fc12173e500f013366fc`. Approved source tests do not establish released or installed availability. Before final acceptance, select an independently approved installed native revision and repeat notification-ownership checks there. NULL/empty notifier owners retain legacy exact-session-key behavior, not owner isolation. Notification collection is not external delivery. Do not infer this fix from a minimum Hermes version or install the local patch on the strength of this documentation.
+
+**Still unproven:** clean managed bootstrap, secure provider/Slack authentication, model judgment quality, real routing/manual approval/delivery and wall-clock scheduling, selected OpenViking services/models/indexes and outage recovery, actual Docker/native-tool desk isolation, preservation/recovery on the selected runtime, and actual Hermes self-update. Older v0.3 live/simulated evidence does not prove current-candidate live acceptance. Final Mac VM/live end-to-end acceptance and independent acceptance are deferred until feature-complete, not waived. A Linux guest on a Mac does not prove native macOS support. No tag, template release, live installation or client rollout is authorized by these results; the candidate is not release-ready. v0.1 installs still require uninstall before moving to the newer profile names.
 
 ## Requirements
 
 - A Linux server (or WSL2) with Hermes installed and its Python dependencies ready. The shared-skills capability checks above must pass; Hermes 0.21 alone is not a compatibility guarantee. Your main agent must be connected to Slack for live onboarding.
 - Your main Hermes profile logged in to a model provider (`hermes model`). The bots use the same login and model settings.
-- Optional: [OpenViking](https://github.com/volcengine/OpenViking) for long-term memory. Without it, bots use Hermes's built-in memory.
-- Optional: rootless Docker, needed only for desks.
+- Optional: an existing [OpenViking](https://github.com/volcengine/OpenViking) service for long-term memory. hbt connects it and assigns logical accounts; it does not provision the service or choose/install memory models, embeddings or indexes. If selected, follow current native `hermes memory setup`, the [Hermes memory-provider documentation](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory-providers) and the [official OpenViking documentation](https://github.com/volcengine/OpenViking/blob/main/docs/en/getting-started/02-quickstart.md) on the chosen runtime. Check English search suitability, costs and credentials separately. No particular model is required by this template.
+- Installation without OpenViking uses built-in memory for non-Ops bots. This is not automatic outage fallback for profiles already configured for OpenViking: this installer disables their built-in memory and user-profile flags. Verify the chosen runtime's outage/recovery behavior separately.
+- Optional: owner-provisioned rootless Docker for desks only, as described above. Linux/WSL remains the template target; a Linux VM on a Mac does not establish native macOS support.
 
 ## Update
 
@@ -209,7 +221,9 @@ Custom path strings and their order remain unchanged. Planning, checks and archi
 
 ## Memory
 
-With OpenViking running, each bot gets its **own memory account**, so bots cannot see each other's memories. Facts every bot needs belong in `canon/`, not in shared memory. Ops keeps no memory. Bots that run Kanban cards save memories without an approval prompt, because a card runs in the background where nobody can click one.
+With OpenViking configured, each non-Ops bot gets a logical memory account for routing separation. Account names are not an authorization or hostile-process boundary. Trusted same-user bots also share filesystem access. Facts every bot needs belong in `canon/`, not in shared memory. Ops keeps no memory. Bots that run Kanban cards save memories without an approval prompt, because a card runs in the background where nobody can click one.
+
+The owner supplies the optional service and its model/embedding/index configuration through the native setup and official documentation linked in Requirements. Installation without OpenViking uses built-in memory; an outage of configured OpenViking does not re-enable the built-in memory flags that hbt disabled. The watchdog is not a fallback guarantee.
 
 ### Optional native memory-draft review
 
@@ -248,8 +262,8 @@ Before apply or discard, the script saves exact pending bytes, memory bytes or a
 
 ## Known limits
 
-- OpenViking has no login in its default local setup. Any program on the server can read any memory account by name, so keep the server to trusted software.
-- Slack is the only chat platform tested.
+- The default local unauthenticated OpenViking setup permits programs that can reach it to address other accounts by name. Logical account routing does not prevent this. Check authentication and exposure on the selected deployment; not every deployment is unauthenticated.
+- Slack is the only chat platform in the historical template tests. Current-candidate live routing, approval and delivery still need final acceptance.
 - Messages you post in `#agents-report` go to Ops, because that route is how Ops posts through your main agent's bot. Keep the channel for system output.
 - Turning on Kanban for the CTO's Slack tools saves Hermes's full default tool list for that bot, so it will not pick up tools Hermes adds to its defaults later. Re-run `hermes -p cto tools enable kanban --platform slack` after a Hermes update if you want them.
 - A full install takes a few minutes. Native Hermes handles profiles, board/jobs and regular settings; the installer publishes verified shared packages and atomically updates exact native external-root lists.
