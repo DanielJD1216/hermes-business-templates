@@ -183,7 +183,8 @@ def render_roster(tpl: Template, roles: list[Role], ws: Path, channels: dict[str
         ch = ", ".join(f"#{c}" + (f" ({channels[c]})" if channels.get(c) else "") for c in r.channels)
         mention = f"`<@{bots[r.key]}>`" if bots.get(r.key) else ("none" if r.kind == "ops" else "not set up yet")
         lines.append(f"| {r.title} | `{tpl.profile(r.key)}` | {mention} | `{ws / r.folder}` | {ch} |")
-    return "\n".join(lines)
+    return ("\n".join(lines) + "\n\nOnly installed roles are listed. Absent roles cannot receive mentions or cards. "
+            "Report a missing role dependency to the owner; do not perform that role's work instead.")
 
 
 def render_role_agents(tpl: Template, role: Role, roles: list[Role], ws: Path, channels: dict[str, str],
@@ -1279,7 +1280,9 @@ def write_manifest(r: Runner, tpl: Template, title: str, name: str, *extra: str)
 
 def apply_slack(r: Runner, tpl: Template, role: Role, rec: dict, dry: bool) -> None:
     name = tpl.profile(role.key)
-    cfg, env = slack_settings(role, rec.get("channels") or {}, rec.get("owner", ""), rec.get("bots") or {})
+    bots = {key: value for key, value in (rec.get("bots") or {}).items()
+            if tpl.profile(key) in rec["profiles"]}
+    cfg, env = slack_settings(role, rec.get("channels") or {}, rec.get("owner", ""), bots)
     for k, v in cfg.items():
         r.hermes_cmd("config", "set", k, v, profile=name)
     set_env_values(hermes_home() / "profiles" / name / ".env", env, dry)
@@ -1675,10 +1678,37 @@ def setup_recovery_hint(tpl: Template) -> str:
             f"For an interrupted update, run `./hbt update {tpl.name}`. Do not mark the record complete manually.")
 
 
+def setup_build_pair(tpl: Template, rec: dict) -> tuple[Role, Role] | None:
+    """Resolve the demonstration only from the recorded installed team."""
+    installed = [x for x in tpl.roles if tpl.profile(x.key) in rec.get("profiles", [])]
+    for builder in installed:
+        if builder.builds:
+            lead = next((x for x in installed if builder.key in x.peers and "kanban" in x.slack_toolsets), None)
+            if lead:
+                return lead, builder
+    return None
+
+
+def setup_completion(tpl: Template, rec: dict) -> None:
+    """Describe only applicable checks; a skipped step is not proof of success."""
+    bots = [x for x in tpl.roles if x.kind != "ops" and tpl.profile(x.key) in rec["profiles"]]
+    say("Setup is complete for the installed roles.")
+    say("Installed conversational bot replies passed." if bots else
+        "No conversational bots are installed; no bot reply tests were run.")
+    say("The build demonstration passed." if setup_build_pair(tpl, rec) else
+        "The build demonstration was not run because the installed CTO/Engineer pair is absent.")
+    if tpl.ops and tpl.profile(tpl.ops.key) in rec["profiles"]:
+        if rec.get("setup", {}).get("system_channel_ok") == "skipped":
+            say(f"Ops output stays local on this server (`hermes -p {tpl.profile(tpl.ops.key)} cron list`). "
+                "Slack delivery was not tested.")
+        else:
+            say(f"Ops is configured for #{tpl.system_channel}; this setup did not test job delivery.")
+
+
 def next_setup_step(tpl: Template, rec: dict | None) -> tuple[str, Role | None]:
     """The single next thing the owner has to do, worked out from what is already true.
     Setup can stop anywhere and pick up here: nothing but the record and Slack decide the step."""
-    if not rec:
+    if rec is None:
         return "install", None
     if setup_install_incomplete(tpl, rec):
         return "recover", None
@@ -1696,9 +1726,9 @@ def next_setup_step(tpl: Template, rec: dict | None) -> tuple[str, Role | None]:
     for role in bots:
         if role.key not in (done.get("tested") or []):
             return "test", role
-    builder = next((x for x in bots if x.builds), None)
-    if builder and not done.get("first_card"):
-        return "first-card", builder
+    pair = setup_build_pair(tpl, rec)
+    if pair and not done.get("first_card"):
+        return "first-card", pair[1]
     return "done", None
 
 
@@ -1709,6 +1739,24 @@ def _wait(prompt: str) -> None:
 def _ask(question: str, default: str = "") -> str:
     got = input(f"{question}{f' [{default}]' if default else ''}: ").strip()
     return got or default
+
+
+def ask_setup_roles(tpl: Template) -> list[Role]:
+    say("Select roles. All are selected by default; Ops is required and always included.")
+    for role in tpl.roles:
+        say(f"  [x] {role.key}: {role.title}" + (" (required)" if role.kind == "ops" else ""))
+    say("Enter keeps all; enter ops for Ops only, or comma-separated role keys for a subset.")
+    while True:
+        wanted = _ask("Roles")
+        try:
+            if wanted and not any(key.strip() for key in wanted.split(",")):
+                raise SystemExit("Enter at least one role key, or press Enter for all roles.")
+            roles = select_roles(tpl, wanted)
+        except SystemExit as exc:
+            say(f"! {exc}")
+            continue
+        say("Selected: " + ", ".join(role.key for role in roles))
+        return roles
 
 
 def _bot_replied(token: str, channel: str, bot_id: str, since: float) -> bool:
@@ -1738,12 +1786,15 @@ def cmd_setup(a: argparse.Namespace) -> int:
             return 1
 
         elif step == "install":
-            say("This installs: " + ", ".join(f"{x.title}" for x in tpl.roles) + ". Ops runs scheduled jobs and has no Slack app.")
+            roles = ask_setup_roles(tpl)
+            say("Ops runs scheduled jobs and has no Slack app.")
             tz = _ask("Your timezone (for the morning list)", _system_timezone())
-            projects = _ask("Folder where Engineer builds your projects", str(Path.home() / "projects"))
-            owner = _ask("Your Slack member ID (Slack > your profile > three dots > Copy member ID)",
+            projects = (_ask("Folder where Engineer builds your projects", str(Path.home() / "projects"))
+                        if any(x.builds for x in roles) else str(Path.home() / "projects"))
+            owner = _ask("Your Slack member ID (Slack > your profile > three dots > Copy member ID; optional for Ops only)",
                          read_env_value(hermes_home() / ".env", "SLACK_ALLOWED_USERS").split(",")[0].strip())
-            args = ["--hermes", a.hermes, "install", tpl.name, "--yes", "--projects", projects, "--owner", owner]
+            args = ["--hermes", a.hermes, "install", tpl.name, "--yes", "--roles", ",".join(x.key for x in roles),
+                    "--projects", projects, "--owner", owner]
             if tz:
                 args += ["--timezone", tz]
             if main(args) != 0:
@@ -1789,7 +1840,7 @@ def cmd_setup(a: argparse.Namespace) -> int:
                       f"Ops posts its morning list and alerts there.")
 
         elif step == "restart":
-            _wait("Step: restart Hermes once so it starts the new bots. In a terminal on this server run:\n"
+            _wait("Step: restart Hermes once to load the installed roles and routing. In a terminal on this server run:\n"
                   "  hermes gateway restart")
             _with_setup(tpl.name, done | {"restarted": now_iso()})
 
@@ -1813,12 +1864,17 @@ def cmd_setup(a: argparse.Namespace) -> int:
                 say(f"! No answer from {role.title} yet. Check `hermes gateway status`, then try the step again.")
 
         elif step == "first-card":
-            lead = next(x for x in tpl.roles if role.key in x.peers and "kanban" in x.slack_toolsets)
+            assert rec is not None
             projects = rec.get("projects")
             if not isinstance(projects, str) or not os.path.isabs(projects):
                 say("! The recorded absolute projects folder is missing; setup cannot identify the hello-world card. "
                     "Inspect ./hbt status before retrying. Setup remains incomplete.")
                 return 1
+            pair = setup_build_pair(tpl, rec)
+            if not pair:
+                say("! The installed build pair is absent; no build demonstration was started.")
+                return 1
+            lead, role = pair
             expected_workspace = os.path.normpath(os.path.join(projects, "hello-world"))
             since = time.time()
             _wait(f"Step: your first build. In #{lead.channel}, post:\n"
@@ -1845,7 +1901,8 @@ def cmd_setup(a: argparse.Namespace) -> int:
                 return 1
 
         else:
-            say("\nSetup is complete for the installed roles. Required bot replies and build checks passed.")
+            assert rec is not None
+            setup_completion(tpl, rec)
             if tpl.desks:
                 d = tpl.desks[0]
                 say(f"When an outside editor starts working with you, give them their own desk:\n"
@@ -1853,8 +1910,7 @@ def cmd_setup(a: argparse.Namespace) -> int:
                     f"--channel {d.channel}-<editor>=<channel ID>")
             say(f"Fill in your business details: ask your main agent to run the interview in "
                 f"{Path(rec['workspace']) / 'canon' / 'INTERVIEW.md'}")
-            say(f"Ops runs ./hbt check {tpl.name} every morning and posts any gap in #{tpl.system_channel} "
-                f"with its fix. Run it yourself any time.")
+            say(f"Run ./hbt check {tpl.name} any time to inspect gaps and their fixes.")
             return 0
 
 
@@ -2442,7 +2498,7 @@ def cmd_uninstall(a: argparse.Namespace) -> int:
 
 def cmd_status(a: argparse.Namespace) -> int:
     rec = load_record(a.template)
-    if not rec:
+    if rec is None:
         say(f"{a.template}: not installed")
         return 1
     tpl = load_template(a.template)
@@ -2477,6 +2533,8 @@ def cmd_status(a: argparse.Namespace) -> int:
     say(f"  memory: {'OpenViking' if rec['memory']['enabled'] else 'built-in'}")
     step, role = next_setup_step(tpl, rec)
     say(f"  setup: {'complete' if step == 'done' else f'next step is {step}' + (f' ({role.title})' if role else '')}")
+    if step == "done":
+        setup_completion(tpl, rec)
     return 0
 
 
@@ -2713,7 +2771,13 @@ def main(argv: list[str] | None = None) -> int:
     a = build_parser().parse_args(argv)
     if getattr(a, "memory_prefix", "unset") is None:
         a.memory_prefix = a.template
-    return a.func(a)
+    try:
+        return a.func(a)
+    except (EOFError, KeyboardInterrupt):
+        if a.cmd != "setup":
+            raise
+        say("Setup stopped; setup not completed. Run ./hbt setup again to resume.")
+        return 1
 
 
 if __name__ == "__main__":
