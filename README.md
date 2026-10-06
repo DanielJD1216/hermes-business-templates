@@ -50,9 +50,27 @@ Setup walks you through one action at a time and checks each one before the next
 4. Points Ops at `#agents-report` through your main agent's bot.
 5. Asks you to run `hermes gateway restart` once.
 6. Asks you to post "what's your job here?" in each bot's channel and waits for the right bot to answer.
-7. Your first build: the hello-world card from CTO to Engineer.
+7. Your first build: the hello-world card from CTO to Engineer. Engineer hands the checked draft to manual owner review, without reviewer reassignment. Inspect the draft and record your verdict on that exact card in its original approval thread, as below. Setup waits for a unique Done Engineer card in the recorded `<projects>/hello-world` folder, not any unrelated completed build.
 
 Then ask your main agent to run the canon interview in `canon/INTERVIEW.md`. `./hbt status creator` shows what is installed and the next setup step.
+
+### Approving a checked draft
+
+Customer installs keep `review_dispatch: false`: you review the draft manually, and the card stays assigned to its implementer. CTO must not complete a draft just because implementation tests passed. In the original draft approval thread, use the actual card ID in one of these replies:
+
+```text
+!kanban --board creator complete <card-id> --summary "Owner approved this draft only"
+!kanban --board creator reopen-review <card-id> --reason "<required changes>"
+!kanban --board creator archive <card-id>
+```
+
+The commands mean approve this draft, request changes, or reject/stop the card, respectively. Archive keeps the record and removes active work; it is not Done. Reopen-review returns the card to its implementer. Do not use `request-changes` for idle manual review; it requires an active reviewer run. `!approve` is for dangerous-tool approval, not a draft/card verdict. Conversational `approve`, `change: <what>`, or `reject` remains owner intent until a recorded board outcome is reported; this template adds no free-text automation.
+
+If Slack commands are unavailable, run the equivalent `hermes kanban --board creator complete <card-id> --summary "Owner approved this draft only"`, `hermes kanban --board creator reopen-review <card-id> --reason "<required changes>"`, or `hermes kanban --board creator archive <card-id>` in a terminal. This is a fallback, not another approval requirement. One native command records one decision.
+
+Review, requested changes, archive/rejection, blocked work, text-only approval and a setup timeout leave first-build onboarding incomplete. Setup prints pending guidance; no automatic approval is recorded. Draft completion alone does not authorize publishing, deployment, external sends, scheduling or signing.
+
+The morning approvals list groups cards by role, oldest current review first, and links to the original draft approval thread when its provenance is available. Leads carry already-known origin context in the card body; workers record it in the existing review metadata using the template's `approval_thread` convention in `workspace/RULES.md`. This is not a native task field. The helper uses the latest review request and corresponding run, not an earlier draft or task creation time. It validates the recorded Slack root-message URL without inventing one. Result-channel subscriptions cannot identify an origin. Legacy, missing, invalid, conflicting or non-Slack provenance produces an explicit `approval thread link unavailable (<reason>)` with the title and card ID. Missing review time is also explicit. No link-entry chore is required. A failed local read reports a failed digest, never "Nothing waiting for approval."
 
 ### Keeping the bots in step
 

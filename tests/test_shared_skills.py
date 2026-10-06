@@ -70,6 +70,17 @@ class SharedSkills(unittest.TestCase):
         self.plan()
         self.assertEqual(before, hbt.package_hashes(self.home))
 
+    def test_morning_digest_support_script_is_installed_with_package(self):
+        source = hbt.load_template("creator").path / "roles/ops/skills/creator-ops-morning-list"
+        target = self.tpl.path / "roles" / self.role.key / "skills" / source.name
+        shutil.copytree(source, target)
+        self.apply(fresh=True)
+        installed = Path(self.rec["shared_skills"]["root"]) / "template" / self.role.key / source.name
+        self.assertEqual(hbt.package_hashes(installed), hbt.package_hashes(source))
+        self.assertEqual((installed / "scripts/format_approvals.py").read_bytes(),
+                         (source / "scripts/format_approvals.py").read_bytes())
+        self.assertIn(str(installed), hbt._profile_cfg(self.role.key)["skills"]["external_dirs"])
+
     def test_pristine_migration_and_repeat_preserve_settings(self):
         self.apply()
         cfg = hbt._profile_cfg(self.role.key)
