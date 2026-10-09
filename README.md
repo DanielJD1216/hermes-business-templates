@@ -17,8 +17,8 @@ It copies a working creator business: one lead per department, the way a normal 
 | Bot | Slack channels | Does |
 |---|---|---|
 | Creative Director | `#media-video`, `#media-edit`, `#media-newsletter`, `#marketing-distribution`, `#offers-optimization` | Leads Media and Marketing: topics, scripts, edits, newsletter, clips, community and sponsor drafts. 24 playbooks. |
-| CTO | `#build-architect` | Leads Build: plans, system maps and PRDs. Never builds; hands each build to Engineer on a Kanban card. |
-| Engineer | `#build-engineering` | Builds from the CTO's cards in `<projects>/<project>`, reports progress on the card, and asks the CTO when a plan is vague. |
+| CTO | `#build-architect` | Architecture, system maps, PRDs and bounded in-thread builds. Plans or independently reviews when development orchestration is selected. |
+| Engineer | `#build-engineering` | Implements and tests approved scope in `<projects>/<project>`, directly in-thread or as the selected implementation owner. No mandatory CTO planning stage. |
 | Ops | `#agents-report` (posts only) | No Slack app and no memory. Runs the scheduled jobs: morning approvals list, nightly review, memory and update watchdogs. |
 | Editor desk | `#ext-editor-<name>`, one per editor | Optional. Intended to answer one outside editor from your brief under the rootless-container policy below; actual enforcement needs final selected-path acceptance. |
 
@@ -29,10 +29,14 @@ Also installed: a shared business folder with `canon/` (your business, offers, v
 ## How the bots work together
 
 - Each bot answers in its own channels without an @mention, and stays quiet when you @mention a different bot there.
-- Bots hand work to each other by @mentioning the other bot in the thread they are working in, with the whole brief in that message. A bot can only reply in its own thread, so setup invites each bot into the channels of the bots that hand it work: CTO into the Creative Director's channels and `#build-engineering`, the Creative Director and Engineer into `#build-architect`.
+- Work stays in its originating conversation by default, including implementation and testing. A Creative Director request for a simple page does not automatically go to CTO or Engineer. Ask "Finish this here, or use the Herdr project setup?" only when intent is genuinely unclear and orchestration materially helps.
+- When the owner explicitly selects orchestration or has established it for the project, use one coordinating conversation, one implementation owner per task and independent review when needed or required. The coordinating conversation need not move into Herdr. This template does not install Herdr or provide a new handoff bridge; agents must verify the available sessions, transport and return route before using them.
+- For a selected Slack handoff, @mention the receiving bot in the original thread with the whole brief. Setup supplies peer channel membership instructions. Existing Kanban tasks and separately approved Ops jobs retain their scope; code alone does not require a card. Do not delete boards, move active work or add reporting destinations implicitly.
 - A bot hears another bot only when @mentioned, and a thread follow-up wakes only the bot you mentioned, so they never loop.
 - Only you can run commands such as `!approve` or `!restart`. A bot that mentions another bot with a command gets a refusal.
-- Say "Create a new project called hello world, plan it and build it" in `#build-architect`. The CTO writes the plan, creates a card for Engineer, and the result posts in `#build-engineering`. Ask the Creative Director for a landing page and it hands the build to the CTO the same way.
+- Say "Build a tiny hello-world script here" to work in-thread. Explicitly request CTO/Engineer Kanban orchestration to exercise the optional card workflow instead. Required owner approval and repository gates apply in either workflow.
+
+This is an intent-based routing change, not a boardless installer: installation still provisions the `creator` board, dispatcher settings and Ops board-based checks described below. Existing data and schedules are preserved. The morning list covers card-backed drafts, not all in-thread or Herdr work.
 
 ## Setup
 
@@ -50,11 +54,11 @@ Setup walks you through one action at a time and checks each one before the next
 4. Points Ops at `#agents-report` through your main agent's bot. When that bot is absent, setup skips the main-agent routing check, leaves existing job delivery settings unchanged, and reports Ops delivery as unverified. Configuration is not proof of job delivery.
 5. Asks you to run `hermes gateway restart` once.
 6. Asks you to post "what's your job here?" in each bot's channel and waits for the right bot to answer.
-7. When both CTO and Engineer are installed, your first build is their hello-world card. Engineer hands the checked draft to manual owner review, without reviewer reassignment. Inspect the draft and record your verdict on that exact card in its original approval thread, as below. Setup waits for a unique Done Engineer card in the recorded `<projects>/hello-world` folder, not any unrelated completed build. Without both roles, setup explicitly reports that the demonstration was not run, and records no first-card result. Ops-only installs have no conversational bot reply tests.
+7. When both CTO and Engineer are installed, setup offers an optional hello-world Kanban demonstration, default No. Only `y` or `yes` opts in. Declining is remembered without a completed-card record; setup reports build handoff and review as unverified. EOF or interruption stops setup. If selected, Engineer hands the checked draft to manual owner review without reviewer reassignment. Setup waits for a unique Done Engineer card in the recorded `<projects>/hello-world` folder, not an unrelated build. A selected but unfinished demonstration remains pending on resume. Existing completed demonstrations are retained. Without both roles, setup reports that the demonstration was not run. Ops-only installs have no conversational bot reply tests.
 
 Then ask your main agent to run the canon interview in `canon/INTERVIEW.md`. `./hbt status creator` shows what is installed and the next setup step.
 
-Rerunning setup keeps the recorded roles and prior checks; it does not reopen role selection, add missing peers or remove roles. An incomplete installation or a deleted recorded profile requires recovery, not a smaller replacement selection. Only installed peers appear in invitations, allowlists and the generated roster. Report missing-role dependencies to the owner rather than substituting another role.
+Rerunning setup keeps recorded roles, demonstration choice and prior checks; it does not reopen selection, add missing peers or remove roles. After declining the demonstration, you can separately request a bounded orchestration exercise; setup will not retroactively claim it passed. An incomplete installation or a deleted recorded profile requires recovery, not a smaller replacement selection. Only installed peers appear in invitations, allowlists and the generated roster. Report missing-role dependencies for selected handoffs or required independent review; role specialties do not forbid authorized in-thread work.
 
 ### Missing prerequisites
 
@@ -78,7 +82,7 @@ The commands mean approve this draft, request changes, or reject/stop the card, 
 
 If Slack commands are unavailable, run the equivalent `hermes kanban --board creator complete <card-id> --summary "Owner approved this draft only"`, `hermes kanban --board creator reopen-review <card-id> --reason "<required changes>"`, or `hermes kanban --board creator archive <card-id>` in a terminal. This is a fallback, not another approval requirement. One native command records one decision.
 
-Review, requested changes, archive/rejection, blocked work, text-only approval and a setup timeout leave first-build onboarding incomplete. Setup prints pending guidance; no automatic approval is recorded. Draft completion alone does not authorize publishing, deployment, external sends, scheduling or signing.
+For an opted-in demonstration, review, requested changes, archive/rejection, blocked work, text-only approval and a setup timeout leave first-build onboarding incomplete. Setup prints pending guidance; no automatic approval is recorded. Draft completion alone does not authorize publishing, deployment, external sends, scheduling or signing.
 
 The morning approvals list groups cards by role, oldest current review first, and links to the original draft approval thread when its provenance is available. Leads carry already-known origin context in the card body; workers record it in the existing review metadata using the template's `approval_thread` convention in `workspace/RULES.md`. This is not a native task field. The helper uses the latest review request and corresponding run, not an earlier draft or task creation time. It validates the recorded Slack root-message URL without inventing one. Result-channel subscriptions cannot identify an origin. Legacy, missing, invalid, conflicting or non-Slack provenance produces an explicit `approval thread link unavailable (<reason>)` with the title and card ID. Missing review time is also explicit. No link-entry chore is required. A failed local read reports a failed digest, never "Nothing waiting for approval."
 
