@@ -190,6 +190,62 @@ class RoleSelection(unittest.TestCase):
         self.assertEqual(before, hbt.package_hashes(self.root))
         self.assertEqual(hbt.load_record("creator")["profiles"], ["cto"])
 
+    def test_demo_default_no_is_durable_and_never_claims_a_pass(self):
+        for answer in ("", "n", "no", "unexpected"):
+            with self.subTest(answer=answer):
+                rec = self.record("cto,engineer")
+                rec["setup"].pop("first_card")
+                hbt.save_record("creator", rec)
+                before = hbt.package_hashes(self.root)
+                with patch("builtins.input", return_value=answer), \
+                     patch.object(hbt, "_wait", side_effect=AssertionError("demo started")), \
+                     patch.object(hbt.Runner, "hermes_cmd", side_effect=AssertionError("native call")), \
+                     patch.object(hbt, "say") as say:
+                    self.assertEqual(hbt.cmd_setup(self.args), 0)
+                current = hbt.load_record("creator")
+                self.assertIs(current["setup"]["build_demo"], False)
+                self.assertNotIn("first_card", current["setup"])
+                text = "\n".join(c.args[0] for c in say.call_args_list)
+                self.assertIn("demonstration was not run", text)
+                self.assertNotIn("demonstration passed", text)
+                after = hbt.package_hashes(self.root)
+                record_path = str((hbt.record_dir("creator") / "record.json").relative_to(self.root))
+                self.assertEqual({p for p in before.keys() | after.keys() if before.get(p) != after.get(p)}, {record_path})
+                with patch("builtins.input", side_effect=AssertionError("repeat prompt")), patch.object(hbt, "say"):
+                    self.assertEqual(hbt.cmd_setup(self.args), 0)
+                self.assertEqual(after, hbt.package_hashes(self.root))
+
+    def test_demo_opt_in_stays_pending_and_does_not_reprompt(self):
+        for answer in ("y", "YES"):
+            with self.subTest(answer=answer):
+                rec = self.record("cto,engineer")
+                rec["setup"].pop("first_card")
+                hbt.save_record("creator", rec)
+                with patch("builtins.input", return_value=answer) as prompt, \
+                     patch.object(hbt, "_wait") as wait, patch.object(hbt, "_finished_card", return_value=None), \
+                     patch("time.sleep"), patch.object(hbt, "say"):
+                    self.assertEqual(hbt.cmd_setup(self.args), 1)
+                    prompt.assert_called_once()
+                    self.assertIn("Use CTO/Engineer Kanban orchestration", wait.call_args.args[0])
+                current = hbt.load_record("creator")
+                self.assertIs(current["setup"]["build_demo"], True)
+                self.assertNotIn("first_card", current["setup"])
+                with patch("builtins.input", side_effect=AssertionError("repeat prompt")), \
+                     patch.object(hbt, "_wait"), patch.object(hbt, "_finished_card", return_value=None), \
+                     patch("time.sleep"), patch.object(hbt, "say"):
+                    self.assertEqual(hbt.cmd_setup(self.args), 1)
+                self.assertEqual(current, hbt.load_record("creator"))
+
+    def test_demo_interrupted_choice_has_no_writes(self):
+        for error in (EOFError, KeyboardInterrupt):
+            rec = self.record("cto,engineer")
+            rec["setup"].pop("first_card")
+            hbt.save_record("creator", rec)
+            before = hbt.package_hashes(self.root)
+            with patch("builtins.input", side_effect=error), patch.object(hbt, "say"):
+                self.assertEqual(hbt.main(["setup", "creator"]), 1)
+            self.assertEqual(before, hbt.package_hashes(self.root))
+
     def test_pair_requires_installed_lead_relationship_and_prior_checks(self):
         rec = self.record("engineer")
         self.assertEqual(hbt.next_setup_step(self.tpl, rec), ("done", None))

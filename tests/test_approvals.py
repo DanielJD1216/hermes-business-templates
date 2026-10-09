@@ -261,7 +261,8 @@ class SetupOwnerReview(unittest.TestCase):
         rec = {"version": tpl.version, "profiles": ["cto", "engineer"], "projects": str(self.root / "projects"),
                "workspace": str(self.root / "workspace"),
                "bots": {"cto": "U00000001", "engineer": "U00000002"},
-               "setup": {"channels_ok": ["cto", "engineer"], "tested": ["cto", "engineer"], "restarted": "fixture"}}
+               "setup": {"channels_ok": ["cto", "engineer"], "tested": ["cto", "engineer"], "restarted": "fixture",
+                         "build_demo": True}}
         hbt.save_record(tpl.name, rec)
         sentinels = {"config.yaml": b"kanban:\n  review_dispatch: false\n",
                      "credential-sentinel": b"synthetic-not-a-credential", "canon/business.md": b"owner canon",

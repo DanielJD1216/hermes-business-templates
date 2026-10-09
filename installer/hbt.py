@@ -184,7 +184,8 @@ def render_roster(tpl: Template, roles: list[Role], ws: Path, channels: dict[str
         mention = f"`<@{bots[r.key]}>`" if bots.get(r.key) else ("none" if r.kind == "ops" else "not set up yet")
         lines.append(f"| {r.title} | `{tpl.profile(r.key)}` | {mention} | `{ws / r.folder}` | {ch} |")
     return ("\n".join(lines) + "\n\nOnly installed roles are listed. Absent roles cannot receive mentions or cards. "
-            "Report a missing role dependency to the owner; do not perform that role's work instead.")
+            "For a selected handoff or required independent review, report a missing role dependency to the owner. "
+            "Role specialties do not prevent authorized in-thread implementation.")
 
 
 def render_role_agents(tpl: Template, role: Role, roles: list[Role], ws: Path, channels: dict[str, str],
@@ -1695,8 +1696,12 @@ def setup_completion(tpl: Template, rec: dict) -> None:
     say("Setup is complete for the installed roles.")
     say("Installed conversational bot replies passed." if bots else
         "No conversational bots are installed; no bot reply tests were run.")
-    say("The build demonstration passed." if setup_build_pair(tpl, rec) else
-        "The build demonstration was not run because the installed CTO/Engineer pair is absent.")
+    if not setup_build_pair(tpl, rec):
+        say("The build demonstration was not run because the installed CTO/Engineer pair is absent.")
+    elif rec.get("setup", {}).get("first_card"):
+        say("The build demonstration passed.")
+    else:
+        say("The optional build demonstration was not run; build handoff and review are unverified.")
     if tpl.ops and tpl.profile(tpl.ops.key) in rec["profiles"]:
         if rec.get("setup", {}).get("system_channel_ok") == "skipped":
             say(f"The main-agent Slack routing check was skipped. Ops job delivery is unverified; "
@@ -1727,7 +1732,7 @@ def next_setup_step(tpl: Template, rec: dict | None) -> tuple[str, Role | None]:
         if role.key not in (done.get("tested") or []):
             return "test", role
     pair = setup_build_pair(tpl, rec)
-    if pair and not done.get("first_card"):
+    if pair and not done.get("first_card") and done.get("build_demo") is not False:
         return "first-card", pair[1]
     return "done", None
 
@@ -1876,10 +1881,17 @@ def cmd_setup(a: argparse.Namespace) -> int:
                 say("! The installed build pair is absent; no build demonstration was started.")
                 return 1
             lead, role = pair
+            if done.get("build_demo") is not True:
+                choice = _ask("Run the optional CTO/Engineer Kanban build demonstration? [y/N]", "n")
+                done["build_demo"] = choice.strip().lower() in ("y", "yes")
+                _with_setup(tpl.name, done)
+                if not done["build_demo"]:
+                    continue
             expected_workspace = os.path.normpath(os.path.join(projects, "hello-world"))
             since = time.time()
             _wait(f"Step: your first build. In #{lead.channel}, post:\n"
-                  f"  Create a new project called \"hello world\". Plan a tiny hello world script and execute.\n"
+                  f"  Use CTO/Engineer Kanban orchestration for a new project called \"hello world\". "
+                  f"Plan a tiny hello world script and execute.\n"
                   f"  {lead.title} plans it and hands it to {role.title} on a card; the result posts in #{role.channel}.")
             say(_owner_review_guidance(tpl.name))
             say("  Waiting up to 10 minutes for the matching card to reach Done after owner review...")

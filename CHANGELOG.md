@@ -2,6 +2,9 @@
 
 ## 0.5.0 (unreleased candidate)
 
+- Intent-based routing: finish authorized work in the originating conversation by default, including simple coded projects. Specialist/Herdr/Kanban orchestration is owner-selected; retain one coordinator, one implementation owner and required independent review. No Herdr installation or transport automation.
+- Make the setup Kanban build demonstration default-No and resumable. A skipped demonstration is not a passed test. Preserve existing completed cards, owner-review gates, boards, dispatcher settings and Ops jobs; this is not a boardless installation or a live migration.
+
 Memory review, B1 recovery refusal and G1/G3/G4 have completed bounded independent review and merged privately. G5 documentation/output cleanup awaits independent review. No tag, published release, live installation or client rollout.
 
 - G1 preserves profile-local memory: differences or absence of USER.md alone no longer produce equality/copy advice.

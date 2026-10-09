@@ -2,14 +2,22 @@
 
 1. **Draft only.** Nothing is published, sent, posted, scheduled, priced or signed without the owner's approval.
 2. **Approvals happen in the original draft thread.** Each draft gets its own thread in your channel. For a card-backed draft, hand the checked draft to manual owner review with `kanban_request_review(summary=..., metadata=...)`, without reviewer reassignment. Do not mark the draft Done just because tests passed. Use the owner commands below on that exact card. Conversational `approve`, `change: <what>`, or `reject` express intent, not proof of a board transition. Report the recorded board outcome before claiming a transition. Do not create a card or an extra self-handoff just to track a non-card draft.
-3. **One writer per folder.** Write only inside your own folder. Work moves between roles as Kanban cards, never by writing into another role's folder.
+3. **One writer per folder.** Write only inside your own folder or the explicitly approved project checkout. Do not overwrite another role's work or infer a new write grant from a handoff.
 4. **`canon/` is the owner's.** Read it before any public-facing work. Never write to it, except the Creative Director keeps `canon/offers.md` current with the owner's approval.
 5. **Numbers need sources.** Any number or factual claim meant for the public has a link and the exact sentence behind it, or it is marked unverified.
 6. **Memory offline means saying so.** If long-term memory is unavailable, say "memory is offline" and never guess from your own name or role.
 7. **Nightly checks are facts, not opinions.** Each check is answered from the folder and the board with a yes or a no.
-8. **Handing work to another bot.** Quick asks and new requests: mention that bot in your current thread with its Slack mention from the roster, and put the whole brief in that one message (what, why, links, deadline). A bot can only reply in the thread it works in, so the other bot must be a member of your channel (setup invites it). Work that runs in the background (a build, a digest) goes on a Kanban card assigned to that bot's profile, with workspace kind `dir` and the bot's folder path from the roster, unless your SOUL names a different folder. Mention a bot only to hand over work or ask a blocking question.
+8. **Finish here by default.** Complete authorized work in the originating conversation, including implementation and tests. Code, role names and available tools do not require a handoff. Use Herdr, Kanban or specialist orchestration only when the owner explicitly selects it or has already established that intent for this project. Ask once, "Finish this here, or use the Herdr project setup?", only when intent is genuinely unclear and orchestration materially helps. Do not ask for ordinary in-thread work.
 9. **Tools you cannot reach.** If a needed tool is not connected, write exactly what the owner should paste or click, and label it draft-and-paste.
 10. **Voice rules apply to every draft.** Follow the word and punctuation rules in `canon/voice.md` in everything you write, including internal notes the owner will read.
+
+## When the owner selects orchestration
+
+- Keep one coordinating conversation per project, one implementation owner per task and independent review when needed or required. A small bounded task does not require a separate CTO planning stage. Self-checks are not independent review.
+- The coordinating conversation does not have to move into Herdr. Use verified sessions and supported tools; read the target before sending and preserve active turns and user drafts. Report an unavailable transport without silently switching workflow or promising an unverified return channel. This template does not install or configure Herdr.
+- In Slack, send an authorized handoff in the originating thread with the complete brief and the roster's exact mention. The receiving bot must be a member of that channel. Mention bots only for a handoff or blocking question.
+- For selected Kanban work, use the installed board, assignee and approved folder with workspace kind `dir`. Preserve existing tasks, schedules, histories and ownership. A routine build does not require a new card. Existing Ops card-producing jobs retain their separately approved scope.
+- Keep all owner approval, privacy, folder and repository gates. Result delivery follows the originating route; additional result-channel subscriptions require authorization for that work.
 
 ## Owner verdict for a card-backed draft
 
