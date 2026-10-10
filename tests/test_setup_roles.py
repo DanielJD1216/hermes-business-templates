@@ -38,12 +38,14 @@ class RoleSelection(unittest.TestCase):
                     answers.append(str(self.root / "projects"))
                 answers.append("U00000001")
                 before = hbt.package_hashes(self.root)
-                with patch("builtins.input", side_effect=answers), patch.object(hbt, "main", return_value=1) as install, \
+                with patch("builtins.input", side_effect=answers), patch.object(hbt, "cmd_install", return_value=1) as install, \
                      patch.object(hbt, "say") as say:
                     self.assertEqual(hbt.cmd_setup(self.args), 1)
                 forwarded = install.call_args.args[0]
-                self.assertEqual(forwarded[forwarded.index("--roles") + 1], ",".join(expected))
-                self.assertEqual(forwarded[:4], ["--hermes", self.args.hermes, "install", "creator"])
+                self.assertEqual(forwarded.roles, ",".join(expected))
+                self.assertEqual(forwarded.hermes, self.args.hermes)
+                self.assertEqual(forwarded.template, "creator")
+                self.assertEqual([r["key"] for r in forwarded.team_definition["roles"]], expected)
                 self.assertIn("Selected: " + ", ".join(expected), [c.args[0] for c in say.call_args_list])
                 self.assertEqual(before, hbt.package_hashes(self.root))
 

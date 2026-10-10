@@ -6,8 +6,8 @@ MIT-licensed starting setups for [Hermes Agent](https://hermes-agent.nousresearc
 
 ## What the customer gets
 
-- Separate Creative Director, CTO and Engineer profiles, selected at setup, with their own Slack apps and folders.
-- An Ops profile hosting only the optional script-only memory watchdog. Ops has no conversational Slack bot or personal memory. It is still included by the role selector; an installation without OpenViking has no scheduled watchdog job.
+- Default Creative Director, CTO and Engineer profiles, or a reviewed custom team selected before setup creates profiles and Slack manifests. Conversational roles have their own Slack apps and folders.
+- An Ops profile hosting only the optional script-only memory watchdog. Ops has no conversational Slack bot or personal memory. It is included in the default team and legacy `--roles` shortcut; an explicit team JSON can omit it. Without Ops or OpenViking, no watchdog job is scheduled.
 - Generic role SOUL documents, generated workspace rules, a blank private USER worksheet and editable `canon/` files for business, offers, voice, brand and standing rules, plus a guided interview.
 - A blank project index, file-placement/access guide and reusable project-onboarding skill with a stdlib Herdr layout helper. These are not the removed content/business-review playbooks.
 - Selected native Hermes skills in a shared, provenance-tracked library. These are not the removed 24 Creator playbooks and do not install external tools or grant credentials.
@@ -45,11 +45,74 @@ Approval stays in the working conversation. Nothing is published, sent, schedule
 ./hbt setup creator
 ```
 
-Setup selects roles, asks for timezone/projects/Slack member ID, creates selected profiles, generates Slack manifests, verifies bot identity and membership, and asks the owner to restart the gateway. It then checks conversational replies. It does not run a card-based build demo or claim Herdr handoffs were tested.
+Setup offers the default team or customization before any profiles or Slack manifests are created, asks for timezone/projects/Slack member ID, creates selected profiles, generates Slack manifests, verifies bot identity and membership, and asks the owner to restart the gateway. It then checks conversational replies. It does not run a card-based build demo or claim Herdr handoffs were tested.
 
 Ops reports through the main assistant's configured system-channel route. If the main agent has no Slack login, setup reports delivery as unverified and leaves existing delivery settings alone. Configuration is not destination confirmation. Use `status` to see the next setup action, and complete `canon/INTERVIEW.md` with the assistant.
 
 An interrupted installation or missing recorded profile requires recovery. Setup must not silently reduce the selected team or claim success. Ordinary resume does not reopen role selection or add profiles.
+
+### Customize the team before installation
+
+At the first setup prompt, press Enter for the default team, or type `customize` and supply a reviewed JSON file. The smaller built-in subset shortcut still accepts `cto,engineer` (and includes Ops). For a precise subset, display renames or custom purposes, save a file such as `~/creator-team.json`:
+
+```json
+{
+  "schema": 1,
+  "roles": [
+    {"key": "creative-director", "title": "Studio Lead"},
+    {"key": "engineer", "title": "Builder"},
+    {
+      "key": "researcher",
+      "title": "Researcher",
+      "purpose": "Draft summaries of public sources for the owner to review.",
+      "permissions": "draft-only",
+      "tools": ["web"]
+    }
+  ]
+}
+```
+
+Or preview/install directly:
+
+```bash
+./hbt install creator --team "$HOME/creator-team.json" --no-memory --dry-run
+./hbt install creator --team "$HOME/creator-team.json" --no-memory
+./hbt setup creator
+```
+
+- The list is the exact team, including Ops only if explicitly listed. Built-in keys are `creative-director`, `cto`, `engineer`, `ops`. The main assistant remains untouched.
+- `key` is the stable profile ID, not a display name. Built-in entries accept only `key` and `title`: their canonical SOUL, responsibilities, channels, folders and tool defaults stay unchanged. A display rename is **not** a new custom responsibility.
+- A new key creates a genuine owner-purpose draft role with a generated SOUL, `team/<key>` workspace folder and `#team-<key>` Slack channel. Custom roles require explicit `permissions: "draft-only"` and `tools: []` (no tools) or `["web"]` (public web research). Manual approvals, explicit native platform tool selections, disabled automatic memory writes and `no_mcp` are configured. No terminal, file, browser, delegation, scheduling or MCP capability is selected; no extra stock skills are selected. They produce drafts in conversation, not project files.
+- Custom roles are intentionally conservative. Purpose text cannot grant permissions. Broader custom permissions, automatic peer routing and clones of built-in roles are not supported. Hermes can warn that a `no_mcp`-only selection has no valid toolsets; native resolution is intentionally zero tools. Existing host plugins or owner overrides are outside this template's permission guarantee.
+- Same-responsibility additional draft instances require deliberately adding separate entries with unique IDs and display names, each with explicit purpose/permissions/tools. Credentials, private skills, histories and memory are never cloned. Selecting a new role does not connect any account.
+- The validated team is saved in the installation record. Resume/update/connect/check/uninstall use that record, not a later-edited or missing input file. Changing an installed roster or role purpose is **not** supported by editing the JSON or rerunning install. Stop for a separately reviewed migration; do not delete records or reinstall over profiles.
+- The optional four-pane **development preset** remains EA top-left, CTO top-right, engineer1 bottom-left and engineer2 bottom-right. Generic teams need not use it. It neither installs additional roles nor changes the customized roster.
+
+### Projects paths and existing-install correction
+
+Projects input must be an absolute path or `~/folder`; Enter accepts `~/projects`. The folder need not exist. Paths with spaces work. Relative paths, placeholders such as `not setup yet`, shell expressions, parent traversal, symlinks and non-directory components are rejected before installer writes. Working folders and role rules are **not filesystem isolation**: local tools run with the operating-system account's permissions, including access to any credentials that account can read.
+
+If setup already created profiles and is waiting at the first Slack-app step, stop it with Ctrl+C. Use the updated package's narrow correction command, not install/uninstall:
+
+```bash
+./hbt configure creator --projects "$HOME/projects" --dry-run
+./hbt configure creator --projects "$HOME/projects"
+./hbt status creator
+./hbt setup creator
+```
+
+This changes the recorded default and unchanged generated CTO/Engineer instructions, creates the new folder if needed, and leaves every existing project folder/file in place. A mistakenly created `Downloads/.../not setup yet` directory is **not** moved or deleted. Profiles and `terminal.cwd` stay in their business-workspace folders; the projects path is the default for future projects, not a profile migration.
+
+Optional, **before creating a built-in role's Slack app**, change its display name without changing its stable ID:
+
+```bash
+./hbt configure creator --rename 'creative-director=Studio Lead' --dry-run
+./hbt configure creator --rename 'creative-director=Studio Lead'
+```
+
+The command updates only the team record, tracked generated roster/instructions and local Slack manifest display fields. It does not change canonical SOUL responsibilities, profile IDs, credentials, sessions, skills, schedules, channels or external Slack apps. Installed custom-role names/purposes are frozen in this minimal implementation. A saved Slack token or bot identity blocks a rename; if an app was created externally but no token was saved, stop and reconcile it yourself before using this command. No remote rename is performed.
+
+Correction takes verified private backups under `business-templates/creator/backups/configure-*`, refuses owner-edited/untracked instructions or changed manifest names, checks for concurrent changes, reads back applied bytes and is a no-op on repeat. Run it with affected sessions stopped. Ordinary write failures restore still-owned changed bytes; a hard kill/power loss can leave a partial correction requiring reconciliation with the printed archive. Do not overwrite later owner edits, mark a record complete, or delete recovery records. Existing roster additions/removals require a separate migration, not this command.
 
 ### Runtime discovery
 

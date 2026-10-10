@@ -19,7 +19,9 @@ Legacy update preflights ownership and active claims before changes. It archives
 
 Historical boards and dispatcher settings are preserved, including during uninstall. Retiring this template does not grant authority to disable other workflows or erase historical tasks. Minimal old memory-policy validation and lock/archive handling remain only for safe legacy preservation, not to run a reviewer.
 
-The existing Ops profile remains the script host and is still included by role selection. Removing or relocating that host is not part of this cleanup. Without OpenViking, no watchdog job is created.
+The existing Ops profile remains the script host. It is included in the default team and legacy subset shortcut; a new explicit team JSON can omit it. Removing or relocating an installed host is not supported by the customization command. Without Ops or OpenViking, no watchdog job is created.
+
+Fresh setup offers default versus customized teams before profile/manifest creation. Explicit team JSON supports subsets, display aliases separate from stable IDs, and new purpose-defined draft roles with zero tools or public web tools only. It never clones credentials. Existing-install correction is deliberately narrower: projects default and pre-Slack built-in display aliases, with provenance checks/backups and no moves/deletions. See README for limits and exact commands.
 
 ## Verification and remaining limits
 
