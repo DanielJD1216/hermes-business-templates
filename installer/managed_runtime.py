@@ -2,6 +2,8 @@
 
 Exit 99 means the selected launcher is not a recognized managed source install.
 """
+from __future__ import annotations
+
 from pathlib import Path
 import os
 import shlex
@@ -37,6 +39,28 @@ def main() -> int:
     source = source_for(Path(sys.argv[1]))
     if source is None:
         return 99
+    # Native discovery imports also require modern Python. Read the managed
+    # launcher's interpreter only; never execute its bootstrap/repair payload.
+    if sys.version_info < (3, 10):
+        try:
+            text = (source / '.hermes/bin/hermes').read_text()
+            words = shlex.split(text, comments=True)
+            if (len(words) < 5 or words[0] != 'exec'
+                    or words[2:4] != ['-I', '-c']
+                    or not Path(words[1]).is_absolute()
+                    or not Path(words[1]).is_file()):
+                raise ValueError('unrecognized managed interpreter wrapper')
+            python = words[1]
+            probe = subprocess.run([python, '-I', '-c',
+                                    'import sys; sys.exit(sys.version_info < (3, 10))'],
+                                   capture_output=True, timeout=15)
+            if probe.returncode:
+                raise ValueError('managed interpreter requires Python 3.10 or newer')
+            os.execve(python, [python, '-I', str(Path(__file__).resolve()), *sys.argv[1:]],
+                      {**os.environ, 'PYTHONDONTWRITEBYTECODE': '1'})
+        except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
+            print(f'hbt: cannot resolve modern managed Python: {exc}. No bootstrap was run.', file=sys.stderr)
+            return 1
     sys.dont_write_bytecode = True
     sys.path.insert(0, str(source))
     try:
