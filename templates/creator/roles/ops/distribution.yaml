@@ -1,6 +1,6 @@
 name: ops
 version: 0.5.0
-description: "Creator template: Ops, runs scheduled jobs"
+description: "Creator template: Ops, optional script-only memory watchdog host"
 hermes_requires: ">=0.21.0"
 author: "DOO MADE"
 license: "MIT"

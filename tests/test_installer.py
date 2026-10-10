@@ -96,10 +96,10 @@ class TemplateShape(unittest.TestCase):
         self.assertEqual(by["cto"].peers, ["engineer", "creative-director"])
         self.assertEqual(by["engineer"].peers, ["cto"])
         self.assertEqual(by["creative-director"].peers, ["cto"])  # v0.3: content hands build work to CTO
-        self.assertTrue(by["engineer"].takes_cards)
+        self.assertFalse(by["engineer"].takes_cards)
         self.assertEqual([r.key for r in self.tpl.roles if r.builds], ["engineer"])
-        self.assertIn("kanban", by["cto"].slack_toolsets)
-        self.assertEqual(len(list(TPL.glob("roles/creative-director/skills/*/SKILL.md"))), 24)
+        self.assertNotIn("kanban", by["cto"].slack_toolsets)
+        self.assertEqual(list(TPL.glob("roles/creative-director/skills/*/SKILL.md")), [])
         channels = [c for r in self.tpl.roles for c in r.channels]
         self.assertEqual(len(channels), len(set(channels)), "two bots answering in one channel would double-reply")
 
@@ -210,8 +210,10 @@ class DriftCheck(unittest.TestCase):
     def test_update_adds_jobs_the_template_gained(self):
         rec = {"jobs": [{"key": "morning-approvals"}, {"key": "nightly-review"}, {"key": "update-check"},
                         {"key": "comment-pull"}, {"key": "member-questions"}], "memory": {"enabled": False}}
-        self.assertEqual([j["key"] for j in hbt.new_jobs(self.tpl, rec)], ["drift-check"])  # no memory watchdog
-        rec["jobs"].append({"key": "drift-check"})
+        self.assertEqual(hbt.new_jobs(self.tpl, rec), [])  # retired jobs stay retired
+        rec["memory"]["enabled"] = True
+        self.assertEqual([j["key"] for j in hbt.new_jobs(self.tpl, rec)], ["memory-watchdog"])
+        rec["jobs"].append({"key": "memory-watchdog"})
         self.assertEqual(hbt.new_jobs(self.tpl, rec), [])
 
     def test_bots_cannot_run_each_others_commands(self):
@@ -241,14 +243,13 @@ class DriftCheck(unittest.TestCase):
 
     def test_drifted_copies_and_missing_sign_ins_are_found(self):
         (self.home / "profiles" / "cto" / "memories" / "USER.md").write_text("old positioning")
-        skill = next((self.home / "profiles" / "creative-director" / "skills").rglob("SKILL.md"))
-        skill.write_text(skill.read_text() + "\nlocal edit")
+
         (self.home / "profiles" / "cto" / "config.yaml").write_text(hbt.yaml.safe_dump(
             {"slack": {"allow_bots": "mentions", "strict_mention": True},
              "mcp_servers": {"vidiq": {"auth": "oauth"}, "malloy": {"auth": "oauth", "enabled": False}}}))
         gaps = "\n".join(self.gaps())
         self.assertNotIn("USER.md", gaps)
-        self.assertIn("creative-director: 1 playbook(s) differ", gaps)
+
         self.assertIn("cto: vidiq is on but not signed in", gaps)
         self.assertNotIn("malloy", gaps)  # turned off, so not a gap
 
@@ -283,15 +284,16 @@ class DriftCheck(unittest.TestCase):
         self.assertNotIn("2019-05-05", gaps)  # replaced decisions are history, not deadlines
 
     def test_quiet_mode_posts_once_per_change(self):
-        skill = next((self.home / "profiles" / "ops" / "skills").rglob("SKILL.md"))
-        original = skill.read_bytes()
-        skill.write_bytes(original + b"\nlocal edit")
+        jobs = self.home / "profiles/ops/cron/jobs.json"
+        jobs.parent.mkdir(parents=True)
+        jobs.write_text(hbt.json.dumps({"jobs": [{"id": "abc123def456", "last_status": "error"}]}))
+        self.rec["jobs"] = [{"key": "memory-watchdog", "id": "abc123def456", "profile": "ops"}]
         out = self.command(quiet=True)
         self.assertEqual(len(out), 1)
         self.assertIn("1 gap(s)", out[0])
-        self.assertIn("ops: 1 playbook(s) differ", out[0])
+        self.assertIn("ops: scheduled job memory-watchdog last run: error", out[0])
         self.assertEqual(self.command(quiet=True), [])
-        skill.write_bytes(original)
+        jobs.write_text(hbt.json.dumps({"jobs": [{"id": "abc123def456", "last_status": "ok"}]}))
         self.assertEqual(self.command(quiet=True), [])
         self.assertEqual(self.gaps(), [])
         self.assertEqual(hbt.json.loads((hbt.record_dir("creator") / "check-state.json").read_bytes()), {})
@@ -306,45 +308,6 @@ class DriftCheck(unittest.TestCase):
         self.assertEqual(self.gaps(), [])
         self.assertEqual(state.read_bytes(), b"{}\n")
 
-    def review_fixture(self):
-        policy = hbt.memory_review_policy(self.tpl, self.rec, "add-only")
-        policy["job"] = {"id": "0123456789ab"}
-        self.rec["memory_review"] = policy
-        jobs = self.home / "profiles" / "ops" / "cron" / "jobs.json"
-        jobs.parent.mkdir(parents=True)
-        job = {"id": "0123456789ab", "deliver": "local", "script": "hbt_memory_review.py", "enabled": True}
-        jobs.write_text(hbt.json.dumps({"jobs": [job]}))
-        return policy, jobs, job
-
-    def test_memory_review_missing_and_conflicting_jobs_remain_gaps(self):
-        _, jobs, job = self.review_fixture()
-        self.assertEqual(self.gaps(), [])
-        jobs.unlink()
-        self.assertEqual(len(self.gaps()), 1)
-        self.assertIn("Memory review job is missing", self.gaps()[0])
-        job["deliver"] = "slack:synthetic"
-        jobs.write_text(hbt.json.dumps({"jobs": [job]}))
-        self.assertEqual(len(self.gaps()), 1)
-        self.assertIn("Memory review job conflicts with local-only ownership", self.gaps()[0])
-
-    def test_memory_review_unfinished_and_invalid_recovery_remain_gaps(self):
-        policy, _, _ = self.review_fixture()
-        state = Path(policy["state_path"])
-        state.parent.mkdir(parents=True, exist_ok=True)
-        state.write_text(hbt.json.dumps({"receipts": {"synthetic": {"status": "prepared"}},
-                                         "attempts": {"synthetic": {"count": 3}}}))
-        self.assertEqual(len(self.gaps()), 1)
-        self.assertIn("Memory review recovery: unfinished=1; attempt-limited=1", self.gaps()[0])
-        state.write_text("not JSON")
-        self.assertEqual(self.gaps(), ["Memory review recovery state is unreadable or invalid; "
-                                       "keep drafts pending and reconcile it locally."])
-
-    def test_invalid_memory_review_policy_still_refuses(self):
-        policy, _, _ = self.review_fixture()
-        policy["mode"] = "invalid"
-        for check in (self.gaps, self.command, lambda: self.command(quiet=True)):
-            with self.assertRaisesRegex(SystemExit, "Memory review policy is invalid"):
-                check()
 
 
 class Workspace(unittest.TestCase):
@@ -362,14 +325,16 @@ class Workspace(unittest.TestCase):
             second = hbt.build_workspace(tpl, tpl.roles, ws, {}, dry=False)
             self.assertEqual((ws / "canon" / "business.md").read_text(), "OWNER EDIT")
             self.assertEqual((ws / "media" / "video" / "topic-queue.md").read_text(), "OWNER QUEUE")
-            self.assertTrue(all(a.startswith("update") for a in second), second)
+            self.assertEqual((ws / "media" / "AGENTS.md").read_text(), "stale")
+            self.assertTrue(all(a.startswith("retain owner/untracked") for a in second), second)
             self.assertGreater(len(first), len(second))
 
     def test_role_agents_lists_checks_and_roster(self):
         tpl = hbt.load_template("creator")
         cd = next(r for r in tpl.roles if r.key == "creative-director")
         text = hbt.render_role_agents(tpl, cd, tpl.roles, Path("/ws"), {"media-video": "C0ABCDEFG"})
-        self.assertIn("topic queue was updated in the last 35 days", text)
+        self.assertNotIn("Nightly checks", text)
+        self.assertNotIn("Kanban board", text)
         self.assertIn("`engineer`", text)
         self.assertIn("C0ABCDEFG", text)
 
@@ -593,12 +558,11 @@ class GuidedSetup(unittest.TestCase):
                 rec["setup"]["restarted"] = "now"
             elif step == "test":
                 rec["setup"].setdefault("tested", []).append(role.key)
-            elif step == "first-card":
-                rec["setup"]["first_card"] = "t_1"
+
         self.assertEqual(seen, [
             "connect:creative-director", "channels:creative-director", "connect:cto", "channels:cto",
             "connect:engineer", "channels:engineer", "system-channel", "restart",
-            "test:creative-director", "test:cto", "test:engineer", "first-card:engineer", "done"])
+            "test:creative-director", "test:cto", "test:engineer", "done"])
 
     def test_incomplete_install_refuses_setup_and_status_without_writes(self):
         import copy

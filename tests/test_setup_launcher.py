@@ -247,7 +247,7 @@ class Launcher(unittest.TestCase):
         code, output = self.invoke()
         self.assertEqual(code, 0, output)
         self.assertIn("No conversational bots", output)
-        self.assertIn("demonstration was not run", output)
+        self.assertIn("Herdr handoff was not tested", output)
         self.assertNotIn("Select roles", output)
 
 

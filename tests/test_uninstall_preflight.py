@@ -69,7 +69,7 @@ class UninstallPreflight(unittest.TestCase):
             self.refusal()
 
     def test_covered_custom_files_have_exact_private_archives(self):
-        names = ["skills/custom/SKILL.md", "memories/USER.md", "pending/memory/01234567.json", "backups/config/config.yaml.good.20260101-010101", "logs/agent.log", "logs/errors.log.1"]
+        names = ["skills/custom/SKILL.md", "memories/USER.md", "pending/memory/01234567.json", "backups/config/config.yaml.good.20260101-010101", "logs/agent.log", "logs/errors.log.1", "auth.lock"]
         for relative in names:
             self.put("ops", relative, "synthetic current bytes: " + relative)
         before = self.snapshot()
@@ -83,7 +83,7 @@ class UninstallPreflight(unittest.TestCase):
         self.assertEqual(archive.stat().st_mode & 0o777, 0o700)
 
     def test_same_directory_sentinels_refuse(self):
-        for relative in ["logs/owner-note", "backups/config/owner-note", "scripts/owner.py", "pending/skills/01234567.json"]:
+        for relative in ["logs/owner-note", "backups/config/owner-note", "scripts/owner.py", "pending/skills/01234567.json", "auth.json", "auth.lock.backup"]:
             p = self.put("ops", relative, "synthetic")
             self.refusal()
             p.unlink()

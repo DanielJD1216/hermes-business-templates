@@ -1,17 +1,12 @@
-# Business
+# Business facts
 
-Fill this in with the canon interview (`INTERVIEW.md`). Every role reads this file.
+Optional worksheet. All values are unset. Complete only what the current task needs. Keep confidential facts in an authorized private workspace; do not redistribute a completed copy. Blank fields are not permission to invent facts.
 
-- Channel or brand name:
-- What the channel is about (the lane), in one sentence:
-- Who it is for:
-- What you sell (courses, community, sponsorships, services):
-- Topics you never cover:
-
-## Sponsor categories to decline automatically
-- Gambling
-- MLMs
-- Get-rich-quick offers
-- Unverified health claims
-- Predatory lending
-- Crypto with no real use
+- Business / brand name:
+- What we do:
+- Who we serve:
+- Customer problems we solve:
+- Products / services:
+- Evidence and source documents:
+- Topics / categories we do not handle:
+- Sharing restrictions:

@@ -2,6 +2,10 @@
 
 ## 0.5.0 (unreleased candidate)
 
+- Confirmed routine reduction: remove morning approvals, nightly review and memory-draft review from new installations. Only the optional script-only memory watchdog remains. Prevent the separate memory-review creation path from restoring even a paused job; reject explicit enable flags. Existing live jobs and historical recovery code remain unchanged.
+- Scope reduction in progress: remove all 24 Creator playbooks and the comment-pull, member-question, template-update and drift-check job definitions. External tools/MCP connections belong in a separate publisher-supplied reference sheet for customer-selected installation. Keep the other four routines unchanged pending discussion. Refuse legacy updates with recorded retired assets before mutation while the migration is unresolved; this intermediate candidate is not a release or a completed Herdr migration.
+- Resolve recognized managed Hermes source installs through existing native package-manager state without invoking bootstrap. Use native YAML when PyYAML is absent, including the memory-review validation path. Preserve explicit Python overrides and legacy discovery.
+- Preserve exact native `auth.lock` bytes in private uninstall archives. Credential stores and unknown sibling files still refuse uninstall; no broad deletion exemption.
 - Intent-based routing: finish authorized work in the originating conversation by default, including simple coded projects. Specialist/Herdr/Kanban orchestration is owner-selected; retain one coordinator, one implementation owner and required independent review. No Herdr installation or transport automation.
 - Make the setup Kanban build demonstration default-No and resumable. A skipped demonstration is not a passed test. Preserve existing completed cards, owner-review gates, boards, dispatcher settings and Ops jobs; this is not a boardless installation or a live migration.
 

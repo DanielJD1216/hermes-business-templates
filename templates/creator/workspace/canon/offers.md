@@ -1,28 +1,12 @@
-# Offers
+# Current offers
 
-What you sell right now. Every role reads this before offer, pricing, launch or sales work. The Creative Director keeps it current: when you change an offer, it drafts the update and you approve it.
+Optional worksheet. All values are unset. Complete only what the current task needs. Keep confidential facts in an authorized private workspace; do not redistribute a completed copy. Blank fields are not permission to invent facts.
 
-## Current offers
-
-Copy this block once per offer.
-
-### Offer name
-- Who it is for, and who it is not for:
-- The promise, in your words:
-- What they get:
-- Features and benefits, one pair per line (what it does, and what is in it for them):
-- Price, and any deadline:
-- How people buy (link or process):
-- Status (idea, testing, live, paused), with the date:
-- Proof so far (results, testimonials, numbers with sources):
-
-## Dates coming up
-
-- 
-
-## Replaced decisions
-
-When an offer changes, move the old decision here with its date, so nobody reuses it.
-
-| Date | Old | New |
-|---|---|---|
+- Offer name:
+- Who it is for:
+- Deliverables and exclusions:
+- Approved price and currency, if applicable:
+- Approved terms / deadlines, if applicable:
+- Supporting evidence:
+- Owner of this information:
+- Last verified:

@@ -1,8 +1,9 @@
-# Voice
+# Voice preferences
 
-- How you talk (three adjectives):
-- Words and phrases you use:
-- Words and phrases you never use:
-- Reading level:
-- Punctuation rules (for example: no em dashes):
-- Two short samples of your real writing (paste below):
+Optional worksheet. All values are unset. Complete only what the current task needs. Keep confidential facts in an authorized private workspace; do not redistribute a completed copy. Blank fields are not permission to invent facts.
+
+- Preferred tone:
+- Audience and reading level:
+- Writing samples approved for this use:
+- Words or habits to avoid:
+- Platform-specific differences:

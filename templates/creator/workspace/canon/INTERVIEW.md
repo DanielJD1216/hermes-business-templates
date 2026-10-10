@@ -1,14 +1,11 @@
-# Canon interview
+# Short setup conversation
 
-Ask the owner these questions one at a time, then write the answers into the matching file in this folder. Show the owner the finished files before saving.
+Do not require the owner to finish every worksheet before doing useful work. Start with the immediate task and ask one necessary question at a time.
 
-1. What is the channel or brand called, and what is it about in one sentence? (business.md)
-2. Who is it for, and what do they want? (business.md)
-3. What do you sell, who is each offer for, and what are the prices and deadlines? (offers.md)
-4. Which topics and sponsor categories do you refuse? (business.md)
-5. Describe how you talk in three words. Paste two samples of your writing. (voice.md)
-6. Which words and punctuation do you never use (for example, em dashes)? (voice.md)
-7. What are your colours, fonts and thumbnail rules? (brand.md)
-8. What is your standing outro or call to action? (standing.md)
-9. How do you disclose sponsors, and what may sponsors review? (standing.md)
-10. Where do you post, and what are the rules on each platform? (standing.md)
+1. Ask how the owner wants to be addressed and their timezone only if relevant. Offer to save these in private USER.md.
+2. Ask what the business does and who it serves. Draft business.md from the answer.
+3. For offer work, confirm current deliverables, price and source rather than guessing; use offers.md.
+4. For writing or visuals, ask for an approved sample or reference only when needed; use voice.md or brand.md.
+5. Show proposed personal/business facts and obtain permission before saving them. Do not treat a preference as permission to publish, spend or deploy.
+
+Skip irrelevant questions. Keep sensitive context out of shared channels. Use a diff to merge existing facts instead of replacing completed files.

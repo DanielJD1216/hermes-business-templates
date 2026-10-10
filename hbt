@@ -86,6 +86,18 @@ find_python() {
   return 1
 }
 
+# Modern Hermes keeps dependencies in PM generations, not beside its launcher.
+# Use read-only native state discovery; explicit Python overrides retain precedence.
+if [[ ! "${HBT_PYTHON+x}" && -n "$hb" ]] && command -v python3 >/dev/null 2>&1; then
+  if PYTHONDONTWRITEBYTECODE=1 python3 -c 'import runpy,sys; sys.argv=sys.argv[1:]; runpy.run_path(sys.argv[0],run_name="__main__")' \
+      "$here/installer/managed_runtime.py" "$hb" "$here/installer/hbt.py" "$@"; then
+    exit 0
+  else
+    code=$?
+    [[ "$code" == 99 ]] || exit "$code"
+  fi
+fi
+
 if ! python="$(find_python)"; then
   if [[ "${HBT_PYTHON+x}" ]]; then
     prerequisite_help 'HBT_PYTHON is not usable or cannot import PyYAML and ruamel.yaml. Correct the explicit override; no fallback was used.'

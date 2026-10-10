@@ -86,7 +86,7 @@ class RoleSelection(unittest.TestCase):
                "workspace": str(self.home / "workspace"), "projects": str(self.root / "projects"),
                "memory": {"enabled": False}, "channels": {},
                "bots": {r.key: f"U0000000{i}" for i, r in enumerate(self.tpl.roles)},
-               "jobs": [{"id": "000000000001", "profile": "ops", "key": "fixture"}],
+               "jobs": [{"id": "000000000001", "profile": "ops", "key": "memory-watchdog"}],
                "setup": {"channels_ok": list(bots), "tested": list(bots), "restarted": "fixture", "system_channel_ok": "skipped"}}
         if not legacy:
             rec["shared_skills"] = {"schema": 1, "root": str(hbt.record_dir("creator") / "skills"),
@@ -119,10 +119,8 @@ class RoleSelection(unittest.TestCase):
                     self.assertEqual(before, hbt.package_hashes(self.root))
                     self.assertEqual(rec, hbt.load_record("creator"))
                     text = "\n".join(c.args[0] for c in say.call_args_list)
-                    if not hbt.setup_build_pair(self.tpl, rec):
-                        self.assertIn("demonstration was not run", text)
-                        self.assertNotIn("first_card", rec["setup"])
-                        self.assertNotIn("demonstration passed", text)
+                    self.assertNotIn("demonstration passed", text)
+                    self.assertIn("Herdr", text)
                     if wanted == "ops":
                         self.assertIn("No conversational bots", text)
                     self.assertIn("Ops job delivery is unverified", text)
@@ -190,78 +188,21 @@ class RoleSelection(unittest.TestCase):
         self.assertEqual(before, hbt.package_hashes(self.root))
         self.assertEqual(hbt.load_record("creator")["profiles"], ["cto"])
 
-    def test_demo_default_no_is_durable_and_never_claims_a_pass(self):
-        for answer in ("", "n", "no", "unexpected"):
-            with self.subTest(answer=answer):
-                rec = self.record("cto,engineer")
-                rec["setup"].pop("first_card")
-                hbt.save_record("creator", rec)
-                before = hbt.package_hashes(self.root)
-                with patch("builtins.input", return_value=answer), \
-                     patch.object(hbt, "_wait", side_effect=AssertionError("demo started")), \
-                     patch.object(hbt.Runner, "hermes_cmd", side_effect=AssertionError("native call")), \
-                     patch.object(hbt, "say") as say:
-                    self.assertEqual(hbt.cmd_setup(self.args), 0)
-                current = hbt.load_record("creator")
-                self.assertIs(current["setup"]["build_demo"], False)
-                self.assertNotIn("first_card", current["setup"])
-                text = "\n".join(c.args[0] for c in say.call_args_list)
-                self.assertIn("demonstration was not run", text)
-                self.assertNotIn("demonstration passed", text)
-                after = hbt.package_hashes(self.root)
-                record_path = str((hbt.record_dir("creator") / "record.json").relative_to(self.root))
-                self.assertEqual({p for p in before.keys() | after.keys() if before.get(p) != after.get(p)}, {record_path})
-                with patch("builtins.input", side_effect=AssertionError("repeat prompt")), patch.object(hbt, "say"):
-                    self.assertEqual(hbt.cmd_setup(self.args), 0)
-                self.assertEqual(after, hbt.package_hashes(self.root))
-
-    def test_demo_opt_in_stays_pending_and_does_not_reprompt(self):
-        for answer in ("y", "YES"):
-            with self.subTest(answer=answer):
-                rec = self.record("cto,engineer")
-                rec["setup"].pop("first_card")
-                hbt.save_record("creator", rec)
-                with patch("builtins.input", return_value=answer) as prompt, \
-                     patch.object(hbt, "_wait") as wait, patch.object(hbt, "_finished_card", return_value=None), \
-                     patch("time.sleep"), patch.object(hbt, "say"):
-                    self.assertEqual(hbt.cmd_setup(self.args), 1)
-                    prompt.assert_called_once()
-                    self.assertIn("Use CTO/Engineer Kanban orchestration", wait.call_args.args[0])
-                current = hbt.load_record("creator")
-                self.assertIs(current["setup"]["build_demo"], True)
-                self.assertNotIn("first_card", current["setup"])
-                with patch("builtins.input", side_effect=AssertionError("repeat prompt")), \
-                     patch.object(hbt, "_wait"), patch.object(hbt, "_finished_card", return_value=None), \
-                     patch("time.sleep"), patch.object(hbt, "say"):
-                    self.assertEqual(hbt.cmd_setup(self.args), 1)
-                self.assertEqual(current, hbt.load_record("creator"))
-
-    def test_demo_interrupted_choice_has_no_writes(self):
-        for error in (EOFError, KeyboardInterrupt):
+    def test_retired_demo_choices_never_start_a_card_or_claim_herdr_success(self):
+        for choice in (None, False, True):
             rec = self.record("cto,engineer")
             rec["setup"].pop("first_card")
+            rec["setup"]["build_demo"] = choice
             hbt.save_record("creator", rec)
             before = hbt.package_hashes(self.root)
-            with patch("builtins.input", side_effect=error), patch.object(hbt, "say"):
-                self.assertEqual(hbt.main(["setup", "creator"]), 1)
-            self.assertEqual(before, hbt.package_hashes(self.root))
-
-    def test_pair_requires_installed_lead_relationship_and_prior_checks(self):
-        rec = self.record("engineer")
-        self.assertEqual(hbt.next_setup_step(self.tpl, rec), ("done", None))
-        self.assertIsNone(hbt.setup_build_pair(self.tpl, rec))
-        rec = self.record("cto,engineer")
-        rec["setup"].pop("first_card")
-        self.assertEqual(hbt.next_setup_step(self.tpl, rec)[0], "first-card")
-        rec["setup"]["tested"].remove("cto")
-        self.assertEqual(hbt.next_setup_step(self.tpl, rec)[0], "test")
-        rec["setup"]["tested"].append("cto")
-        tpl = copy.deepcopy(self.tpl)
-        next(r for r in tpl.roles if r.key == "cto").slack_toolsets = []
-        self.assertIsNone(hbt.setup_build_pair(tpl, rec))
-        tpl = copy.deepcopy(self.tpl)
-        next(r for r in tpl.roles if r.key == "cto").peers = []
-        self.assertIsNone(hbt.setup_build_pair(tpl, rec))
+            with patch("builtins.input", side_effect=AssertionError("retired demo prompt")), \
+                 patch.object(hbt.Runner, "hermes_cmd", side_effect=AssertionError("native call")), \
+                 patch.object(hbt, "say") as say:
+                self.assertEqual(hbt.cmd_setup(self.args), 0)
+            self.assertEqual(hbt.package_hashes(self.root), before)
+            text = "\n".join(c.args[0] for c in say.call_args_list)
+            self.assertIn("Herdr", text)
+            self.assertNotIn("demonstration passed", text)
 
     def test_interrupted_and_deleted_selected_roles_fail_closed(self):
         hbt.save_record("creator", {})
@@ -324,7 +265,7 @@ class RoleSelection(unittest.TestCase):
                 self.assertEqual(f"| {role.title} |" in text, role.key in keys)
                 if role.key not in keys:
                     self.assertNotIn(rec["bots"][role.key], text)
-            self.assertIn("Absent roles cannot receive mentions or cards", text)
+            self.assertIn("Absent roles cannot receive", text)
 
     def test_connect_requests_only_installed_peer_channels(self):
         for wanted in ("cto", "engineer", "creative-director", "cto,engineer"):
@@ -378,7 +319,7 @@ class RoleSelection(unittest.TestCase):
                     # No credential reads/network or native profile/bootstrap code.
                     with patch.object(hbt, "preflight", return_value={"hermes_version": "synthetic", "docker": False}), \
                          patch.object(hbt, "native_skills", return_value=native), \
-                         patch.object(hbt, "seed_shared_manual"), patch.object(hbt, "sync_memory_review"), \
+                         patch.object(hbt, "seed_shared_manual"), \
                          patch.object(hbt.Runner, "hermes_cmd", side_effect=run), \
                          patch.object(hbt, "slack_api", side_effect=AssertionError("Slack")), patch.object(hbt, "say"):
                         args = hbt.build_parser().parse_args(["install", "creator", "--yes", "--no-memory",
@@ -401,7 +342,10 @@ class RoleSelection(unittest.TestCase):
                                          set(rec["shared_skills"]["profiles"][role.key]["managed"]))
                     created = [Path(args[2]).name for args, _ in calls if args[:2] == ("profile", "install")]
                     self.assertEqual(created, keys)
-                    self.assertFalse(hbt.yaml.safe_load((home / "config.yaml").read_text())["kanban"]["review_dispatch"])
+                    cfg = hbt.yaml.safe_load((home / "config.yaml").read_text()) if (home / "config.yaml").exists() else {}
+                    self.assertNotIn("kanban", cfg or {})
+                    self.assertFalse(any(args[0] == "kanban" for args, _ in calls))
+                    self.assertEqual(rec["jobs"], [])  # no OpenViking, no watchdog
                     self.assertTrue(all(j["profile"] == "ops" for j in rec["jobs"]))
 
 
