@@ -13,6 +13,18 @@ Status: local unreleased candidate. Reduced lifecycle tested on a disposable Ubu
 
 ## Implemented lifecycle
 
+Customer setup now starts from the root README's private-agent message and the
+repo-scoped `skills/customer-onboarding/SKILL.md`, not a terminal checklist. It
+preserves the existing main identity/login, reconstructs only accessible context
+with separate extraction/consolidation prompts, records private review/approval
+receipts, and gates the existing hbt backend behind exact-output approval. Personal
+and business can coexist in owner-private review, but adopted stores/audiences must
+be separated. No runtime skill is auto-installed. The reusable development
+`project-onboarding` skill remains separate. Checkpoint tests exercise structural
+receipt/review gates, not model truthfulness or a complete customer conversation.
+Even an empty existing install record blocks fresh installation; missing profiles
+or tombstones are recovery signals, not authority to recreate deleted roles.
+
 Fresh installation creates no Kanban board or dispatcher settings. Setup no longer offers a card demonstration or claims Herdr handoff acceptance. The shipped role instructions contain no card-based workflow. Only the watchdog script remains in the Ops distribution.
 
 Legacy update preflights ownership and active claims before changes. It archives and pauses exact recorded retired jobs, reads their paused state back and retains history. Deleted jobs stay deleted. Retired managed skill roots are detached; pristine legacy local copies can be archived and removed, while modified or unknown sources are preserved and reported. Changes to shipped scripts or SOUL files stop replacement until reconciled.

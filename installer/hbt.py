@@ -1497,7 +1497,7 @@ def cmd_install(a: argparse.Namespace) -> int:
     r = Runner(a.hermes, a.dry_run, a.verbose)
     info = preflight(r)
     rec = load_record(tpl.name)
-    if rec and not a.dry_run:
+    if rec is not None:
         raise SystemExit(f"{tpl.name} is already installed (record: {record_dir(tpl.name)}). "
                          f"Use `hbt setup {tpl.name}` to continue, or `hbt update {tpl.name}`.")
     if getattr(a, "team", None) and a.roles:

@@ -4,6 +4,54 @@ MIT-licensed starting setups for [Hermes Agent](https://hermes-agent.nousresearc
 
 **Creator + Education is an unreleased candidate.** The current reduction removes Kanban-based workflows and all Creator playbooks. Implementation and acceptance evidence must be checked together; historical tests are not proof of this revision. No public release or live rollout is implied.
 
+## Start here: talk to your private agent
+
+Open your **private, tool-capable agent on the computer where Hermes will run**.
+Paste this repository URL and this message:
+
+> Help me set up Hermes Business Templates from
+> https://github.com/DanielJD1216/hermes-business-templates.
+> Explicitly read the root README.md, root AGENTS.md and
+> skills/customer-onboarding/SKILL.md. First check that you can act on my intended
+> host and that this conversation is private. Preserve my existing main assistant
+> and login. Retrieve what you already know, then guide me one missing question or
+> one instruction at a time. Do not install specialist profiles, import memory or
+> connect accounts before we review the context, team and access boundaries.
+
+**A URL alone does not auto-load README or AGENTS.md.** The agent must fetch/read
+those files. If it can only chat in a browser and cannot execute on the intended
+host, it must say so and guide you to a capable private session, not pretend to
+install anything. Hermes is the initial supported agent harness; models/providers
+remain interchangeable through native model selection. You do not need a new model
+subscription or any specialist agent to begin.
+
+Your agent checks only missing prerequisites, including secure remote access when
+needed, preserves your existing main identity, offers an optional reference/org
+chart, and helps reconstruct context from the AI platforms you choose. It uses
+[Prompt 1 for each export](skills/customer-onboarding/references/prompt-1-extraction.md)
+and [Prompt 2 for reviewed consolidation](skills/customer-onboarding/references/prompt-2-consolidation.md).
+Personal **and** business context can belong to your owner-private main assistant;
+subsequent storage, audiences and role access must stay explicitly separated.
+Private does not mean offline: selected providers and tools may process the data.
+Never paste credentials into chat.
+
+After you approve the reviewed context and role boundaries, your agent prepares
+SOUL/AGENTS/USER/context/tools/team drafts and an exact write plan, obtains approval,
+and operates the **existing installer below**. You make decisions and complete
+native logins; the agent handles authorized tool work and JSON, rather than handing
+you a terminal checklist. Slack access is verified per role, not granted to every
+workspace member. Optional Herdr development sessions are a later choice, not the
+initial onboarding interface.
+
+Progress, approvals, immutable exports and evidence live in owner-private storage
+outside this repository. A small [checkpoint helper](skills/customer-onboarding/references/checkpoints.md)
+checks required artifacts, order and hashes across interruptions. It is not a
+security boundary, human-consent authenticator or replacement installer. Deleted
+specialist profiles do **not** prove an old install record, workspace or deletion
+markers are gone. Stale/partial state stops for reviewed recovery, never automatic
+record deletion or forced recreation. No customer Mac repair is implied by this
+candidate's local tests.
+
 ## What the customer gets
 
 - Default Creative Director, CTO and Engineer profiles, or a reviewed custom team selected before setup creates profiles and Slack manifests. Conversational roles have their own Slack apps and folders.
@@ -16,7 +64,7 @@ MIT-licensed starting setups for [Hermes Agent](https://hermes-agent.nousresearc
 
 The customer's existing main assistant stays in place. An optional Executive Assistant SOUL is supplied for a reviewed merge, never automatically installed as another profile or written over the default identity. No new task board, dispatcher configuration, card-based onboarding demo, business digest or automatic memory reviewer is part of this setup.
 
-See [canonical integration and package paths](docs/canonical-integration.md). Fresh workspace instructions explicitly point to the onboarding skill; it is a workspace file, not automatically registered in the default profile's skills list. The installed FILES.md supplies optional, explicit adoption through native `skills.external_dirs`, preserving existing roots/settings and the main SOUL, with exact-source discovery checks. No separate installer is added. USER/canon/index files are seeded only when absent. Generated instructions and helper files update only against recorded unchanged hashes; owner edits and untracked legacy files are preserved and reported for manual merge.
+See [canonical integration and package paths](docs/canonical-integration.md). Fresh workspace instructions explicitly point to the separate project-onboarding skill; it is a workspace file, not automatically registered in the default profile's skills list. The installed FILES.md supplies optional, explicit adoption through native `skills.external_dirs`, preserving existing roots/settings and the main SOUL, with exact-source discovery checks. No separate installer is added. USER/canon/index files are seeded only when absent. Generated instructions and helper files update only against recorded unchanged hashes; owner edits and untracked legacy files are preserved and reported for manual merge.
 
 ### Tools and MCP reference sheet
 
@@ -34,7 +82,11 @@ For an authorized Slack handoff, mention the receiving bot in the originating th
 
 Approval stays in the working conversation. Nothing is published, sent, scheduled, priced or signed without approval for that action. Passing tests does not grant external-action authority. Native command approvals and repository gates remain in force.
 
-## Requirements and setup
+## Backend operator reference: requirements and setup
+
+The customer entrypoint is the private-agent conversation above. The commands and
+JSON examples below are for that agent or an experienced operator **after** the
+onboarding approval gates, not first instructions for a new customer.
 
 - Linux or WSL2 with Hermes installed. Native macOS and ARM64 are not established by x86_64 Linux testing.
 - Customer-controlled model login, selected with native `hermes model`. The installer copies model settings, not private agent histories or skills.
