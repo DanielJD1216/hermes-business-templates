@@ -37,7 +37,7 @@ Model names and personality are owner choices, not acceptance requirements.
 | Slack | Owner/team interface with correct bot identities, minimum allowlists and owner-only administration. Channel messages and thread follow-ups require explicit mentions. | Authorized reply in the exact channel/thread, mention-only behavior and denial of unauthorized access/administration verified with scoped tests. No forced specialists or duplicate bot tokens. |
 | Hermes Desktop | Working owner client connected privately to the intended host/profile. | Client installation, endpoint/profile selection and authenticated owner access observed. Server health alone does not prove client access. |
 | Tailscale/private transport | Private host reachability and minimum access policy. | Reachability from an approved client plus effective ACL/grant policy and service binding/authentication checked. Tailnet membership alone is insufficient. No public Funnel or public listener by default. |
-| Herdr | Available private development-session workspace and a verified preset mapped to the chosen roster. | Supported native installation, private session access and preset/pane mapping observed. A main-only roster may use separate main sessions or idle slots; never create unwanted roles. Do not start paid/model sessions just to prove pane labels. |
+| Herdr and Herdr Web UI | Available private development-session workspace, the `devswha/herdr-web-ui` browser client, and a verified preset mapped to the chosen roster. | Supported native installation, web-client health, actual owner browser access, private authorization and preset/pane mapping observed. Preserve existing sessions. A main-only roster may use separate main sessions or idle slots; never create unwanted roles. Follow the [Web UI checks](herdr-web-ui.md); phone-only features need separate selection and device evidence. Do not start paid/model sessions just to prove pane labels. |
 | Remote recovery | Supported, licensed graphical recovery independent of the normal agent connection. | Verify Parsec host/platform/license suitability, or an explicitly approved equivalent, and actual owner reconnect/recovery. No forced purchase or assumption of universal free hosting. |
 | Capability allocation | A reviewable inventory of skills, plugins, MCP integrations and toolsets, with selected assignments and unresolved acquisition gaps visible. | Record purpose, source/version, platform support, account/cost, license, permissions, install/auth state and responsible profile. Check real availability. Disabled, unavailable and unverified are distinct. Metadata inclusion is not permission to activate or redistribute. |
 
@@ -46,6 +46,32 @@ including semantic-index refresh, require the owner's specific choice of scope,
 cadence, destination and cost. Existing unrelated jobs and boards remain intact.
 The removed business/content playbooks and recurring business digests are not
 requirements of this agent-led guide, even though the legacy backend still ships them.
+
+## Memory, knowledge and file discovery
+
+- **Memory:** interaction-derived preferences, facts and experience. OpenViking
+  handles this, with actual write/recall and scope checks.
+- **Knowledge base:** approved reference documents, manuals, policies and project
+  sources, with provenance, ownership and a known current version. It is not just
+  extracted chat facts or a folder labelled knowledge.
+- **Retrieval:** how the agent finds those sources. A bounded local index such as
+  LEANN plus direct source reads can provide a file-backed knowledge base. OpenViking
+  also supports explicitly added resources; check the installed version's supported
+  resource namespaces and access controls rather than assuming current upstream
+  features are installed.
+
+Prefer existing canonical sources and working retrieval over another database or
+duplicate ingestion pipeline. Keep source files authoritative. If selected resources
+are added to OpenViking, obtain scope/processing/cost approval, exclude credentials
+and unrelated private data, preserve source/version provenance, verify processing
+completion and a source-grounded answer, and check updates/removals stop stale
+retrieval. Folder names and URI prefixes alone do not enforce access control.
+
+The baseline requires canonical sources and verified local discovery; a new
+OpenViking resource corpus is an owner-approved implementation choice, not an
+automatic import of the whole workspace. An empty resources collection does not
+mean there are no knowledge files elsewhere, and memory recall does not prove
+document ingestion. Do not reactivate archived knowledge projects implicitly.
 
 ## Evidence and completion
 
