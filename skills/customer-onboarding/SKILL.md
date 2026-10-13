@@ -19,7 +19,10 @@ a second installer merely because a native command or dependency needs diagnosis
 - [Required finished state and proof](references/baseline.md).
 - [Context, instruction files and private progress](references/context-and-files.md).
 - [Sources, capabilities and legacy boundary](references/sources-and-capabilities.md).
+- [Capability reference sheet](../../capabilities/REFERENCE.md): selection rules
+  first, then only relevant records and their selected source/procedure references.
 - [Herdr Web UI and terminal-access safety](references/herdr-web-ui.md).
+- [Maintenance and recovery](references/maintenance.md).
 - [Mac findings](references/mac-notes.md) when the host or client is a Mac.
 
 These files are the complete required reading set for this playbook. Do not rely
@@ -116,6 +119,9 @@ health are not end-to-end memory, Slack or remote-access acceptance.
 Read back relevant final state. Report verified components, pending/failed checks,
 privacy/access boundaries, approved recurring behavior, recovery instructions and
 the next actor/action. Do not declare completion while a required check is missing.
+Map the maintenance procedures to the actual installation and its independent
+recovery route. Use the optional [private progress template](templates/progress.md)
+when no suitable record already exists; never fill unknown evidence with examples.
 Owner deferral is valid, but leaves the required baseline incomplete. Keep the
 private progress record so another authorized agent can continue safely.
 

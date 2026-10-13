@@ -1,0 +1,340 @@
+{
+  "hermes": {
+    "repository": "https://github.com/NousResearch/hermes-agent",
+    "revision": "53df274b08f2bbbe82bb67bb50c7571952e95809",
+    "tree_url": "https://github.com/NousResearch/hermes-agent/tree/53df274b08f2bbbe82bb67bb50c7571952e95809",
+    "archive_url": "https://github.com/NousResearch/hermes-agent/archive/53df274b08f2bbbe82bb67bb50c7571952e95809.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "eb76c40d712757186e631d309554b889a9fc58976298b81447fb9fd52bd2ed79",
+    "license": "MIT",
+    "license_url": "https://raw.githubusercontent.com/NousResearch/hermes-agent/53df274b08f2bbbe82bb67bb50c7571952e95809/LICENSE",
+    "license_sha256": "821556e6336796450ab852d375117b48a4887e71d255794fd6318d99982a5ab6",
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "higgsfield": {
+    "repository": "https://github.com/higgsfield-ai/skills",
+    "revision": "f83af0bc1d937c8119099a11f8ebbf5e6fb99819",
+    "tree_url": "https://github.com/higgsfield-ai/skills/tree/f83af0bc1d937c8119099a11f8ebbf5e6fb99819",
+    "archive_url": "https://github.com/higgsfield-ai/skills/archive/f83af0bc1d937c8119099a11f8ebbf5e6fb99819.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "aee7d02959522945c22fe3924a767109c95b0baae66c4879d5c7191b0e434eef",
+    "license": "MIT",
+    "license_url": "https://raw.githubusercontent.com/higgsfield-ai/skills/f83af0bc1d937c8119099a11f8ebbf5e6fb99819/LICENSE",
+    "license_sha256": "9da656d6226936542be59478dbf775057dfdeade2629d35e0832108c2b7aecc0",
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "diagram": {
+    "repository": "https://github.com/cathrynlavery/diagram-design",
+    "revision": "178d21b1d47fcc0731fcb7bdd912c27d4dbca6cf",
+    "tree_url": "https://github.com/cathrynlavery/diagram-design/tree/178d21b1d47fcc0731fcb7bdd912c27d4dbca6cf",
+    "archive_url": "https://github.com/cathrynlavery/diagram-design/archive/178d21b1d47fcc0731fcb7bdd912c27d4dbca6cf.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "5e554823e348f931243ce43c5f8c63b8b93549e5a54b2b7794290e47725bc981",
+    "license": "MIT",
+    "license_url": "https://raw.githubusercontent.com/cathrynlavery/diagram-design/178d21b1d47fcc0731fcb7bdd912c27d4dbca6cf/LICENSE",
+    "license_sha256": "bb7e12e91fecef43024111123ff784cec6c485585561d8b552557c0173b3ed29",
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "ponytail": {
+    "repository": "https://github.com/DietrichGebert/ponytail",
+    "revision": "e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156",
+    "tree_url": "https://github.com/DietrichGebert/ponytail/tree/e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156",
+    "archive_url": "https://github.com/DietrichGebert/ponytail/archive/e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "cedced622ce2be6ea92f109cbe039b94fac786261045fdffacb6f10453eb9411",
+    "license": "MIT",
+    "license_url": "https://raw.githubusercontent.com/DietrichGebert/ponytail/e3ba2aa6f1e6f0bc4d69eb09c9f0d0a93af56156/LICENSE",
+    "license_sha256": "fb1bc6909ac3ef82d5c22106e32ef682b0cff66788fa915fb9b53b15c9d2f3ab",
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "video-use": {
+    "repository": "https://github.com/browser-use/video-use",
+    "revision": "43cfc566833548093455c9d4a46bd69913b7e552",
+    "tree_url": "https://github.com/browser-use/video-use/tree/43cfc566833548093455c9d4a46bd69913b7e552",
+    "archive_url": "https://github.com/browser-use/video-use/archive/43cfc566833548093455c9d4a46bd69913b7e552.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "3cc5c310e89db39f3eb6be585b3f91edc4b2af9da73e20dcb894c76dc8063b96",
+    "license": "MIT",
+    "license_url": "https://raw.githubusercontent.com/browser-use/video-use/43cfc566833548093455c9d4a46bd69913b7e552/LICENSE",
+    "license_sha256": "5afa3d97bf1e6f998d587fa101e3fe0d0c416840b7fe77bcd6ae97690a334631",
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "homeassistant": {
+    "repository": "https://github.com/NousResearch/hermes-homeassistant",
+    "revision": "ba30cb0cf86c52bdb5cde98974bc062e97966529",
+    "tree_url": "https://github.com/NousResearch/hermes-homeassistant/tree/ba30cb0cf86c52bdb5cde98974bc062e97966529",
+    "archive_url": "https://github.com/NousResearch/hermes-homeassistant/archive/ba30cb0cf86c52bdb5cde98974bc062e97966529.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "49fd248fa1931a0636a99af4f3836c4f9a7aed635f71386f9e6fd154edaf9c99",
+    "license": "MIT",
+    "license_url": "https://raw.githubusercontent.com/NousResearch/hermes-homeassistant/ba30cb0cf86c52bdb5cde98974bc062e97966529/LICENSE",
+    "license_sha256": "5f79d321c17de8ef6e5f34967dc5b484afebeeefd87180890d9741941f6b815f",
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "openviking": {
+    "repository": "https://github.com/volcengine/OpenViking",
+    "revision": "3b65218eef43aba7a680cf143278ad4c153b0e9f",
+    "tree_url": "https://github.com/volcengine/OpenViking/tree/3b65218eef43aba7a680cf143278ad4c153b0e9f",
+    "archive_url": "https://github.com/volcengine/OpenViking/archive/3b65218eef43aba7a680cf143278ad4c153b0e9f.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "984052b0990da25140f254ce9dcf25d7d5ee14439d34b9d3105e87dc92dbbfb7",
+    "license": "MIT",
+    "license_url": "https://raw.githubusercontent.com/volcengine/OpenViking/3b65218eef43aba7a680cf143278ad4c153b0e9f/examples/hermes-plugin/LICENSE",
+    "license_sha256": "821556e6336796450ab852d375117b48a4887e71d255794fd6318d99982a5ab6",
+    "license_scope": "Hermes adapter only. Repository server is AGPL-3.0; review root LICENSE separately.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "hermes-tailscale": {
+    "repository": "https://github.com/Adolanium/hermes-tailscale",
+    "revision": "7a0b5ab13ec7bd97bebdbfb638acfb5c40ad1f06",
+    "tree_url": "https://github.com/Adolanium/hermes-tailscale/tree/7a0b5ab13ec7bd97bebdbfb638acfb5c40ad1f06",
+    "archive_url": "https://github.com/Adolanium/hermes-tailscale/archive/7a0b5ab13ec7bd97bebdbfb638acfb5c40ad1f06.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "4bd28ec82d1933f3497ded0868ee1dc65019419be013b2cce59fc835b97f5b7e",
+    "license": "MIT",
+    "license_url": "https://raw.githubusercontent.com/Adolanium/hermes-tailscale/7a0b5ab13ec7bd97bebdbfb638acfb5c40ad1f06/LICENSE",
+    "license_sha256": "b1454deeba0ab8504f28cf040cc74a362b4555d3bfbcc4740448dedd1e695914",
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "hermes-ssh": {
+    "repository": "https://github.com/Adolanium/hermes-ssh",
+    "revision": "02c6b34ee604a30827df25a082cba03fbf6fdf17",
+    "tree_url": "https://github.com/Adolanium/hermes-ssh/tree/02c6b34ee604a30827df25a082cba03fbf6fdf17",
+    "archive_url": "https://github.com/Adolanium/hermes-ssh/archive/02c6b34ee604a30827df25a082cba03fbf6fdf17.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "80827ed2237c1f60b23957858aa11c109c31bd2f4a76faf87a26fec66844d4e6",
+    "license": "UNRESOLVED",
+    "license_url": null,
+    "license_sha256": null,
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "claude-subscription-directsdk-experimental": {
+    "repository": "https://github.com/NousResearch/hermes-plugin-claude-subscription-directsdk",
+    "revision": "ef73726cfaf2fa0ee041e55572f406e2c24fed83",
+    "tree_url": "https://github.com/NousResearch/hermes-plugin-claude-subscription-directsdk/tree/ef73726cfaf2fa0ee041e55572f406e2c24fed83",
+    "archive_url": "https://github.com/NousResearch/hermes-plugin-claude-subscription-directsdk/archive/ef73726cfaf2fa0ee041e55572f406e2c24fed83.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "744fa529be3ddd156b9b09613017e0cd025faecb61857515193c85c5a79ff228",
+    "license": "MIT",
+    "license_url": "https://raw.githubusercontent.com/NousResearch/hermes-plugin-claude-subscription-directsdk/ef73726cfaf2fa0ee041e55572f406e2c24fed83/LICENSE",
+    "license_sha256": "f26e906c042707a257816cf8a0396556b596be540b8add290132b8d72c080d60",
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "delivery-suite": {
+    "repository": "https://github.com/TykoDev/SupremeTeam",
+    "revision": "7f520336ee187c96e1644e46b65f9f8fb3e519ad",
+    "tree_url": "https://github.com/TykoDev/SupremeTeam/tree/7f520336ee187c96e1644e46b65f9f8fb3e519ad",
+    "archive_url": "https://github.com/TykoDev/SupremeTeam/archive/7f520336ee187c96e1644e46b65f9f8fb3e519ad.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "ccdc0a1b60007c671d9baca80cb2ac6ff6d7acc40611368764c1a7c93b0f1049",
+    "license": "MIT",
+    "license_url": "https://raw.githubusercontent.com/TykoDev/SupremeTeam/7f520336ee187c96e1644e46b65f9f8fb3e519ad/LICENSE",
+    "license_sha256": "2ab0726fdac1edf850cd34e469f00496b8da89eb30b5ff8e360ea9ca172c9ad4",
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "browser-use": {
+    "repository": "https://github.com/browser-use/browser-use",
+    "revision": "c75e8476e26d18b7617643bc2ae082fae8eae431",
+    "tree_url": "https://github.com/browser-use/browser-use/tree/c75e8476e26d18b7617643bc2ae082fae8eae431",
+    "archive_url": "https://github.com/browser-use/browser-use/archive/c75e8476e26d18b7617643bc2ae082fae8eae431.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "d8df5513d050915b2f87df72c0c646c1ebb40e2cc0dbac5afd93ed732b8ac3d6",
+    "license": "MIT",
+    "license_url": "https://raw.githubusercontent.com/browser-use/browser-use/c75e8476e26d18b7617643bc2ae082fae8eae431/LICENSE",
+    "license_sha256": "135c57671b0ee957669b05a0ca00cc06f645496d351e2e732832c6e276da9a5e",
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "opencli": {
+    "repository": "https://github.com/jackwener/OpenCLI",
+    "revision": "b9213a15d63df578612ddaedc4e3b5c3428d5305",
+    "tree_url": "https://github.com/jackwener/OpenCLI/tree/b9213a15d63df578612ddaedc4e3b5c3428d5305",
+    "archive_url": "https://github.com/jackwener/OpenCLI/archive/b9213a15d63df578612ddaedc4e3b5c3428d5305.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "cb1797a700db6e21c31cd3a37610606809711df9a4bf37de8e095397749ab60c",
+    "license": "Apache-2.0",
+    "license_url": "https://raw.githubusercontent.com/jackwener/OpenCLI/b9213a15d63df578612ddaedc4e3b5c3428d5305/LICENSE",
+    "license_sha256": "0210b8b66cf00358242cb921ba2be3a46dfe0190159b1b952388a3880ce1ff54",
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "insane-search": {
+    "repository": "https://github.com/fivetaku/insane-search",
+    "revision": "49ab0fa7b815964e02a1db99be18ef3313e9d9e7",
+    "tree_url": "https://github.com/fivetaku/insane-search/tree/49ab0fa7b815964e02a1db99be18ef3313e9d9e7",
+    "archive_url": "https://github.com/fivetaku/insane-search/archive/49ab0fa7b815964e02a1db99be18ef3313e9d9e7.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "adc23cefb3cd301719c83498871eacca96895a9f57535baa65379aca6e418b70",
+    "license": "MIT",
+    "license_url": "https://raw.githubusercontent.com/fivetaku/insane-search/49ab0fa7b815964e02a1db99be18ef3313e9d9e7/LICENSE",
+    "license_sha256": "e343d30bc6631a1c8377b7aac26e7b1c5b38366913a98ef71fe6861fe812dcd4",
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "hamelnb": {
+    "repository": "https://github.com/hamelsmu/hamelnb",
+    "revision": "192f491fd388bbc190bcaa95542c5d5f98dae2ab",
+    "tree_url": "https://github.com/hamelsmu/hamelnb/tree/192f491fd388bbc190bcaa95542c5d5f98dae2ab",
+    "archive_url": "https://github.com/hamelsmu/hamelnb/archive/192f491fd388bbc190bcaa95542c5d5f98dae2ab.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "8a55b8cdd336a3c71783f005a46a4de1aa114ebc6f27ca193aff0d1b6feb67ee",
+    "license": "UNRESOLVED",
+    "license_url": null,
+    "license_sha256": null,
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "chrome-devtools": {
+    "repository": "https://github.com/ChromeDevTools/chrome-devtools-mcp",
+    "revision": "bdc7e243a8d3397e871607fdb5c56cc7115ec5ae",
+    "tree_url": "https://github.com/ChromeDevTools/chrome-devtools-mcp/tree/bdc7e243a8d3397e871607fdb5c56cc7115ec5ae",
+    "archive_url": "https://github.com/ChromeDevTools/chrome-devtools-mcp/archive/bdc7e243a8d3397e871607fdb5c56cc7115ec5ae.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "5160312b258155824d994141e9259e27f29cf144971c064f3488a39d0c60cba9",
+    "license": "Apache-2.0",
+    "license_url": "https://raw.githubusercontent.com/ChromeDevTools/chrome-devtools-mcp/bdc7e243a8d3397e871607fdb5c56cc7115ec5ae/LICENSE",
+    "license_sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "leann": {
+    "repository": "https://github.com/yichuan-w/LEANN",
+    "revision": "00710edff4aba84c41f4adfc75b79175b28132f2",
+    "tree_url": "https://github.com/yichuan-w/LEANN/tree/00710edff4aba84c41f4adfc75b79175b28132f2",
+    "archive_url": "https://github.com/yichuan-w/LEANN/archive/00710edff4aba84c41f4adfc75b79175b28132f2.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "46ffd69bb4ce34a2d3f638f754d3cfef6aad487b93f6922b76d767c91ea3ffb6",
+    "license": "MIT",
+    "license_url": "https://raw.githubusercontent.com/yichuan-w/LEANN/00710edff4aba84c41f4adfc75b79175b28132f2/LICENSE",
+    "license_sha256": "523e250e807be4157a8c179489b8a1a4d2c08322c3bc9c4638569ff397533185",
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "archify": {
+    "repository": "https://github.com/tt-a1i/archify",
+    "revision": "c21c31ffb879668900c5487ea24993bf45d89b15",
+    "tree_url": "https://github.com/tt-a1i/archify/tree/c21c31ffb879668900c5487ea24993bf45d89b15",
+    "archive_url": "https://github.com/tt-a1i/archify/archive/c21c31ffb879668900c5487ea24993bf45d89b15.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "5c0137510c3b3b8d468346eb3ae0ead1e8df614dba0abe1f9ef593326197f051",
+    "license": "MIT",
+    "license_url": "https://raw.githubusercontent.com/tt-a1i/archify/c21c31ffb879668900c5487ea24993bf45d89b15/LICENSE",
+    "license_sha256": "b799ab081703e7821ae5096d2c1abdf14bbdc75e8ea1c4045998c36ed6db9706",
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "service-aside": {
+    "url": "https://docs.aside.com/help/developers",
+    "verification": "Public documentation content retrieved; no login, endpoint handshake or tool execution.",
+    "document_sha256": "4400c0f935a9929267061944bac8532ce4120e9c095108c9682b4ecf5cb84a99",
+    "hash_scope": "Extracted text returned by web extractor, possibly a bounded head/tail window; not raw page bytes.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "service-context7": {
+    "url": "https://context7.com/docs/resources/all-clients",
+    "verification": "Public documentation content retrieved; no login, endpoint handshake or tool execution.",
+    "document_sha256": "cc0de89364ba0c277ad45acb12002bc3aa319e9e946f6fdf5cceb5a5d1b3b9ab",
+    "hash_scope": "Extracted text returned by web extractor, possibly a bounded head/tail window; not raw page bytes.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "service-exa": {
+    "url": "https://exa.ai/docs/reference/exa-mcp",
+    "verification": "Public documentation content retrieved; no login, endpoint handshake or tool execution.",
+    "document_sha256": "cdfc2f37025d59f4fe61401934f3f2bdc2fb4af53e6212d2f26d6441c3d9ae0a",
+    "hash_scope": "Extracted text returned by web extractor, possibly a bounded head/tail window; not raw page bytes.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "service-gamma": {
+    "url": "https://developers.gamma.app/docs/gamma-mcp-server",
+    "verification": "Public documentation content retrieved; no login, endpoint handshake or tool execution.",
+    "document_sha256": "72d4bb2188ff19a9b3808ff94c873e5359da4915b56b666a490c350ea5624822",
+    "hash_scope": "Extracted text returned by web extractor, possibly a bounded head/tail window; not raw page bytes.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "service-granola": {
+    "url": "https://docs.granola.ai/help-center/sharing/integrations/mcp",
+    "verification": "Public documentation content retrieved; no login, endpoint handshake or tool execution.",
+    "document_sha256": "1abf80bf405e8a88cd8c8fddb7e8da2c4870c76ad8bba24b4b90f56e4eeea835",
+    "hash_scope": "Extracted text returned by web extractor, possibly a bounded head/tail window; not raw page bytes.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "service-higgsfield": {
+    "url": "https://higgsfield.ai/mcp",
+    "verification": "Public documentation content retrieved; no login, endpoint handshake or tool execution.",
+    "document_sha256": "846d5ea85e6bd034bfa3c6db516133457fda3d89892950d2cb6de23a0eb03683",
+    "hash_scope": "Extracted text returned by web extractor, possibly a bounded head/tail window; not raw page bytes.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "service-malloy": {
+    "url": "https://www.malloy.sg/mcp-installation",
+    "verification": "Public setup page read; documented endpoint and owner OAuth flow established. No login, endpoint handshake or tool execution.",
+    "document_sha256": "1bed9e28171c0807cccb1a9e55eb7d8284108939596fdab335caf1ac57267f02",
+    "hash_scope": "Raw public page bytes, 147838 bytes; dynamic page can change independently of the connection contract.",
+    "checked_at": "2026-10-13T21:10:11Z"
+  },
+  "service-mobbin": {
+    "url": "https://mobbin.com/mcp",
+    "verification": "Public documentation content retrieved; no login, endpoint handshake or tool execution.",
+    "document_sha256": "4965ffc040df64034a7343b8c1c9c72321000f7e1d5082fe2578dde471dda4b7",
+    "hash_scope": "Extracted text returned by web extractor, possibly a bounded head/tail window; not raw page bytes.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "service-paper": {
+    "url": "https://paper.design/docs/mcp",
+    "verification": "Public documentation content retrieved; no login, endpoint handshake or tool execution.",
+    "document_sha256": "4a7baea9210b3986e79c1a499e9a760f54554c93a2ca9c159ace0437c1f2e0b4",
+    "hash_scope": "Extracted text returned by web extractor, possibly a bounded head/tail window; not raw page bytes.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "service-untitled-ui": {
+    "url": "https://www.untitledui.com/react/integrations/mcp",
+    "verification": "Public documentation content retrieved; no login, endpoint handshake or tool execution.",
+    "document_sha256": "599805b0722352d82ccb9db9823706ce001b2d50a09418de0036a02c970c3487",
+    "hash_scope": "Extracted text returned by web extractor, possibly a bounded head/tail window; not raw page bytes.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "service-vidiq": {
+    "url": "https://vidiq.com/mcp/",
+    "verification": "Public documentation content retrieved; no login, endpoint handshake or tool execution.",
+    "document_sha256": "f94ec8c48b8dbb000aaef9c8b49609d6e345e1d1569531ef3c59910769895bb9",
+    "hash_scope": "Extracted text returned by web extractor, possibly a bounded head/tail window; not raw page bytes.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "service-typesafe": {
+    "url": "https://docs.typesafe.ai/llms.txt",
+    "verification": "Public documentation content retrieved; no login, endpoint handshake or tool execution.",
+    "document_sha256": "f534fdfd07b036bcc8e22408ed06de35cf2dfe57037bf8bafa16098269988d0d",
+    "hash_scope": "Extracted text returned by web extractor, possibly a bounded head/tail window; not raw page bytes.",
+    "checked_at": "2026-10-13T20:52:34.228539+00:00"
+  },
+  "herdr": {
+    "repository": "https://github.com/herdrdev/herdr",
+    "revision": "87e5c13c6028df72405f63388dde585212ad3019",
+    "tree_url": "https://github.com/herdrdev/herdr/tree/87e5c13c6028df72405f63388dde585212ad3019",
+    "archive_url": "https://github.com/herdrdev/herdr/archive/87e5c13c6028df72405f63388dde585212ad3019.tar.gz",
+    "verification": "Pinned adapter and plugin manifest retrieved and hashed; official integration guide read. No install or session action.",
+    "manifest_path": "src/integration/assets/hermes/plugin.yaml",
+    "manifest_sha256": "e1c775a6d6ccad2f8e6e0566a0aa61aeef9b8141f59d8a742a77c6951a261170",
+    "license": "Apache-2.0",
+    "license_url": "https://raw.githubusercontent.com/herdrdev/herdr/87e5c13c6028df72405f63388dde585212ad3019/LICENSE",
+    "license_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "license_scope": "Repository terms and notices apply; no third-party code bundled here.",
+    "checked_at": "2026-10-13T21:10:11Z"
+  },
+  "generic": {
+    "path": "reusable/procedures.md",
+    "license": "MIT",
+    "license_path": "LICENSE",
+    "provenance": "New generic instructions authored for this playbook. No private source bodies, customer facts or configurations are bundled."
+  }
+}

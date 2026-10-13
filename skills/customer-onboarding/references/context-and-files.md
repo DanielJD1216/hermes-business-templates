@@ -70,10 +70,13 @@ facts into shared canon, or install the legacy role seeds wholesale.
 Use an existing suitable local record, or a simple Markdown file outside this
 public checkout and shared role storage. No new database or checkpoint engine is
 required. Restrict its permissions and scope it to this onboarding run.
+An optional [progress template](../templates/progress.md) is supplied for this purpose.
 
 Keep these fields:
 
 - **Goal and execution context:** actual host/client, profile and approved scope.
+- **Guide identity:** clean pinned revision, or working-tree status and hashes of
+  every instruction file read. HEAD alone does not identify dirty/untracked guidance.
 - **Preserved state:** relevant existing components and durable backup locations.
 - **Decisions/authority:** owner choices and exact approval references, never invented.
 - **Component table:** required outcome, state, evidence, limitation and next action.
@@ -89,3 +92,6 @@ On resume, read the record and recheck only relevant current state. Preserve val
 completed work; do not repeat sign-in, installation, model calls or message sends
 because context was lost. Changed sources, scope or destinations require review
 of the affected approval, not fabricated retroactive consent.
+Use the [maintenance procedures](maintenance.md) for updates, restoration,
+authentication expiry, host migration and retirement. Record actual local methods;
+reading the procedures does not prove a backup or recovery path works.

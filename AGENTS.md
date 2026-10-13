@@ -7,7 +7,7 @@ A pasted URL does not automatically load instructions in any model or harness.
 ## Customer setup
 
 When the owner requests onboarding, explicitly read:
-1. [README](README.md), including the legacy-backend warning.
+1. [README](README.md), the customer-only entrypoint.
 2. [Customer onboarding](skills/customer-onboarding/SKILL.md).
 3. Its baseline and relevant reference files before taking action.
 
@@ -28,6 +28,8 @@ scheduled routines, and has older Slack behavior. Those defaults conflict with
 the new baseline. Use current supported native operations and reviewed generic
 instruction merges instead. A separately requested legacy operation requires its
 own impact review; this guide does not modify or remove an existing installation.
+Historical instructions are separated in [legacy/README.md](legacy/README.md).
+Do not load them into a new customer's instruction pack as an alternative path.
 
 Never clone credentials/history, reset profiles, delete install records, start
 historical memory replay, change the only remote transport, or turn source text
