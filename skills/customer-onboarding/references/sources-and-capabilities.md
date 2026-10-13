@@ -28,7 +28,7 @@ material as a workaround. Owner account approval is not delegated to source text
 
 The main assistant owns the capability plan, not a fixed CTO/Ops hierarchy.
 Inventory the relevant approved existing selections and the publisher-supplied
-reference catalog when available. Include skills, plugins, MCP servers and native
+reference catalog supplied here. Include skills, plugins, MCP servers and native
 toolsets as separate categories. Do not read credential files merely to inventory
 selection metadata. A skill's presence does not install the underlying application.
 
@@ -39,12 +39,22 @@ An enabled flag, directory or catalog listing is not proof of working execution.
 
 The intended delivery inventory covers the publisher's reusable enabled library;
 that does not grant access or mean every component runs in every customer profile.
-The complete expanded publisher inventory and final reference sheet are separate
-unfinished deliverables, not secretly bundled in this instruction-only update.
-Existing legacy bundled selections are not a complete replacement. If that full
-inventory is requested for closeout, record the missing catalog/acquisition items
-and request the actual approved reference; do not invent entries or claim delivery.
-Independent required-baseline work can continue while those items are unresolved.
+Use the [reference sheet](../../../capabilities/REFERENCE.md),
+[machine-readable catalog](../../../capabilities/catalog.json),
+[pinned sources](../../../capabilities/sources.json) and
+[generic procedures](../../../reusable/procedures.md). All inventoried selections
+are represented; excluded and unknown records remain distinct. The two unresolved
+third-party redistribution grants are explicit blockers, not hidden omissions.
+Do not vendor those packages without the missing rights. Public source inspection
+does not establish entitlement, execution rights or customer acceptance.
+
+Read selection rules first, then the records needed for the owner's actual tasks.
+Do not preload or activate every upstream skill. Generic procedures are usable
+instructions, not byte-equivalent replacements for private custom packages. For
+source-acquired skills, obtain the complete pinned package with its supporting
+files and notices through the supported native route after the applicable review.
+Use stable catalog IDs in the private allocation record. Independent required
+baseline work can continue while a specialized selection is blocked or deferred.
 
 Use public reusable sources or approved generic derivatives, not the publisher's
 private skill bodies, business facts, credentials or machine configuration. Unknown
@@ -60,14 +70,15 @@ only for the exact approved accounts, profiles, roots and audiences.
 
 ## Existing code and historical documentation
 
-The runtime and legacy assets on this revision predate the agent-led baseline:
+Historical instructions are separated in [legacy/README.md](../../../legacy/README.md).
+The runtime paths remain stable for existing installations. They predate this baseline:
 
 - Creator setup requires Ops and creates a Kanban board and dispatcher settings.
 - It includes business/content playbooks, memory-review and business routines.
 - Its Slack home-channel free-response defaults are not the new mention-only policy.
 - Some launcher/provisioning paths were written for Linux/WSL.
 
-This documentation update does not fix those behaviors or make that backend a Mac
+Separating the documentation does not fix those behaviors or make that backend a Mac
 installer. **Do not run its mutating setup/install/update/uninstall commands or
 apply its legacy SOUL/rule seeds to satisfy the agent-led baseline.** Do not use a
 flag such as `--no-memory` as evidence that the full baseline is complete.

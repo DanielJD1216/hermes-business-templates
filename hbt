@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# hbt: Hermes business templates installer. Run from the repo root on the server where Hermes runs.
-#   ./hbt setup creator            (start here: guided, one step at a time)
+# hbt: Historical Creator installer, retained for existing installations.
+# New customer onboarding starts at README.md, not this launcher.
+# Legacy operations only, after a separate impact review:
+#   ./hbt setup creator
 #   ./hbt install creator --dry-run
 #   ./hbt connect creator cto      (save one bot's Slack tokens)
 #   ./hbt check creator            (find drift between the bots, with the fix for each gap)
