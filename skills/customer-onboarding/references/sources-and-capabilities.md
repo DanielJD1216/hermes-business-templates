@@ -11,10 +11,12 @@ that each service supports every platform, login type or subscription.
 | Hermes runtime, profiles, skills, plugins, tools and model selection | https://hermes-agent.nousresearch.com/docs/ and its https://hermes-agent.nousresearch.com/docs/llms.txt index |
 | Hermes memory providers | https://hermes-agent.nousresearch.com/docs/user-guide/features/memory-providers |
 | OpenViking | https://github.com/volcengine/OpenViking and https://pypi.org/project/openviking/ |
+| OpenViking knowledge/resources versus memory | https://docs.openviking.ai/en/concepts/02-context-types (verify against the installed version) |
 | Ollama local models and embeddings | https://docs.ollama.com/ and https://ollama.com/library |
 | Slack applications and scopes | https://docs.slack.dev/ |
 | Tailscale and access policy | https://tailscale.com/kb/ |
 | Herdr persistent development sessions | https://herdr.dev and the installed native help |
+| Herdr browser/phone client | https://github.com/devswha/herdr-web-ui and its https://github.com/devswha/herdr-web-ui/blob/main/INSTALL.md agent guide; follow the [template Web UI boundary](herdr-web-ui.md) |
 | Parsec host/client and license requirements | https://parsec.app/ and its official support/download links |
 
 For other providers, index backends, plugins or MCP servers, verify their actual

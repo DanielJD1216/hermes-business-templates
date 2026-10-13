@@ -19,6 +19,7 @@ a second installer merely because a native command or dependency needs diagnosis
 - [Required finished state and proof](references/baseline.md).
 - [Context, instruction files and private progress](references/context-and-files.md).
 - [Sources, capabilities and legacy boundary](references/sources-and-capabilities.md).
+- [Herdr Web UI and terminal-access safety](references/herdr-web-ui.md).
 - [Mac findings](references/mac-notes.md) when the host or client is a Mac.
 
 These files are the complete required reading set for this playbook. Do not rely

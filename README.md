@@ -34,7 +34,7 @@ The [required baseline](skills/customer-onboarding/references/baseline.md) cover
 the preserved main assistant and chosen model access; reviewed canonical context,
 files and projects; persistent memory and a script-only watchdog; local semantic
 file search plus exact/history lookup; mention-only Slack with minimum access;
-private Desktop/Tailscale access; Herdr available for selected development work;
+private Desktop/Tailscale access; Herdr with its browser/phone Web UI available for selected development work;
 verified remote recovery; and a reviewable capability allocation.
 
 The main agent may handle everything or propose specialists that fit the owner.
@@ -47,6 +47,15 @@ See [onboarding](skills/customer-onboarding/SKILL.md),
 [context and file guidance](skills/customer-onboarding/references/context-and-files.md),
 [sources and capability limits](skills/customer-onboarding/references/sources-and-capabilities.md),
 and [Mac troubleshooting evidence](skills/customer-onboarding/references/mac-notes.md).
+The [Herdr Web UI guide](skills/customer-onboarding/references/herdr-web-ui.md)
+covers the existing-session browser client and its terminal-access security.
+
+Memory and knowledge are distinct: OpenViking memories retain interaction-derived
+facts; a knowledge base holds approved reference sources such as manuals, policies
+and project documentation. Canonical files plus scoped retrieval can already serve
+that purpose. OpenViking resources can index selected reference material when
+needed; there is no requirement to add another database or duplicate every file.
+See the [knowledge/retrieval boundary](skills/customer-onboarding/references/baseline.md#memory-knowledge-and-file-discovery).
 
 ## Current status and limits
 
