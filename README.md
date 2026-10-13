@@ -1,8 +1,77 @@
 # Hermes Business Templates
 
-Free, MIT-licensed starting setups for running a small business on [Hermes Agent](https://hermes-agent.nousresearch.com/docs). Each template installs a small team of AI bots, each a separate Hermes profile with its own Slack app, on a server the business owns, using the owner's own AI subscription or API keys.
+**Start with your private agent, not an installation command.** This template is
+an agent-led setup guide for a customer-owned [Hermes Agent](https://hermes-agent.nousresearch.com/docs)
+system. The agent may use Claude, OpenAI or another suitable supported model. It
+inspects the actual machine, adapts to existing state, executes approved work,
+debugs failures and proves the finished setup. No fixed specialist roster or
+replacement main assistant is required.
 
-We provide the foundation only: bots, playbooks, folders, scheduled checks and an installer. Your business details, tools and accounts stay yours.
+Template guidance is MIT-licensed. Referenced software, skills and repair artifacts
+have their own licenses, access requirements and costs. Your facts, accounts,
+credentials and operating history are not part of this public repository.
+
+## Start here: one message to your agent
+
+Use your existing **private, tool-capable agent on the intended host**. Paste:
+
+```text
+Help me set up or resume Hermes Business Templates from https://github.com/DanielJD1216/hermes-business-templates.
+Explicitly read README.md, AGENTS.md, skills/customer-onboarding/SKILL.md and its linked references from the same repository revision.
+First verify that you can act on my intended host and inspect the existing setup. Preserve my current assistant, model/login, history, files and working access.
+Follow the agent-led baseline, not the legacy Creator installer. Retrieve known facts before asking, propose the missing work and get the applicable approvals. Then execute and verify authorized work yourself; ask me only for missing decisions, account sign-in, OS permissions or actions your tools cannot perform.
+Keep a private resumable progress record. Do not reset or reinstall working components, create unwanted roles, copy credentials or invent successful checks. Report exact blockers and whether the required baseline is actually complete.
+```
+
+A URL does not automatically load instructions. The agent must actually read them.
+A browser-only chat can guide you, but must disclose that it cannot execute host
+setup. Model choice does not automatically provide host tools or make every
+third-party service support the same authentication method.
+
+## What the finished setup includes
+
+The [required baseline](skills/customer-onboarding/references/baseline.md) covers:
+the preserved main assistant and chosen model access; reviewed canonical context,
+files and projects; persistent memory and a script-only watchdog; local semantic
+file search plus exact/history lookup; mention-only Slack with minimum access;
+private Desktop/Tailscale access; Herdr available for selected development work;
+verified remote recovery; and a reviewable capability allocation.
+
+The main agent may handle everything or propose specialists that fit the owner.
+There is no compulsory CTO, Engineer, Ops or four-agent customer organization.
+Ordinary work stays in its requesting conversation. Skills, plugins, MCP servers
+and extra tools are assigned according to need and owner-approved access, not
+enabled everywhere. Only the memory watchdog is a baseline recurring job.
+
+See [onboarding](skills/customer-onboarding/SKILL.md),
+[context and file guidance](skills/customer-onboarding/references/context-and-files.md),
+[sources and capability limits](skills/customer-onboarding/references/sources-and-capabilities.md),
+and [Mac troubleshooting evidence](skills/customer-onboarding/references/mac-notes.md).
+
+## Current status and limits
+
+This is a **published guide for an agent-led trial**, not a completed universal
+installer or proof that every Mac/Linux configuration works. Actual host support,
+provider access and each baseline outcome require evidence. Owner choices and
+missing client access do not erase unfinished required checks.
+
+The expanded publisher capability inventory and final tools reference sheet remain
+separate unfinished deliverables. This guide does not claim that the legacy
+bundled selections contain the entire intended library.
+
+## Legacy Creator backend reference: not the default onboarding route
+
+**The code and historical instructions below have not been upgraded by this
+documentation change.** They still describe fixed role/Ops requirements, Kanban,
+business/content playbooks, extra schedules and older Slack behavior. These
+conflict with the agent-led baseline above. Do not run the legacy Creator
+setup/install/update/uninstall commands or apply its role seeds to implement the
+new baseline. Do not remove an existing installation, board or job to reconcile
+the difference. A separately requested legacy operation needs its own impact
+review; otherwise use supported native operations through the onboarding guide.
+
+The remainder documents the existing backend, not what a new customer is required
+to adopt. Its old readiness statements are not acceptance of the new guide.
 
 | Template | Status |
 |---|---|
