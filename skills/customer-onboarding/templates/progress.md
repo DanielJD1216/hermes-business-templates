@@ -73,6 +73,16 @@ adapter test results, runtime activation and authorized model-answer evaluation.
 Record viewer/sync evidence separately when selected. Neither hashes nor a passing
 pure filter test proves correct answers across automatic and explicit retrieval.
 
+- Governed collection / owning scope / exclusions: [exact bounded set]
+- Authoritative source and dependency versions: [private references and hashes]
+- Review and renewal procedure: [actor, actual review time, expected policy version, backup]
+- Exact tested route: [model tool -> adapter -> native source/search; do not infer other paths]
+- Current-source positive check: [actual returned evidence and answer]
+- Controlled stale-source check: [valid withholding, or backend error; distinguish them]
+- Reviewed renewal check: [legitimate recall restored without scope/status expansion]
+- Remaining unguarded routes / unexplained failures: [explicit limits]
+- Production activation / upgrade check / rollback: [actual state, authority and evidence]
+
 | Target | Change or failed attempt | Observed result / cause or unknown | Evidence / backup | Next action |
 |---|---|---|---|---|
 | [target] | [actual action] | [actual result] | [reference] | [actor and action] |

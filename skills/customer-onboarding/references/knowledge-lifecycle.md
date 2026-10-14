@@ -69,6 +69,66 @@ Record these independently: policy documented, filter implemented, adapter tests
 passed, runtime activated, and target-specific answer tests passed. This guide does
 not claim that every installed provider already enforces these requirements.
 
+## Small collection first, then reviewed renewal
+
+Start with a small useful collection of approved company/system documents. Record
+exact sources, owning scope, current-guidance status and excluded material. A
+memory can mix valid preferences, old instructions and historical health checks.
+Do not approve that entire record because one paragraph is supported, or assume
+an old preference was revoked merely because its scope needs qualification.
+Preserve originals; separate narrowly sourced current guidance from history.
+
+Use the existing provenance/checking mechanism before adding infrastructure:
+
+1. Check the admitted source and its dependencies on governed retrieval. Changed
+   bytes must not inherit approval from the previous version. Missing or conflicted
+   material stays unavailable as current guidance, not silently accepted.
+2. During authorized curation, inspect the changed original and affected claims,
+   preserve edits/backups, and update the explanation and citations as needed.
+3. Renew eligibility only against the exact reviewed source/dependency versions
+   and the expected existing policy version. Record the actual reviewer and time.
+   Require a nonempty string reviewer, not coercion of null or other values. This
+   records an operator assertion; it is not authenticated consent or proof of truth.
+4. Preserve scope, dependency paths and lifecycle state during routine renewal.
+   It must not silently add records, remove evidence dependencies or reactivate
+   revoked/retired entries. Preserve a verified prior policy before replacement
+   and coordinate one writer. Cooperative locking is not protection from arbitrary
+   concurrent editors or proof of power-loss durability.
+5. Recheck eligibility and relevant search results. Refresh an index after source
+   changes where needed; rebuilding the index alone does not approve new content.
+
+Clear cases belong to the authorized agent's work, not a new owner checklist.
+Ask the owner about genuine ambiguity, expanded access or authority. No unattended
+writer or new schedule is implied. A fact can change without a file edit; byte
+checks cannot replace new evidence or source review.
+
+## Prove the actual route before expanding
+
+Test a current eligible source, a controlled stale/withheld source, and reviewed
+renewal restoring legitimate recall. Keep synthetic controls outside live memory
+and authoritative knowledge. A new session should answer from returned evidence
+and acknowledge when that retrieval cannot establish an answer. A backend failure
+is not a successful stale-record rejection: distinguish a valid empty result from
+an error envelope, even when the outer process exits zero. Check declared totals
+against actual results. Preserve failed runs; a later success does not prove their
+cause was fixed. Do not weaken enforcement or repeatedly retry to obtain a pass.
+
+Record the exact path tested, including the model tool, adapter, native search and
+policy binding. A temporary guarded tool proves only that route, not the main
+assistant's configured search, automatic memory injection or old chat context.
+Check the real configuration-loader failure contract and native index resolution;
+a dictionary-shaped fallback is not necessarily a successful config read, and an
+index name alone does not establish its canonical location.
+
+Recheck these paths after package/configuration changes. Preserve approved code,
+configuration and data recovery points before a live rollout. An owner-authorized
+rollback to unguarded retrieval restores availability, not lifecycle protection.
+Expand only after useful recall and rejection behavior are demonstrated, with
+outstanding reliability issues recorded. This guide supplies acceptance guidance,
+not a bundled enforcement plugin or a claim that every native provider has the
+required hooks. Report missing integration rather than claiming instructions alone
+enabled it. Proof from another host does not certify the customer's native setup.
+
 ## Optional Obsidian and private device synchronization
 
 Discover the actual host and viewer device. An unavailable client does not prevent
