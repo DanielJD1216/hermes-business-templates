@@ -49,6 +49,7 @@ not verified. Evidence must identify the actual target and how it was checked.
 | OpenViking scoped write/recall | not-tested | | | |
 | Script-only memory watchdog and delivery | not-tested | | | |
 | Local discovery and refresh/removal | not-tested | | | |
+| Curated knowledge and lifecycle-safe retrieval | not-tested | | | |
 | Mention-only Slack and access denial | not-tested | | | |
 | Desktop authenticated client | not-tested | | | |
 | Tailscale/private transport and policy | not-tested | | | |
@@ -66,6 +67,11 @@ synonyms. Include the evidence and exact blocker for each selected capability.
 Do not enable the entire catalog or claim all included capabilities work on this host.
 
 ## Changes and failures
+
+For knowledge lifecycle, distinguish documented policy, implemented filters,
+adapter test results, runtime activation and authorized model-answer evaluation.
+Record viewer/sync evidence separately when selected. Neither hashes nor a passing
+pure filter test proves correct answers across automatic and explicit retrieval.
 
 | Target | Change or failed attempt | Observed result / cause or unknown | Evidence / backup | Next action |
 |---|---|---|---|---|
