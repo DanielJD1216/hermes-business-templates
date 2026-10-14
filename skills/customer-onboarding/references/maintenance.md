@@ -46,6 +46,16 @@ actor in the private progress record. Do not ask again for authority already gra
   If checks fail, retain diagnostics and return to the known build only after checking
   data compatibility. A code downgrade cannot reverse an incompatible data migration.
 
+## Maintain lifecycle eligibility
+
+Follow the [small-collection renewal and actual-route checks](knowledge-lifecycle.md#small-collection-first-then-reviewed-renewal).
+Source or policy changes require source review, version-bound renewal and a
+positive/withheld retrieval check. Do not automatically reseal changed hashes,
+silently reactivate retired records or restore recall by disabling enforcement.
+After a provider, adapter or search-package update, verify the approved bindings
+and actual fresh-session route before retaining an enforcement claim. Record
+errors separately from valid empty retrieval and preserve unexplained failures.
+
 ## Restore or recover an outage
 
 - Identify whether the failure is transport, host/service, authentication, quota,
