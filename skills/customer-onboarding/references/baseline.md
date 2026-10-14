@@ -34,6 +34,7 @@ Model names and personality are owner choices, not acceptance requirements.
 | OpenViking memory | Working persistent memory with correct owner/profile scope and private service access. | Native service health; one authorized non-sensitive write reaches completed status and is recalled in the intended scope; authentication/exposure/routing verified. No historical replay merely for onboarding. |
 | Memory watchdog | Script-only memory health/search checks and approved outage/recovery delivery. | Exact job read-back, health/search behavior and authorized destination delivery tested. No chat model. Explain any embedding use/cost. An existing main or selected profile can own it; do not require Ops. |
 | Local file discovery | Semantic search plus exact file lookup and authorized history lookup over approved local roots. | Known source retrieved with its actual path; source bytes read; exclusions verified; an approved addition/change and rename/removal followed by refresh shows fresh results and no stale hit. |
+| Curated knowledge and lifecycle | Source-backed wiki or existing equivalent; scoped current decisions and preserved history, not an append-only archive. | Approved existing sources curated and cited; source/page drift checked; actual retrieval paths reject or clearly separate superseded, revoked, stale and inapplicable evidence. Isolated correction/exception/conflict tests and activation state recorded separately. See [lifecycle acceptance](knowledge-lifecycle.md). A selected viewer/sync route needs its own client checks. |
 | Slack | Owner/team interface with correct bot identities, minimum allowlists and owner-only administration. Channel messages and thread follow-ups require explicit mentions. | Authorized reply in the exact channel/thread, mention-only behavior and denial of unauthorized access/administration verified with scoped tests. No forced specialists or duplicate bot tokens. |
 | Hermes Desktop | Working owner client connected privately to the intended host/profile. | Client installation, endpoint/profile selection and authenticated owner access observed. Server health alone does not prove client access. |
 | Tailscale/private transport | Private host reachability and minimum access policy. | Reachability from an approved client plus effective ACL/grant policy and service binding/authentication checked. Tailnet membership alone is insufficient. No public Funnel or public listener by default. |
@@ -73,6 +74,12 @@ automatic import of the whole workspace. An empty resources collection does not
 mean there are no knowledge files elsewhere, and memory recall does not prove
 document ingestion. Do not reactivate archived knowledge projects implicitly.
 
+Knowledge storage and viewing are separate: ordinary Markdown can hold the wiki;
+Obsidian can display/edit it. LLM curation maintains its explanations and citations.
+Neither a synced vault nor a successful memory write proves lifecycle-safe answers.
+Follow [knowledge and lifecycle acceptance](knowledge-lifecycle.md), preserving
+incomplete enforcement/runtime/model-evaluation gates rather than calling them done.
+
 ## Evidence and completion
 
 Use the private progress record described in [context and files](context-and-files.md).
@@ -93,3 +100,17 @@ supported provider/authentication route. Do not assume one subscription works
 through every third-party application, force a new subscription, or silently
 fall back to a paid API. Changing embedding models requires a separately rebuilt
 and verified index; matching vector dimensions do not make existing vectors compatible.
+
+### Native OAuth versus convenience setup
+
+OpenViking has a native `openai-codex` backend for ChatGPT/Codex OAuth in supported
+versions. A Quick Local adapter or setup wizard that accepts only a different
+route does not prove the underlying backend lacks OAuth. Inspect installed native
+help and provider code before declaring incompatibility or changing billing.
+Preserve the owner's main Hermes model/login. Native OpenViking sign-in may be a
+separate owner-attended authorization; never copy another service's credentials.
+Backend availability is not a successful login or a passed memory write/recall test.
+Local embeddings also do not make LLM extraction or document summarization local:
+explain which selected provider receives text and obtain the applicable consent.
+See [Hermes memory providers](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory-providers)
+and [OpenViking upstream](https://github.com/volcengine/OpenViking).

@@ -18,6 +18,7 @@ a second installer merely because a native command or dependency needs diagnosis
 
 - [Required finished state and proof](references/baseline.md).
 - [Context, instruction files and private progress](references/context-and-files.md).
+- [Knowledge, viewer/sync and lifecycle acceptance](references/knowledge-lifecycle.md).
 - [Sources, capabilities and legacy boundary](references/sources-and-capabilities.md).
 - [Capability reference sheet](../../capabilities/REFERENCE.md): selection rules
   first, then only relevant records and their selected source/procedure references.
