@@ -61,6 +61,36 @@ installed harness and official documentation, not these example names:
   goal, create/reuse approved workspace/context, then optionally map Herdr sessions
   if development orchestration is selected. No automatic second writer or new team.
 
+The map must govern work, not merely list directories. Define where incoming
+material, active work, research, assets/deliverables, archives and scratch belong;
+reuse existing roots. Name the source of truth, owner, audience, lifecycle state,
+next action and retention/archive rule for each catalogued unit. Keep project
+catalogs, task queues and conversation history distinct. Resolve conflicting
+status vocabulary rather than copying it. Archive versus deletion is an explicit
+choice; do not delete to normalize a directory tree.
+
+Exercise onboarding and placement with approved existing system documents or a
+selected real project. Check paths, naming/status and links, and establish who
+handles catalog drift and how it is detected. This can happen during authorized
+work; no new watcher or schedule is implied. A two-file search demo or an empty
+catalog does not prove this operating workflow.
+
+## Decisions before implementation
+
+Use the owner's actual work, not the installation conversation, to map roles and
+capabilities. Discuss main-only versus needed specialists, implementation/review
+ownership, curator and maintenance responsibilities, viewer/devices, sync and
+interfaces. Existing facts can support a recommendation without another interview.
+Do not turn every responsibility into a new profile, or enumerate the whole tool
+catalog as owner questions. Offer relevant choices and a concrete recommendation.
+
+For each decision, record `not-offered`, `not-decided`, `selected`, `declined` or
+`deferred`, its scope, reason and owner authority. A selected implementation is
+not yet verified. 'No unwanted specialists' and an idle main-only terminal preset
+do not establish a permanent solo roster. A deferred required outcome stays
+incomplete; declining a product is acceptable when an equivalent meets the need.
+Carry prior valid decisions forward rather than asking again.
+
 Draft first, present meaningful diffs and obtain the applicable owner approval.
 Do not silently replace a mature SOUL, duplicate an authority file, merge private
 facts into shared canon, or install the legacy role seeds wholesale.

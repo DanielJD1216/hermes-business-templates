@@ -30,15 +30,20 @@ third-party service support the same authentication method.
 
 ## What the finished setup includes
 
-The [required baseline](skills/customer-onboarding/references/baseline.md) covers:
-the preserved main assistant and chosen model access; reviewed canonical context,
-files and projects; persistent memory and a script-only watchdog; local semantic
-file search plus exact/history lookup; mention-only Slack with minimum access;
-private Desktop/Tailscale access; Herdr with its browser/phone Web UI available for selected development work;
-verified remote recovery; and a reviewable capability allocation.
+The [required baseline](skills/customer-onboarding/references/baseline.md) covers
+the whole operating workflow: preserved identity and model access; an explicit
+responsibility map; file placement and project onboarding; persistent memory and
+a script-only watchdog; semantic, exact and history discovery; a source-backed
+curated wiki; viewer/device decisions; private Slack/Desktop/Tailscale access;
+Herdr and its Web UI for selected development work; capability allocation;
+maintenance ownership; and verified data restoration and graphical recovery.
 
 The main agent may handle everything or propose specialists that fit the owner.
 There is no compulsory CTO, Engineer, Ops or four-agent customer organization.
+The roster must still be discussed: preserving the main assistant is not a decision
+to decline every specialist. Every functional area needs an implementation and
+evidence; products, role names, devices and schedules adapt to the owner. A missing
+decision stays undecided, not silently optional or complete.
 Ordinary work stays in its requesting conversation. Skills, plugins, MCP servers
 and extra tools are assigned according to need and owner-approved access, not
 enabled everywhere. Only the memory watchdog is a baseline recurring job.
@@ -56,6 +61,9 @@ and project documentation. Canonical files plus scoped retrieval can already ser
 that purpose. OpenViking resources can index selected reference material when
 needed; there is no requirement to add another database or duplicate every file.
 See the [knowledge/retrieval boundary](skills/customer-onboarding/references/baseline.md#memory-knowledge-and-file-discovery).
+Baseline acceptance demonstrates a small useful collection and a complete work
+and retrieval cycle. Comprehensive memory-engine enforcement and customer-specific
+business automation are separately scoped extensions, not hidden installation work.
 
 ## Current status and limits
 

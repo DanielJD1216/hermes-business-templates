@@ -6,6 +6,25 @@ identity, history and customer edits. Never run the legacy Creator updater to
 maintain this baseline. Record the affected component, evidence, backup and next
 actor in the private progress record. Do not ask again for authority already granted.
 
+## Assign operational ownership
+
+Record the responsible agent/operator, trigger, scope, expected useful result and
+failure recipient for discovery refresh, wiki review, memory/skill draft review,
+tool updates and backups. Reuse existing mechanisms; a responsibility does not
+require a new agent or scheduled job. Only the memory watchdog is a baseline
+recurring job. Additional schedules need explicit scope, cadence, delivery and
+cost decisions. Verify the underlying outcome, not merely scheduler success.
+Track pending drafts and failed checks without applying or deleting data to make
+the status green. Do not promise automatic memory pruning from skill-curator
+settings; retention, archive and deletion have different scopes and authority.
+
+The recovery set must cover the selected profiles/configuration and approved
+skills, session/history state, project/task records, canonical work/wiki files and
+native memory stores. Record exclusions and a protected credential-recovery or
+reauthentication plan without reading secrets. Choose a destination independent
+of the failure being recovered from. A skills snapshot or synchronized replica
+alone is not whole-system recovery. Test restoration without replacing live data.
+
 ## Before any consequential change
 
 1. Read the private component map and actual current state. Identify the exact
@@ -49,9 +68,13 @@ actor in the private progress record. Do not ask again for authority already gra
 ## Maintain lifecycle eligibility
 
 Follow the [small-collection renewal and actual-route checks](knowledge-lifecycle.md#small-collection-first-then-reviewed-renewal).
-Source or policy changes require source review, version-bound renewal and a
-positive/withheld retrieval check. Do not automatically reseal changed hashes,
-silently reactivate retired records or restore recall by disabling enforcement.
+For baseline curation, review changed originals and dependent pages, preserve
+history, update citations/provenance and recheck the actual answer route. Index
+refresh alone does not establish current authority.
+For a selected mechanical enforcement extension, source or policy changes require
+version-bound renewal and a positive/withheld retrieval check. Do not automatically
+reseal changed hashes, silently reactivate retired records or restore recall by
+disabling enforcement.
 After a provider, adapter or search-package update, verify the approved bindings
 and actual fresh-session route before retaining an enforcement claim. Record
 errors separately from valid empty retrieval and preserve unexplained failures.
