@@ -44,21 +44,36 @@ is not a global preference change. Applicable authority and scope precede recenc
 
 ## Enforcement is a separate gate
 
+First establish the required small collection and its real answer route. Test a
+source-grounded answer, a controlled source correction/change, a conflict and a
+scope exception; preserve and label history. Verify that the assistant reads the
+current original, does not promote stale or inapplicable evidence, and records
+the reviewed update. This source-review workflow is baseline acceptance, not a
+claim of mechanically filtering every memory entry or native API.
+
+Comprehensive memory-engine enforcement is separate engineering, not an implicit
+onboarding dependency. Before developing a custom adapter/server change, identify
+the unsupported requirement, affected routes, supported alternatives and bounded
+write plan; obtain any new authority. Continue independent baseline work. If a
+required scoped answer path cannot pass, keep that requirement incomplete rather
+than substituting a synthetic pass or silently weakening protection.
+
 Instructions to check freshness are not an enforced retrieval filter. Existing
 memory extraction, merge prompts, score thresholds and result caps are useful but
 do not establish that outdated information stops governing answers.
 
-Trace every relevant answer-entry path: automatic memory injection, explicit
-search/read, session-start context and file discovery. Use installed native
-lifecycle features where suitable before adding code. A declared lifecycle rule
+For a selected mechanical enforcement extension, trace every relevant answer-entry
+path: automatic memory injection, explicit search/read, session-start context and
+file discovery. Use installed native lifecycle features where suitable before
+adding code. A declared lifecycle rule
 must be checked before affected content enters current-answer context, not merely
 written in a Markdown header. Unknown, conflicting or stale evidence must not be
 silently promoted to current authority. Historical access can remain explicit and
 clearly labelled without treating historical text as current instructions.
 
-Required isolated tests should cover an explicit correction replacing an older
-fact, a project exception preserving the global rule, a revoked/expired record,
-an unresolved conflict, changed source content and malformed/missing lifecycle
+That extension's required isolated tests should cover an explicit correction
+replacing an older fact, a project exception preserving the global rule, a
+revoked/expired record, an unresolved conflict, changed source content and malformed/missing lifecycle
 metadata. Exercise actual retrieval adapters and context assembly, not only a
 standalone predicate. Check identifier/source integrity and bypass paths. Retain
 history; deletion requires separate authority. Synthetic cases stay outside live
@@ -78,7 +93,11 @@ Do not approve that entire record because one paragraph is supported, or assume
 an old preference was revoked merely because its scope needs qualification.
 Preserve originals; separate narrowly sourced current guidance from history.
 
-Use the existing provenance/checking mechanism before adding infrastructure:
+Use the existing provenance/checking mechanism before adding infrastructure.
+Baseline curation reviews changed originals, updates affected explanations and
+citations, preserves history and records the reviewed source versions. Recheck
+the actual answer route afterward. The policy-specific steps below apply to a
+selected mechanical gate; do not build a policy engine just to fill a form:
 
 1. Check the admitted source and its dependencies on governed retrieval. Changed
    bytes must not inherit approval from the previous version. Missing or conflicted
@@ -130,6 +149,12 @@ required hooks. Report missing integration rather than claiming instructions alo
 enabled it. Proof from another host does not certify the customer's native setup.
 
 ## Optional Obsidian and private device synchronization
+
+The viewing workflow and device decision are required; these products are optional
+implementations. Offer Obsidian or an existing suitable viewer. Record selected,
+declined or deferred choices explicitly; a skill or source folder does not prove
+the owner can view the wiki. No sync service is needed when the selected workflow
+does not require replicas. An undecided device workflow is not a declined one.
 
 Discover the actual host and viewer device. An unavailable client does not prevent
 host preparation, but leaves client acceptance incomplete. Use an existing vault

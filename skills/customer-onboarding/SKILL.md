@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.3.0
+version: 0.4.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -80,6 +80,13 @@ requirements. Explain costs and processing. Show the actual proposed changes;
 obtain owner approval before live identity/context adoption, role creation or
 connections. Do not infer approvals from imported conversations.
 
+Before implementation, show a compact system map covering every baseline domain.
+Retrieve the owner's intended work and first useful outcome; setup activity itself
+does not establish their business needs. Explicitly resolve responsibilities,
+roster, viewer/device access, sync, capabilities and maintenance ownership using
+the decision record in the progress template. A no-change or main-only choice is
+valid when reviewed, not inferred from a prohibition on unwanted agents.
+
 ### 3. Implement through supported native operations
 
 Work through the baseline in dependency order, reusing what passes. Choose a
@@ -89,11 +96,25 @@ Use private staging and backups for risky changes. Prefer stdlib, installed tool
 and native platform features. Choose launchd on macOS, not systemd instructions.
 No blanket install of the legacy Creator runtime or its role seed instructions.
 
+Establish the useful operating layer before expanding experimental infrastructure:
+file placement, project onboarding, an approved source collection, curation and
+actual retrieval. Existing operating documents can exercise this path; do not
+demand a business data dump. Keep comprehensive memory-engine work and the owner's
+first custom business automation separately scoped. Unsupported baseline behavior
+remains a named gap; it is not permission to fork a service during onboarding.
+
 For each missing component: inspect current docs, select the smallest supported
 method, explain any material assumption, execute authorized work, and read back
 the result. Let the owner complete native logins and OS approval prompts. Never
 request tokens in chat or copy another person's credentials. Host-local paths,
 ports, identities and accounts must be discovered, not copied from a test example.
+
+Before an owner login, identify the device, visible application/browser, account
+purpose and requested access. Distinguish model access from remote-client login.
+Inspect supported native account-based authentication before proposing another
+password. Keep a planned endpoint labelled inactive; give client connection steps
+only when host readiness is verified. Prefer a small manual handoff to new broad
+desktop permissions merely to inspect a browser the agent cannot access.
 
 ### 4. Diagnose failures without broadening authority
 
@@ -114,6 +135,11 @@ inputs with explicit authority for model usage, sends and delivery targets. Neve
 send tests to real audiences merely to fill a checklist. Match receipts to the
 actual host, account, profile, artifact, channel or client. Imports and green
 health are not end-to-end memory, Slack or remote-access acceptance.
+
+Also prove the complete operating cycle in the baseline, not only each installed
+component. Record fresh, historical and owner-relayed evidence separately. Report
+verified rows, unresolved decisions and exact blockers rather than a guessed
+completion percentage. Do not treat a pilot or this documentation as deployed code.
 
 ### 6. Handoff and resume
 
