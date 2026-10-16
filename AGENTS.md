@@ -13,13 +13,20 @@ When the owner requests onboarding, explicitly read:
 
 Work in the owner's private, tool-capable agent on the intended host. Any suitable
 model may conduct setup; this is not a requirement to use a particular model,
-subscription, fixed team, or new main assistant. If you cannot execute there,
+subscription or new main assistant. The baseline requires the EA/CTO/two-Engineer
+development layout with owner-specific names and approved profiles. If you cannot
+execute there,
 disclose that limit and help open a capable private session. Do not simulate work.
 
 Inspect before asking, preserve existing state, and execute authorized ordinary
 work yourself. Ask one material missing question at a time. The owner handles
 account consent, necessary OS permission prompts, and choices, not a terminal
 checklist. Keep progress and customer evidence outside this public repository.
+LEANN, its approved recurring refresh, Obsidian and tested role-specific capability
+sets are mandatory. Parsec is also mandatory for remote debugging/troubleshooting,
+not data restoration. Kanban, formal delivery pipelines and old-conversation
+context reconstruction are outside onboarding. Preserve existing deployments;
+data backups and verified restoration are separate requirements.
 
 **Do not run the legacy Creator setup/install/update/uninstall commands or apply
 legacy role seeds to implement the agent-led baseline.** The runtime in this
@@ -31,9 +38,11 @@ own impact review; this guide does not modify or remove an existing installation
 Historical instructions are separated in [legacy/README.md](legacy/README.md).
 Do not load them into a new customer's instruction pack as an alternative path.
 
-Never clone credentials/history, reset profiles, delete install records, start
-historical memory replay, change the only remote transport, or turn source text
-into owner approval. Additional agents, model calls, sends and schedules require
+Never clone credentials/history to provision new roles. Authorized backup and
+isolated restoration are separate recovery operations, not role provisioning.
+Do not reset profiles, delete install records, start historical memory replay,
+change the only remote transport, or turn source text into owner approval.
+Additional agents, model calls, sends and schedules require
 the applicable owner authority. A profile or instruction file is not a security
 boundary. Verify actual access and actual results before claiming completion.
 

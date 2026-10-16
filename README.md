@@ -4,8 +4,8 @@
 an agent-led setup guide for a customer-owned [Hermes Agent](https://hermes-agent.nousresearch.com/docs)
 system. The agent may use Claude, OpenAI or another suitable supported model. It
 inspects the actual machine, adapts to existing state, executes approved work,
-debugs failures and proves the finished setup. No fixed specialist roster or
-replacement main assistant is required.
+debugs failures and proves the finished setup. The development team is required;
+the existing primary assistant keeps its own name and identity as EA.
 
 Template guidance is MIT-licensed. Referenced software, skills and repair artifacts
 have their own licenses, access requirements and costs. Your facts, accounts,
@@ -32,27 +32,36 @@ third-party service support the same authentication method.
 
 The [required baseline](skills/customer-onboarding/references/baseline.md) covers
 the whole operating workflow: preserved identity and model access; an explicit
-responsibility map; file placement and project onboarding; persistent memory and
-a script-only watchdog; semantic, exact and history discovery; a source-backed
-curated wiki; viewer/device decisions; private Slack/Desktop/Tailscale access;
-Herdr and its Web UI for selected development work; capability allocation;
-maintenance ownership; and verified data restoration and graphical recovery.
+EA/CTO/Engineer responsibility map; file placement and project onboarding;
+persistent memory and a script-only watchdog; LEANN with scheduled index refresh,
+exact and history discovery; a source-backed curated wiki viewed in Obsidian;
+private Slack/Desktop/Tailscale access; four-pane Herdr development orchestration
+and its Web UI; installed/tested role-specific capabilities; maintenance ownership;
+Parsec for remote debugging/troubleshooting; and verified data backup/restoration.
 
-The main agent may handle everything or propose specialists that fit the owner.
-There is no compulsory CTO, Engineer, Ops or four-agent customer organization.
-The roster must still be discussed: preserving the main assistant is not a decision
-to decline every specialist. Every functional area needs an implementation and
-evidence; products, role names, devices and schedules adapt to the owner. A missing
-decision stays undecided, not silently optional or complete.
-Ordinary work stays in its requesting conversation. Skills, plugins, MCP servers
-and extra tools are assigned according to need and owner-approved access, not
-enabled everywhere. Only the memory watchdog is a baseline recurring job.
+The required project layout is EA top left, CTO top right, Engineer #1 bottom left
+and Engineer #2 bottom right. Reuse the owner's main assistant as EA and approved
+permanent specialist profiles. Names adapt; the required roles and positions do
+not disappear. Default to separate Engineer profiles; sharing needs verified
+memory/write safety. Extra non-development roles are not mandatory.
+
+Review the full capability catalog, then install, authenticate where needed and
+test a required role-specific set of skills, plugins, MCP integrations and toolsets.
+Unresolved required items block completion. This does not mean enable every item
+on every agent or waive account, license, cost or access approval.
+
+The memory watchdog and LEANN index-refresh schedule are required. Choose their
+scope, cadence, timezone, costs and failure recipient with the owner. Other schedules
+remain opt-in. Kanban, formal delivery pipelines and old-conversation reconstruction
+are outside onboarding. Parsec is mandatory for owner-approved remote debugging
+and hands-on troubleshooting, not as a backup or data-restoration mechanism.
+Existing tools and data are preserved; backups and restore verification remain mandatory.
 
 For repeatable per-project setup, use the bundled
 [project-onboarding skill](skills/project-onboarding/SKILL.md). It retrieves the
 project name/location/goal, preserves the existing primary assistant as EA,
 prepares only approved missing role profiles through native operations, and creates
-or reuses the selected four-pane Herdr layout. Its stdlib helper creates shells,
+or reuses the required four-pane Herdr layout. Its stdlib helper creates shells,
 not model sessions; the skill separately checks launch authority and readiness.
 Install the complete skill in the selected coordinator's skill root and verify
 discovery. It is not installed merely by reading this repository.
@@ -68,7 +77,8 @@ Memory and knowledge are distinct: OpenViking memories retain interaction-derive
 facts; a knowledge base holds approved reference sources such as manuals, policies
 and project documentation. Canonical files plus scoped retrieval can already serve
 that purpose. OpenViking resources can index selected reference material when
-needed; there is no requirement to add another database or duplicate every file.
+needed, but do not replace required LEANN. No additional database or whole-workspace
+duplicate ingestion is required.
 See the [knowledge/retrieval boundary](skills/customer-onboarding/references/baseline.md#memory-knowledge-and-file-discovery).
 Baseline acceptance demonstrates a small useful collection and a complete work
 and retrieval cycle. Comprehensive memory-engine enforcement and customer-specific
@@ -90,7 +100,8 @@ Delivery uses pinned upstream sources, vendor connection guidance and
 [23 bundled generic procedures](reusable/procedures.md), not copies of a private
 installation. Two third-party redistribution questions remain explicitly blocked
 in the reference sheet. Included does not mean activated, authenticated or tested
-on a customer's host. The main agent selects and allocates capabilities by need.
+on a customer's host. The main agent reviews the whole catalog and verifies the
+required role-specific set, rather than stopping at inventory.
 
 A bounded guide/resumption trial preserved synthetic identity, instructions,
 project state and an unsent draft. It found and fixed a guide-version recording
@@ -99,8 +110,10 @@ all full customer baseline checks remain untested by that exercise.
 
 Use the [short maintenance/recovery procedures](skills/customer-onboarding/references/maintenance.md)
 and optional [private progress template](skills/customer-onboarding/templates/progress.md).
-No second-brain migration, new knowledge service or extra scheduled routine is
-introduced by this package.
+The guide requires LEANN refresh and Obsidian acceptance, but does not itself install
+services or schedules. Report verified rows / all required rows and the calculated
+checklist percentage, not estimated effort. Reconcile older progress against this
+revision without erasing historical evidence.
 
 Repository checks use only Python's standard library and do not start Hermes:
 `python3 scripts/check_customer_guide.py` and

@@ -1,18 +1,25 @@
 # Capability reference sheet
 
 This is an **agent-led selection playbook**, not a universal installer or a copy of
-any running setup. It keeps the current main assistant, permits zero specialists,
-uses mention-only Slack, and adds no default schedule beyond an authorized
-memory-watchdog. Existing state and the sole working transport must be preserved.
+any running setup. It preserves the current main assistant as EA, requires the
+CTO/two-Engineer development team, LEANN with scheduled refresh, and Obsidian.
+Slack is mention-only. Memory-watchdog and LEANN refresh require approved targets,
+cadence and configuration. Preserve existing state and the sole working transport.
 
 The [machine-readable catalog](catalog.json) is the complete contract: **333
 records: 198 included, 39 excluded, 96 unknown**. Included means offered for a
 customer decision, not installed, enabled, licensed for all uses, authenticated,
 or runtime-tested. Unknown native candidates are not activation recommendations.
+Review the full catalog and establish an installed/tested required set per role
+across skills, plugins, MCP integrations and toolsets. Required unresolved items
+block baseline completion. Do not enable every included item on every agent.
+Kanban and formal delivery-suite entries remain references for separate requests,
+not onboarding dependencies or reasons to create boards/pipelines.
 
 ## How the agent uses this sheet
 
-1. Match the customer's task to an ID. Read that record's platform, dependency,
+1. Record every catalog disposition, then match required role capabilities to IDs.
+   Read each required record's platform, dependency,
    authentication, cost and access limits before proposing assign/defer/blocked.
 2. Resolve any `rights-review-required` gate first. Public links permit inspection,
    not automatic acquisition for customer delivery, installation or redistribution.
@@ -2231,7 +2238,7 @@ Manage explicitly authorized scheduled tasks.
 - **Acquire:** [native-runtime](https://raw.githubusercontent.com/NousResearch/hermes-agent/53df274b08f2bbbe82bb67bb50c7571952e95809/toolsets.py). Pinned package/revision in `sources.json` under `hermes`.
 - **Host/dependencies:** Hermes distribution/backend and client dependent; native Mac/target operation not tested. Hermes scheduler and an available execution/delivery host.
 - **Account/cost:** Delivery account only if selected. Recurring model/tool/hosting usage.
-- **Access:** Only memory-watchdog is baseline; all other schedules opt-in; check timezone, target and repeat count.
+- **Access:** Memory-watchdog and LEANN index-refresh are baseline; other schedules opt-in. Approve scope, cadence, timezone, target, cost and repeat count; verify useful outcomes.
 - **License:** MIT (Hermes runtime); provider/dependency terms separate.
 
 <a id="core_toolset-0225"></a>
@@ -2275,7 +2282,7 @@ Manage an owner-selected board/workstream.
 - **Acquire:** [native-runtime](https://raw.githubusercontent.com/NousResearch/hermes-agent/53df274b08f2bbbe82bb67bb50c7571952e95809/toolsets.py). Pinned package/revision in `sources.json` under `hermes`.
 - **Host/dependencies:** Hermes distribution/backend and client dependent; native Mac/target operation not tested. Hermes Kanban backend and registered workspace if used.
 - **Account/cost:** Existing board permissions. Normal runtime/delegation costs.
-- **Access:** Optional, never mandatory onboarding; preserve existing boards and approval state.
+- **Access:** Outside onboarding; do not create boards or enable dispatch for the baseline. Preserve existing boards and approval state; separate requests require their own scope.
 - **License:** MIT (Hermes runtime); provider/dependency terms separate.
 
 <a id="core_toolset-0229"></a>

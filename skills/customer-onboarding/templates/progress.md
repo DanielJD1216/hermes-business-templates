@@ -23,7 +23,7 @@ Do not include credentials, login codes, sensitive source content or token URLs.
 - Existing provider choice: [non-secret identifier; authentication is a separate check]
 - Relevant jobs, profiles and sessions: [metadata only; unrelated state stays unchanged]
 - Durable backup / integrity evidence: [verified path, hash, scope and consistency method]
-- Independent recovery route: [verified method; no secret connection material]
+- Data restore and change-specific access/rollback route: [verified method; no secret material; separate from Parsec debugging acceptance]
 
 ## Canonical file and project map
 
@@ -45,32 +45,38 @@ Leave absent facts unknown; never invent a business or team.
 Use `not-offered`, `not-decided`, `selected`, `declined` or `deferred`. Record a
 reviewed no-change as a selected choice. Decision state is separate from evidence
 state. Preserve prior valid authority; do not ask again merely to fill this table.
-Declining a product requires a suitable equivalent or an incomplete outcome.
+Declining a named required product or team outcome leaves the baseline incomplete.
 
-| Decision | State | Choice / reason / equivalent | Owner authority reference | Affected baseline row |
+| Decision | State | Implementation / reason | Owner authority reference | Affected baseline row |
 |---|---|---|---|---|
-| Responsibilities and main-only / specialist roster | not-offered | | | |
+| Required EA, CTO and two Engineer slots; individual names and approved profiles | not-offered | | | |
 | Project roots, source scope and audience | not-offered | | | |
 | Knowledge curator and update responsibility | not-offered | | | |
-| Viewer and owner devices | not-offered | | | |
+| Obsidian vault and owner viewing device | not-offered | | | |
 | Sync route or no-replica rationale | not-offered | | | |
 | Interfaces, account purposes and access | not-offered | | | |
-| Relevant capabilities and role/platform allocation | not-offered | | | |
+| Parsec debugging host/client, support permissions and applicable license | not-offered | | | |
+| Full-catalog review and required tested capability set per role/platform | not-offered | | | |
+| LEANN roots, recurring refresh cadence/timezone, costs and failure recipient | not-offered | | | |
 | Maintenance triggers, failure recipient and recovery | not-offered | | | |
-| Optional orchestration and separately scoped extensions | not-offered | | | |
+| Required Herdr development orchestration and separately scoped extensions | not-offered | | | |
 
-Herdr preset: [standard four-pane development preset offered, selected alternative,
-or unresolved decision; authority reference]. Record each pane's position, display
+Herdr preset: [required EA top left, CTO top right, Engineer #1 bottom left,
+Engineer #2 bottom right; authority reference]. Record each pane's position, display
 label, actual profile/session, project root and idle/running state. Distinguish
 browser-access proof, preset verification and agent-task readiness. Do not infer
-specialist creation or launch approval from the existence of four slots.
+specialist creation or launch approval from the existence of four slots. Shell-only
+slots are incomplete; authenticated sessions may wait idle for safe assignments.
 
 ## Baseline evidence
 
 Use `verified`, `failed` or `not-tested`. A planned change or deferred client is
 not verified. Evidence must identify the actual target and how it was checked.
-Label evidence fresh, historical or owner-relayed. Report incomplete rows and
-unresolved decisions, not an estimated completion percentage.
+Label evidence fresh, historical or owner-relayed. Calculate verified rows / all
+required rows x 100 with a tool; show the fraction and checklist percentage. No
+partial credit, removed deferred rows or estimate of effort/time remaining.
+Reconcile older evidence against this revision; do not carry generic search/viewer
+or main-only passes forward as proof of required LEANN, Obsidian or team readiness.
 
 | Component | State | Evidence / observed time | Limitation | Next action / actor |
 |---|---|---|---|---|
@@ -81,13 +87,14 @@ unresolved decisions, not an estimated completion percentage.
 | OpenViking memory | not-tested | | | |
 | Memory watchdog | not-tested | | | |
 | Local file discovery | not-tested | | | |
+| Scheduled index refresh | not-tested | | | |
 | Curated knowledge and scoped currentness | not-tested | | | |
 | Knowledge viewing and device workflow | not-tested | | | |
 | Slack | not-tested | | | |
 | Hermes Desktop | not-tested | | | |
 | Tailscale/private transport | not-tested | | | |
 | Herdr and Herdr Web UI | not-tested | | | |
-| Remote recovery | not-tested | | | |
+| Parsec remote debugging | not-tested | | | |
 | Capability allocation | not-tested | | | |
 | Maintenance and recovery data | not-tested | | | |
 | Complete operating cycle | not-tested | | | |
@@ -98,18 +105,21 @@ permissions and remaining limits]. Use approved existing or non-sensitive materi
 
 ## Capability allocation
 
-Record catalog ID/name, source and pin, intended profile, reason, OS/dependencies,
+Review the full catalog. Record each item's disposition and the required set per
+role across skills, plugins, MCP integrations and toolsets. Record catalog ID/name,
+source and pin, intended profile, reason, OS/dependencies,
 account/cost, license and permissions. Distinguish `available`, `selected`,
 `acquired` (source staged only), `installed`, `authenticated`, `verified`, `deferred`
 and `blocked`; these are not
-synonyms. Include the evidence and exact blocker for each selected capability.
+synonyms. Include evidence and the exact blocker for each required capability.
+Unresolved required items block completion. Catalog-only review does not pass.
 Do not enable the entire catalog or claim all included capabilities work on this host.
 
 ## Changes and failures
 
 Baseline knowledge proof: [collection, source citations/versions, curator, actual
 current/corrected/conflicting/out-of-scope answer checks, preserved history and
-reviewed update]. Record viewer/sync proof separately when selected.
+reviewed update]. Record required Obsidian proof and sync proof when sync is selected.
 
 For a selected mechanical lifecycle extension, distinguish documented policy,
 implemented filters, adapter tests, runtime activation and model-answer evaluation.

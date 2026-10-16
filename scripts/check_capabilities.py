@@ -56,9 +56,12 @@ def check(catalog, sources):
     need(dict(Counter(r["delivery"] for r in included)) == catalog["delivery_counts"],
          "Delivery count drift")
     safety = catalog["safety"]
-    need(safety["preserve_existing_main"] is True and safety["fixed_roster"] is False,
+    need(safety["preserve_existing_main"] is True and safety["fixed_roster"] is True,
          "Main-agent/roster invariant")
-    need(safety["slack"] == "mention-only" and safety["baseline_schedule"].startswith("memory-watchdog only"),
+    need(safety["required_tools"] == ["LEANN", "Obsidian", "Parsec"],
+         "Required search/viewer/debugging invariant")
+    need(safety["slack"] == "mention-only"
+         and safety["baseline_schedule"].startswith("memory-watchdog and LEANN index-refresh;"),
          "Slack/schedule invariant")
     sheet = (ROOT / "capabilities/REFERENCE.md").read_text()
     blocked = {(b["id"], b["scope"]) for b in catalog["blockers"]}

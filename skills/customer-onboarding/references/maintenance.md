@@ -11,9 +11,9 @@ actor in the private progress record. Do not ask again for authority already gra
 Record the responsible agent/operator, trigger, scope, expected useful result and
 failure recipient for discovery refresh, wiki review, memory/skill draft review,
 tool updates and backups. Reuse existing mechanisms; a responsibility does not
-require a new agent or scheduled job. Only the memory watchdog is a baseline
-recurring job. Additional schedules need explicit scope, cadence, delivery and
-cost decisions. Verify the underlying outcome, not merely scheduler success.
+require an extra non-development agent. The memory watchdog and LEANN index refresh
+are required recurring jobs. Approve their scope, cadence/timezone, delivery and
+costs; other schedules remain opt-in. Verify outcomes, not merely scheduler success.
 Track pending drafts and failed checks without applying or deleting data to make
 the status green. Do not promise automatic memory pruning from skill-curator
 settings; retention, archive and deletion have different scopes and authority.
@@ -25,12 +25,39 @@ reauthentication plan without reading secrets. Choose a destination independent
 of the failure being recovered from. A skills snapshot or synchronized replica
 alone is not whole-system recovery. Test restoration without replacing live data.
 
+Discover suitable storage the owner already has: an encrypted external drive,
+another computer, a NAS or approved cloud storage. A NAS purchase is not required;
+RAID or synchronization alone does not establish a recoverable backup. Protect
+sensitive archives before off-host transfer and keep recovery-key custody separate
+from the archive. Git repositories suit code and sanitized instructions, not the
+default destination for large history databases or full recovery archives.
+
+## Required LEANN refresh schedule
+
+Use current LEANN/native scheduler documentation and the actual installed help.
+Reuse a suitable existing index and recurring job. Otherwise propose a bounded
+local refresh script and the host's native scheduler (for example launchd on Mac
+or a user systemd timer on Linux). No chat model or new orchestration service is
+needed. Record roots, exclusions, embedding model/runtime, resources/cost, cadence,
+timezone, overlap prevention, startup behavior, last success and failure recipient.
+Preserve the last usable index on a failed refresh; do not publish a partial build.
+
+Read the job back, run an authorized bounded refresh and retrieve the changed source
+through LEANN. Verify rename/removal and exclusion behavior with approved fixtures.
+Check failure reporting safely without breaking the live index or sending an
+unapproved message. A failing precheck must leave an explicit stale/failed state,
+not a successful schedule result. An unrelated cache-folder warning must not be
+silently mistaken for completed index maintenance. Missing support/authority is a
+required-row blocker, not grounds to substitute manual-only refresh.
+
 ## Before any consequential change
 
 1. Read the private component map and actual current state. Identify the exact
    host, profile, service, version and owner. Work on one component at a time.
-2. Confirm an independent recovery connection and a tested way to return to the
-   current build. A second tab on the same failing service is not independent.
+2. Confirm a change-appropriate access and rollback path to the current build.
+   If the change could sever the only connection, arrange an independent route or
+   attended local recovery first. Required Parsec debugging access may help with
+   diagnosis, but does not by itself prove independent recovery or data restoration.
 3. Preserve affected configuration and content in durable owner-private storage.
    Record versions, permissions and hashes; prove the backup is readable. Use a
    supported consistent database backup, or coordinate quiescing all writers.
@@ -83,7 +110,7 @@ errors separately from valid empty retrieval and preserve unexplained failures.
 
 - Identify whether the failure is transport, host/service, authentication, quota,
   dependency or data integrity. Read the exact bounded error; do not dump secrets.
-- Use the independent recovery route. Preserve newer data before any restore.
+- Use the approved change-specific recovery route. Preserve newer data before any restore.
   Restore the matching version/config/data set into a separate private location
   first. Verify hashes, ownership, supported loading and scoped recall/search there.
 - Coordinate production cutover and writer quiescence. Preserve the failed state and

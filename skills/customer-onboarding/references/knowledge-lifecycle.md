@@ -11,9 +11,9 @@ receipts and private content outside this public repository.
 - Authoritative originals remain in their existing owning systems and projects.
 - A wiki contains reviewed explanations, scoped decisions and source citations.
   An LLM wiki is a curation method, not a separate application or model service.
-- Markdown files can be the portable storage. Obsidian is an optional viewer/editor
+- Markdown files can be the portable storage. Obsidian is the required viewer/editor
   for those files, not a requirement to create a duplicate authority or buy sync.
-- Search locates candidates. Native exact search plus a bounded semantic index is
+- Search locates candidates. Native exact search plus a bounded LEANN index is
   sufficient to start; do not add a graph/database without a demonstrated need.
 - File synchronization transports bytes. It does not curate or settle conflicts.
 
@@ -148,13 +148,14 @@ not a bundled enforcement plugin or a claim that every native provider has the
 required hooks. Report missing integration rather than claiming instructions alone
 enabled it. Proof from another host does not certify the customer's native setup.
 
-## Optional Obsidian and private device synchronization
+## Required Obsidian and optional private device synchronization
 
-The viewing workflow and device decision are required; these products are optional
-implementations. Offer Obsidian or an existing suitable viewer. Record selected,
-declined or deferred choices explicitly; a skill or source folder does not prove
-the owner can view the wiki. No sync service is needed when the selected workflow
-does not require replicas. An undecided device workflow is not a declined one.
+Obsidian and its actual owner-device viewing check are required. Reuse a suitable
+existing installation/vault or install through the approved native route. A skill,
+folder or another viewer does not prove this requirement. Record an unavailable
+device or missing approval as incomplete, not an alternative pass. Device sync
+remains conditional: no sync service is needed when the selected workflow needs no
+replicas. An undecided device workflow is not a declined one.
 
 Discover the actual host and viewer device. An unavailable client does not prevent
 host preparation, but leaves client acceptance incomplete. Use an existing vault

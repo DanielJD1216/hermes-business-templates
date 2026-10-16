@@ -25,9 +25,10 @@
   },
   "safety": {
     "preserve_existing_main": true,
-    "fixed_roster": false,
+    "fixed_roster": true,
+    "required_tools": ["LEANN", "Obsidian", "Parsec"],
     "slack": "mention-only",
-    "baseline_schedule": "memory-watchdog only; other schedules require explicit opt-in",
+    "baseline_schedule": "memory-watchdog and LEANN index-refresh; approved scope, cadence and costs; other schedules require explicit opt-in",
     "authority": "Selection and source availability never authorize installation, consent, paid calls, sends, deployment, or memory/index writes."
   },
   "verification_bounds": "All included entries have acquisition or exact blocker, dependencies, platform/auth/cost/access and license notes. Public source paths/content and generic document structure checked. No installation, credentials, live account action, target Mac operation, provider call, package execution or real memory/index mutation tested.",
@@ -5578,7 +5579,7 @@
       "dependencies": "Hermes scheduler and an available execution/delivery host.",
       "authentication": "Delivery account only if selected.",
       "cost": "Recurring model/tool/hosting usage.",
-      "access": "Only memory-watchdog is baseline; all other schedules opt-in; check timezone, target and repeat count.",
+      "access": "Memory-watchdog and LEANN index-refresh are baseline; other schedules opt-in. Approve scope, cadence, timezone, target, cost and repeat count; verify useful outcomes.",
       "license": "MIT (Hermes runtime); provider/dependency terms separate.",
       "redistribution": "No runtime bundled; acquire official Hermes and retain its license.",
       "verification": "public-source-definition",
@@ -5674,7 +5675,7 @@
       "dependencies": "Hermes Kanban backend and registered workspace if used.",
       "authentication": "Existing board permissions.",
       "cost": "Normal runtime/delegation costs.",
-      "access": "Optional, never mandatory onboarding; preserve existing boards and approval state.",
+      "access": "Outside onboarding; do not create boards or enable dispatch for the baseline. Preserve existing boards and approval state; separate requests require their own scope.",
       "license": "MIT (Hermes runtime); provider/dependency terms separate.",
       "redistribution": "No runtime bundled; acquire official Hermes and retain its license.",
       "verification": "public-source-definition",
@@ -8220,7 +8221,7 @@
   "bundled_files": [
     {
       "path": "reusable/procedures.md",
-      "sha256": "cf6b22b6b30f744aeafeb6b6661b0179adbbaf613bcabd3b67116c3bb8ffd4d6",
+      "sha256": "9af6e4f1ebc53fa773840b63e710c8c2784406328f8efb870818f5a03a3d8e11",
       "license_path": "LICENSE",
       "capability_ids": [
         "skill-0001",
