@@ -61,6 +61,14 @@ installed harness and official documentation, not these example names:
   goal, create/reuse approved workspace/context, then optionally map Herdr sessions
   if development orchestration is selected. No automatic second writer or new team.
 
+For selected Herdr projects, install and verify the complete bundled
+[project-onboarding skill](../../project-onboarding/SKILL.md) in the approved
+coordinator's skill root. It adapts the existing assistant and selected role names,
+reuses profiles across projects, and records a per-project layout. Use its role
+preparation step for approved missing profiles, not the legacy installer. Confirm
+native skill discovery and helper files; a file link alone does not provide the
+owner a working reusable command. Preserve existing skills and approval policy.
+
 The map must govern work, not merely list directories. Define where incoming
 material, active work, research, assets/deliverables, archives and scratch belong;
 reuse existing roots. Name the source of truth, owner, audience, lifecycle state,

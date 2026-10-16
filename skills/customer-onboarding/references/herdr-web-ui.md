@@ -61,7 +61,9 @@ ordinary conversations through Herdr. Carry an existing valid choice forward.
 
 The existing primary assistant fills Executive Assistant; display names and role
 assignments adapt to the owner. The Engineer panes can be distinct sessions of one
-Engineer profile, not two new permanent profiles. They may work in parallel only
+Engineer profile only after verifying supported shared-profile memory/write safety;
+separate session IDs do not isolate profile memory. Otherwise use approved separate
+worker profiles or keep a slot idle. They may work in parallel only
 with non-overlapping ownership and isolated writable workspaces where needed.
 Do not create unapproved worktrees or two writers for the same files. Keep one
 coordinator; the preset does not make every pane a coordinator.
@@ -71,6 +73,12 @@ specialists merely to fill the grid. If the owner chooses main-only use, offer
 main sessions or clearly labelled idle slots, or record an alternative layout.
 An idle slot labelled CTO is not evidence that a CTO agent exists or is running.
 Distinguish persistent profile, terminal pane, running process and conversation.
+
+For creating or reusing this layout per project, use the bundled
+[project-onboarding skill](../../project-onboarding/SKILL.md), including its native
+role-preparation step and stdlib layout helper. Reuse the owner's existing assistant
+as EA; create missing specialists only after approval, once for reuse rather than
+once per project. Never copy the publisher's profile names, identity or credentials.
 
 After approval, the setup agent configures the selected preset with supported
 native operations, using the installed version's help. Preserve existing sessions,
