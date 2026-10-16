@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.6.0
+version: 0.7.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -58,6 +58,65 @@ to invent it. This guide does not install a skill merely because it is read.
   changes to the only recovery route when existing authority does not cover them.
 - Keep a private progress record with observed evidence and next actions. Resume
   from that evidence, not from a remembered success claim. Never erase failures.
+
+## Mandatory progress checkpoint
+
+Before each setup reply, including resumption and handoff:
+
+1. Read the selected guide and current private record. Map the next action to an
+   unfinished baseline row, its necessary prerequisite, or an explicit additional
+   owner outcome. Park unrelated improvements. Preserve valid evidence; do not
+   repeat completed installation, logins or paid tests merely because context was lost.
+2. Record actual changes, failures and evidence. Reopen only affected rows when
+   proof becomes invalid, preserve their history and explain any percentage decrease.
+   Unchanged coverage is normal during a component's substeps; report the actual
+   result instead of inventing partial credit. Repeated failure needs diagnosis,
+   not unchanged retries or reassuring claims.
+3. Run the bundled [read-only checker](scripts/check_progress.py) against the
+   private record using the instructions below. End the reply with its `footer`,
+   retaining the numbers, evidence qualification, state, next actor/action and
+   exact owner action. Include a real blocker or continuation reference when present.
+   If the checker cannot run or rejects the record, withhold the percentage,
+   report progress as unvalidated, and repair the record within scope or identify
+   the exact access/authority blocker. Never invent a passing result.
+4. `continue` means perform the next safe authorized action in this turn, not
+   stop and request another "go on". Stop only for necessary `owner-action`, a
+   genuine `blocked` dependency after independent work is exhausted, `waiting`
+   on a registered background continuation, an explicit owner `paused` request,
+   or verified `complete`. Preserve all existing approval and cost boundaries.
+
+Keep one authoritative private record. The [template](templates/progress.md) is
+optional, but the checker expects its named fields and inline tables. Back up an
+existing record before normalizing its layout; retain history and authority. If
+an existing tracker must remain authoritative, validate a current read-only
+projection with its source/version recorded, not a competing editable tracker.
+Do not retest every service on each reply; validate the record and inspect only
+relevant changed state. A brief setup answer still ends with the current footer.
+
+Use the complete customer skill package from the same selected immutable source
+revision; inspect the script before execution. The agent, not the owner, runs:
+
+```text
+python3 "<guide-root>/skills/customer-onboarding/scripts/check_progress.py" --describe
+python3 "<guide-root>/skills/customer-onboarding/scripts/check_progress.py" "<private-progress.md>"
+```
+
+`--describe` supplies the local baseline SHA256 and required row names. Record
+the full source commit separately. A changed fingerprint requires evidence
+reconciliation, not blind replacement. Exit zero means structurally valid, not
+finished: inspect `complete`. A full baseline percentage can still have unresolved
+owner decisions or additional outcomes. The checker is stdlib-only, reads local
+files, makes no provider/network calls and writes nothing. It checks commit format
+and the local baseline fingerprint, not source authenticity, receipt truth,
+approval validity, test scope, or delivery. Inspect those underlying facts yourself.
+
+For `waiting`, record the actual job plus supported registered callback/delivery
+evidence before promising a return. If that route is unavailable, finish a bounded
+foreground operation where practical; otherwise state the limitation and give one
+exact owner resume step. Do not add a schedule or external send without authority.
+A background result does not override an explicit pause or later owner direction.
+No permanent checker agent, response hook or auto-resume service is installed by
+this guide. Instruction compliance remains distinct from runtime enforcement.
 
 ## Procedure
 

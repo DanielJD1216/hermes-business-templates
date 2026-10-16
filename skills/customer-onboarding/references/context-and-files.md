@@ -85,6 +85,13 @@ public checkout and shared role storage. No new database or checkpoint engine is
 required. Restrict its permissions and scope it to this onboarding run.
 An optional [progress template](../templates/progress.md) is supplied for this purpose.
 
+Follow the [mandatory progress checkpoint](../SKILL.md#mandatory-progress-checkpoint)
+before every setup reply, not only at handoff. Reuse the record; use its required
+field/table layout or a source-versioned read-only projection of an existing
+authoritative tracker. Run the bundled checker and retain its footer. Do not store
+a separately guessed percentage. A checker error is an unvalidated checkpoint,
+not permission to reassure the owner or reset completed work.
+
 Keep these fields:
 
 - **Goal and execution context:** actual host/client, profile and approved scope.

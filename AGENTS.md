@@ -28,6 +28,14 @@ not data restoration. Kanban, formal delivery pipelines and old-conversation
 context reconstruction are outside onboarding. Preserve existing deployments;
 data backups and verified restoration are separate requirements.
 
+Before each setup reply, follow the customer skill's mandatory progress checkpoint:
+reconcile the private record, run the bundled read-only checker, and include its
+footer. Continue safe authorized work without repeated permission prompts. Keep
+real blockers, owner steps, registered background continuation, explicit pauses
+and completion distinct. Do not replace evidence with reassurance or promise a
+return channel that has not been established. This applies to active onboarding,
+not every future business conversation; a pause or new owner direction takes priority.
+
 **Do not run the legacy Creator setup/install/update/uninstall commands or apply
 legacy role seeds to implement the agent-led baseline.** The runtime in this
 revision still creates a fixed Ops dependency, a board, business playbooks and
