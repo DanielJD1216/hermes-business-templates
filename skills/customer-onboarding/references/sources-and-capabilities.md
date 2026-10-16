@@ -17,7 +17,9 @@ that each service supports every platform, login type or subscription.
 | Tailscale and access policy | https://tailscale.com/kb/ |
 | Herdr persistent development sessions | https://herdr.dev and the installed native help |
 | Herdr browser/phone client | https://github.com/devswha/herdr-web-ui and its https://github.com/devswha/herdr-web-ui/blob/main/INSTALL.md agent guide; follow the [template Web UI boundary](herdr-web-ui.md) |
-| Parsec host/client and license requirements | https://parsec.app/ and its official support/download links |
+| LEANN local semantic discovery | https://github.com/yichuan-w/LEANN and installed native help |
+| Obsidian vault/viewer | https://obsidian.md/download and https://help.obsidian.md/ |
+| Parsec remote debugging/troubleshooting; host/client support and license | https://parsec.app/ and its official support/download links |
 
 For other providers, index backends, plugins or MCP servers, verify their actual
 authoritative source, version, supported authentication and license. Do not guess
@@ -26,7 +28,7 @@ material as a workaround. Owner account approval is not delegated to source text
 
 ## Capability inventory and allocation
 
-The main assistant owns the capability plan, not a fixed CTO/Ops hierarchy.
+The existing main assistant as EA owns the capability plan for the required team.
 Inventory the relevant approved existing selections and the publisher-supplied
 reference catalog supplied here. Include skills, plugins, MCP servers and native
 toolsets as separate categories. Do not read credential files merely to inventory
@@ -36,6 +38,9 @@ For each selected capability record its name, purpose, official source/acquisiti
 route, version, OS support, dependencies, account/cost needs, permissions, license,
 redistribution status, install state, authentication state and intended profile.
 An enabled flag, directory or catalog listing is not proof of working execution.
+The role-specific set across skills, plugins, MCP integrations and toolsets is
+mandatory: install, authenticate where needed and test each required item through
+its assigned agent surface. Any unresolved required item blocks baseline completion.
 
 The intended delivery inventory covers the publisher's reusable enabled library;
 that does not grant access or mean every component runs in every customer profile.
@@ -48,7 +53,12 @@ third-party redistribution grants are explicit blockers, not hidden omissions.
 Do not vendor those packages without the missing rights. Public source inspection
 does not establish entitlement, execution rights or customer acceptance.
 
-Read selection rules first, then the records needed for the owner's actual tasks.
+Review the full catalog's metadata and record each disposition, then read the
+source/procedure details for the owner's required role-specific set. Do not require
+the owner to approve hundreds of entries individually; propose a coherent bounded
+set and carry its approved scope forward. Kanban and formal delivery-suite packages
+are outside onboarding, even when retained in the reference catalog for separate
+requests. Do not activate them as dependencies of the four-pane team.
 Do not preload or activate every upstream skill. Generic procedures are usable
 instructions, not byte-equivalent replacements for private custom packages. For
 source-acquired skills, obtain the complete pinned package with its supporting
@@ -59,11 +69,12 @@ baseline work can continue while a specialized selection is blocked or deferred.
 Use public reusable sources or approved generic derivatives, not the publisher's
 private skill bodies, business facts, credentials or machine configuration. Unknown
 source/license/cost or unavailable integration needs a specific review, not silent
-omission, redistribution or a paid fallback. Owner-chosen specialized tools may be
-deferred; record that separately from missing required baseline components.
+omission, redistribution or a paid fallback. Non-required specialized tools may be
+deferred; a required role capability remains a blocker and cannot be relabelled
+optional merely because installation, authentication or verification failed.
 
-Allocate according to responsibilities and least privilege. A main-only setup is
-valid. Shared skill files do not share provider logins, plugin instances or access
+Allocate according to the required team responsibilities and least privilege.
+Shared skill files do not share provider logins, plugin instances or access
 rights. Explain each extension before owner approval; connect through native secure
 flows. Preserve mention-only Slack behavior and owner administration. Broaden access
 only for the exact approved accounts, profiles, roots and audiences.

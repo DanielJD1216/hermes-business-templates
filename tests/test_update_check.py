@@ -148,7 +148,7 @@ class DocumentationContract(unittest.TestCase):
             self.assertIn(term, brief)
 
     def test_optional_services_are_owner_prerequisites_not_security_claims(self):
-        text = (ROOT / "README.md").read_text()
+        text = (ROOT / "legacy/README.md").read_text()
         for term in ("hermes memory setup", "English search suitability", "costs and credentials",
                      "does not provision", "not automatic outage fallback",
                      "not an authorization or hostile-process boundary", "Ops keeps no memory",
@@ -159,7 +159,7 @@ class DocumentationContract(unittest.TestCase):
         self.assertNotIn("so bots cannot see each other's memories", text)
 
     def test_historical_proof_and_remaining_gates_are_explicit(self):
-        text = (ROOT / "README.md").read_text()
+        text = (ROOT / "legacy/README.md").read_text()
         for term in ("historical evidence", "not checks rerun", "52 native opt-in tests were skipped, not passed",
                      "8776cac768ca810c1a6ce60acf2a95ffe617d5cf", "NULL/empty notifier owners",
                      "legacy exact-session-key behavior", "Notification collection is not external delivery",

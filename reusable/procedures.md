@@ -3,9 +3,11 @@
 These are ready-to-read instructions for a tool-capable customer-owned agent, not
 an installer or a replacement identity. Read only the selected section and keep
 the existing main assistant. Each section specifies its inputs, authority and
-completion evidence. No named roster, live account, private reference or schedule
-is required. Slack remains mention-only; memory-watchdog is the sole baseline
-schedule, and even that needs an approved target and configuration.
+completion evidence. Personal names, live accounts and private references are not
+supplied. The onboarding baseline requires the EA/CTO/two-Engineer team, LEANN,
+Obsidian and a tested role-specific capability set. Slack remains mention-only;
+memory-watchdog and LEANN refresh are required schedules with approved settings.
+These procedures do not create Kanban/formal pipelines or reconstruct old chats.
 
 New generic contributions are covered by the repository [MIT license](../LICENSE).
 They are independently authored replacements with bounded scope, not copies of
@@ -102,9 +104,9 @@ Audit an existing agent workspace and propose a non-destructive setup merge.
 **Boundary:** Preserve assistant, histories, profiles, skills, schedules and transport.
 
 1. Identify the intended host, active assistant, existing instructions and supported runtime version using nonsecret metadata. Do not infer operating system from a remembered user profile.
-2. List requested capabilities and map each to an existing tool, a source package or a genuine blocker. Keep the existing main assistant; zero specialist agents is valid.
+2. Review the catalog and map the required role-specific set to existing tools, source packages or genuine blockers. Preserve the existing main assistant as EA and prepare approved permanent CTO/Engineer roles; main-only operation is incomplete.
 3. Propose a field-level merge with responsibility, permissions, cost, rollback and verification for each change. Do not clone another profile, credentials or memories.
-4. For Slack, propose mention-only behavior and explicit peer scope. Do not add schedules except an explicitly authorized memory-watchdog baseline; other routines stay opt-in.
+4. For Slack, propose mention-only behavior and explicit peer scope. Require approved memory-watchdog and LEANN index-refresh schedules; other routines stay opt-in.
 
 **Completion check:** Output: current-state summary, preserved state, proposed merge and owner decisions. This audit grants no installation, login or send authority.
 
@@ -318,7 +320,7 @@ Coordinate independently scoped work without conflicting writers or invented rev
 **Boundary:** One coordinator, one writer per boundary and one deployment owner.
 
 1. Decompose only independent tasks. Assign each worker exact inputs, writable paths, forbidden actions, acceptance checks and a return format.
-2. Keep the primary conversation coordinating; do not create a fixed specialist roster. Use the owner-selected transport and preserve active sessions and drafts.
+2. Keep one coordinator and reuse the required approved development team; do not create extra profiles for each task. Use the approved Herdr transport and preserve active sessions and drafts. No Kanban or formal pipeline is needed.
 3. Merge only after checking outputs, changed-file boundaries and test evidence. A worker’s self-review is not an independent review.
 4. Resolve conflicting edits with the designated owner. Do not parallelize dependent steps or publish before integrated verification.
 

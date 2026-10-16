@@ -1,7 +1,7 @@
 ---
 name: project-onboarding
 description: "Create or reuse an approved project and Herdr team."
-version: 0.2.0
+version: 0.3.0
 author: Hermes Business Templates contributors, Hermes Agent
 license: MIT
 platforms: [linux, macos]
@@ -9,10 +9,11 @@ platforms: [linux, macos]
 
 # Adaptive project onboarding
 
-Use when the owner explicitly asks to create/onboard a project and chooses a Herdr
-workspace. Ordinary chat, research, fixes and implementation stay in the originating
-conversation unless this workflow is selected. Setup is not permission to build,
-publish, deploy, spend or send. No legacy Creator installation is required.
+Use for required per-project Herdr development setup during authorized onboarding,
+and when the owner later requests a new project. Ordinary non-development chat
+stays in its originating conversation. Use the required team without Kanban or
+formal delivery pipelines. Setup is not permission to build, publish, deploy,
+spend or send. No legacy Creator installation is required.
 
 ## Prerequisites and discovery
 
@@ -35,9 +36,9 @@ publish, deploy, spend or send. No legacy Creator installation is required.
 ## Adapt the team once, not once per project
 
 Use the [role preparation procedure](references/role-setup.md). Retrieve existing
-choices, then recommend the minimum useful mapping and ask only missing decisions.
-For a selected development team, offer EA, CTO and Engineer responsibilities. Names,
-profile IDs and the number of independent worker profiles belong to the owner.
+choices, then map the required EA, CTO and two Engineer slots and ask only missing
+decisions. Preserve the existing EA and reuse permanent CTO/Engineer profiles or
+prepare approved missing ones. Names and native profile IDs belong to the owner.
 Do not assume the person typing owns every account or has authority to create roles.
 
 Show this mapping before mutation:
@@ -49,16 +50,19 @@ Show this mapping before mutation:
 | Bottom left | Engineer #1 | Selected implementation profile/session |
 | Bottom right | Engineer #2 | Selected second session/profile; idle until safely assigned |
 
-The owner may keep main-only operation or choose another layout. This helper is
-for the selected four-pane layout only; do not force it on a different choice.
+Main-only operation or another layout does not satisfy this baseline. A declined
+team requirement remains incomplete; it is not permission to force creation.
 Reuse approved profiles across projects; do not recreate them for every project.
+EA and CTO must be distinct profiles, and neither may stand in for the Engineer
+role. Two Engineer slots may share a profile only with the safety proof below.
 
 **Before launching concurrent sessions**, inspect the installed runtime's memory
 and shared-profile behavior. Current upstream profile guidance warns that multiple
 processes can write the same profile memory. Separate session IDs/worktrees do not
 isolate that memory. Reusing one Engineer profile in both slots is not automatic
 permission to run both simultaneously. Use separately approved worker profiles,
-a verified supported write-isolation arrangement, or leave the second slot idle.
+a verified supported write-isolation arrangement. Otherwise keep the unsafe slot
+stopped and record incomplete readiness until an approved safe mapping is available.
 Apply the same check to the primary assistant and other already-running sessions.
 Do not silently disable owner memory, clone profiles or copy credentials to solve it.
 
@@ -146,7 +150,9 @@ invent commands. The agent performs authorized setup where its tools permit.
 
 Report project/root, approved role map, exact workspace/pane IDs, preserved files,
 geometry/reuse result, and per-slot state: shell-only, awaiting authorization/login,
-or verified agent session. Record launch and useful-task proof separately. Do not
+or verified agent session. Baseline acceptance requires authenticated readiness
+in all four slots, not four shell labels. Ready agents may wait idle until safely
+assigned. Record launch and useful-task proof separately. Do not
 claim native Mac acceptance from Linux tests, or model readiness from layout tests.
 
 The helper uses Unix sockets and `fcntl`; native Windows is unsupported. A Windows

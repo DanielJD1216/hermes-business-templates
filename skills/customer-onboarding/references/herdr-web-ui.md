@@ -50,9 +50,10 @@ prerequisite repair separately with a verified resume/recovery path.
 
 ## Standard four-pane development preset
 
-Offer this preset during the responsibility/workflow decision. It is the standard
-development option, not a compulsory specialist roster or a requirement to route
-ordinary conversations through Herdr. Carry an existing valid choice forward.
+This preset is required for per-project development orchestration. Names adapt to
+the owner; the responsibilities and positions remain fixed. Ordinary non-development
+conversations need not move into Herdr. Carry compatible existing approvals forward;
+an older approval for main-only access does not authorize creation or model launches.
 
 | Top left | Top right |
 |---|---|
@@ -63,15 +64,17 @@ The existing primary assistant fills Executive Assistant; display names and role
 assignments adapt to the owner. The Engineer panes can be distinct sessions of one
 Engineer profile only after verifying supported shared-profile memory/write safety;
 separate session IDs do not isolate profile memory. Otherwise use approved separate
-worker profiles or keep a slot idle. They may work in parallel only
+worker profiles. An unresolved concurrency issue leaves readiness incomplete; do
+not substitute a shell-only slot for acceptance. They may work in parallel only
 with non-overlapping ownership and isolated writable workspaces where needed.
 Do not create unapproved worktrees or two writers for the same files. Keep one
 coordinator; the preset does not make every pane a coordinator.
 
-Present the mapping and reuse selected profiles. Do not create or reactivate
-specialists merely to fill the grid. If the owner chooses main-only use, offer
-main sessions or clearly labelled idle slots, or record an alternative layout.
-An idle slot labelled CTO is not evidence that a CTO agent exists or is running.
+Present the required mapping and reuse approved permanent profiles. Obtain missing
+authority to create CTO/Engineer roles rather than treating them as optional.
+Do not reactivate deleted profiles or replace the main assistant. Main-only use,
+an alternative layout or labelled shells leaves baseline acceptance incomplete.
+An idle shell labelled CTO is not evidence that a CTO agent exists or is ready.
 Distinguish persistent profile, terminal pane, running process and conversation.
 
 For creating or reusing this layout per project, use the bundled
@@ -128,6 +131,7 @@ The agent checks and records:
    must be explained. Missing phone access does not block independent host work;
    report that selected client check as pending rather than claiming it passed.
 
-Installation is required for the browser-based Herdr baseline. Using Herdr for
-ordinary tasks, adding remote PCs, sending messages, starting agents and enabling
-optional phone integrations remain separate owner choices.
+Installation and the verified four-session development team are required for the
+baseline. Obtain applicable authority before starting agents or sending handoffs;
+missing authority leaves acceptance pending. Using Herdr for non-development work,
+adding remote PCs and enabling phone extras remain separate owner choices.

@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.5.0
+version: 0.6.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -20,10 +20,10 @@ a second installer merely because a native command or dependency needs diagnosis
 - [Context, instruction files and private progress](references/context-and-files.md).
 - [Knowledge, viewer/sync and lifecycle acceptance](references/knowledge-lifecycle.md).
 - [Sources, capabilities and legacy boundary](references/sources-and-capabilities.md).
-- [Capability reference sheet](../../capabilities/REFERENCE.md): selection rules
-  first, then only relevant records and their selected source/procedure references.
+- [Capability reference sheet](../../capabilities/REFERENCE.md): review the whole
+  catalog's metadata, then load the sources/procedures for the required role-specific set.
 - [Herdr Web UI and terminal-access safety](references/herdr-web-ui.md).
-- [Reusable project onboarding](../project-onboarding/SKILL.md) when the owner selects project/Herdr setup.
+- [Required reusable project onboarding](../project-onboarding/SKILL.md).
 - [Maintenance and recovery](references/maintenance.md).
 - [Mac findings](references/mac-notes.md) when the host or client is a Mac.
 
@@ -36,7 +36,8 @@ to invent it. This guide does not install a skill merely because it is read.
 
 - Confirm a private audience and the actual execution host. A chat-only model can
   advise but cannot claim installation. Prefer the owner's existing private main
-  assistant. Do not require a second main agent, CTO, Engineer or Ops.
+  assistant as EA. Require permanent CTO/Engineer roles and two ready Engineer
+  sessions in the four-pane layout. Do not create a second main agent or force Ops.
 - Retrieve authorized host/context facts before asking. Ask one missing decision
   or give one unavailable-to-your-tools owner action at a time. Batch independent
   checks yourself. Do not require the owner to edit JSON or relay routine logs.
@@ -72,10 +73,10 @@ mark client acceptance pending. Do not demand access to a device the owner lacks
 
 ### 2. Understand the owner and propose the setup
 
-Reuse current preferences and instructions. Offer context reconstruction from
-owner-selected sources using the context reference; do not force exports or a
-blank personality questionnaire. Propose reviewed no-change or a narrow merge.
-Map required capabilities to the existing main agent and only needed specialists.
+Reuse current preferences and instructions; ask only missing facts. Do not offer
+old-conversation exports or context reconstruction as an onboarding stage. Propose
+reviewed no-change or a narrow merge. Map required capabilities to the existing
+main assistant as EA and the required CTO/Engineer team with owner-specific names.
 Propose minimum data/tool/channel access, project locations and provider/account
 requirements. Explain costs and processing. Show the actual proposed changes;
 obtain owner approval before live identity/context adoption, role creation or
@@ -85,8 +86,10 @@ Before implementation, show a compact system map covering every baseline domain.
 Retrieve the owner's intended work and first useful outcome; setup activity itself
 does not establish their business needs. Explicitly resolve responsibilities,
 roster, viewer/device access, sync, capabilities and maintenance ownership using
-the decision record in the progress template. A no-change or main-only choice is
-valid when reviewed, not inferred from a prohibition on unwanted agents.
+the decision record in the progress template. A reviewed no-change is valid only
+where the existing setup meets the requirements. Main-only operation, a different
+viewer or an alternative search backend does not satisfy the required team,
+Obsidian or LEANN outcomes. Owner refusal/deferral remains a visible blocker.
 
 ### 3. Implement through supported native operations
 
@@ -103,6 +106,17 @@ actual retrieval. Existing operating documents can exercise this path; do not
 demand a business data dump. Keep comprehensive memory-engine work and the owner's
 first custom business automation separately scoped. Unsupported baseline behavior
 remains a named gap; it is not permission to fork a service during onboarding.
+
+Install/discover the complete project-onboarding skill and prove the required
+per-project four-pane team. Establish LEANN, its approved recurring refresh and
+Obsidian on the owner's viewing device. Review the full capability catalog and
+install/authenticate/test the required set through each assigned agent surface.
+Do not stop at an inventory, create Kanban boards or invoke formal delivery
+pipelines to complete onboarding. Reuse or install Parsec for approved remote
+debugging/troubleshooting and verify an actual connection to the intended desktop.
+Check host/client support, applicable license and owner permissions without assuming
+a purchase or granting permanent support access. Preserve existing access and verify
+backups separately; a Parsec session does not prove data restoration.
 
 For each missing component: inspect current docs, select the smallest supported
 method, explain any material assumption, execute authorized work, and read back
@@ -139,8 +153,10 @@ health are not end-to-end memory, Slack or remote-access acceptance.
 
 Also prove the complete operating cycle in the baseline, not only each installed
 component. Record fresh, historical and owner-relayed evidence separately. Report
-verified rows, unresolved decisions and exact blockers rather than a guessed
-completion percentage. Do not treat a pilot or this documentation as deployed code.
+verified rows, unresolved decisions and exact blockers. Calculate verified / all
+required rows x 100 with a tool and show the fraction as checklist coverage, with
+no partial credit or omitted deferred rows. Do not treat it as time/effort completed.
+Do not treat a pilot or this documentation as deployed code.
 
 ### 6. Handoff and resume
 
