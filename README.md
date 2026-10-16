@@ -21,6 +21,7 @@ Explicitly read README.md, AGENTS.md, skills/customer-onboarding/SKILL.md and it
 First verify that you can act on my intended host and inspect the existing setup. Preserve my current assistant, model/login, history, files and working access.
 Follow the agent-led baseline, not the legacy Creator installer. Retrieve known facts before asking, propose the missing work and get the applicable approvals. Then execute and verify authorized work yourself; ask me only for missing decisions, account sign-in, OS permissions or actions your tools cannot perform.
 Keep a private resumable progress record. Do not reset or reinstall working components, create unwanted roles, copy credentials or invent successful checks. Report exact blockers and whether the required baseline is actually complete.
+Before each setup reply, reconcile that record against the selected guide and run its read-only progress checker. End the reply with its evidence-based fraction/percentage, current step, just-verified result, next action/actor and my exact action or none. Continue authorized work without asking me to say go on. Stop only for a real blocker, necessary owner action, a registered background continuation, my explicit pause or verified completion. Never promise an automatic return without a supported continuation route.
 ```
 
 A URL does not automatically load instructions. The agent must actually read them.
@@ -114,6 +115,14 @@ The guide requires LEANN refresh and Obsidian acceptance, but does not itself in
 services or schedules. Report verified rows / all required rows and the calculated
 checklist percentage, not estimated effort. Reconcile older progress against this
 revision without erasing historical evidence.
+
+Every setup reply requires the onboarding skill's progress checkpoint. Its
+[read-only checker](skills/customer-onboarding/scripts/check_progress.py) calculates
+coverage and supplies the footer; owner-confirmed evidence remains labelled.
+It checks record consistency, not whether receipts are genuine or host tests passed.
+This guide installs no response hook, extra checker bot or notification service.
+The agent must invoke the checker and use the result; text instructions alone do
+not mechanically enforce every model reply or guarantee a later notification.
 
 Repository checks use only Python's standard library and do not start Hermes:
 `python3 scripts/check_customer_guide.py` and

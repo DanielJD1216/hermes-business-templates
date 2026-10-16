@@ -128,6 +128,11 @@ Calculate checklist coverage with a tool: verified rows divided by all required
 rows times 100. Show the numerator and denominator; give no partial credit and do
 not remove deferred rows. This is checklist coverage, not an effort/time estimate.
 Track additional owner-required outcomes separately; they also gate completion.
+Use the [mandatory progress checkpoint](../SKILL.md#mandatory-progress-checkpoint)
+on every setup reply. The read-only checker derives the denominator from this
+selected baseline and identifies owner-relayed rows within the total. Its passing
+result establishes record consistency only, not independent verification of those
+rows. A full percentage is not completion while decisions or owner outcomes remain.
 A deferred client device, unsupported recovery method or missing memory test keeps
 its row incomplete, but does not block independent host work. Report partial
 completion honestly. A text instruction, model assertion, installed package,

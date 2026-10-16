@@ -7,7 +7,8 @@ Do not include credentials, login codes, sensitive source content or token URLs.
 
 ## Goal and scope
 
-- Template revision: [exact revision read]
+- Template revision: [full 40-character source commit]
+- Baseline SHA256: [from the selected checker --describe; reconcile before changing]
 - Source integrity: [clean pinned revision, or dirty status plus hashes of every file read; HEAD alone does not identify modified/untracked instructions]
 - Actual host / client / OS / architecture: [observed; unavailable stays unknown]
 - Main assistant and profile: [existing identity; preserve]
@@ -46,6 +47,10 @@ Use `not-offered`, `not-decided`, `selected`, `declined` or `deferred`. Record a
 reviewed no-change as a selected choice. Decision state is separate from evidence
 state. Preserve prior valid authority; do not ask again merely to fill this table.
 Declining a named required product or team outcome leaves the baseline incomplete.
+For a declined required decision, list affected component names exactly, separated
+by semicolons; those rows cannot remain verified. A compatible alternative or
+reviewed no-change is recorded as selected, not declined. Required declined and
+deferred choices remain completion blockers; optional declined choices do not.
 
 | Decision | State | Implementation / reason | Owner authority reference | Affected baseline row |
 |---|---|---|---|---|
@@ -78,26 +83,31 @@ partial credit, removed deferred rows or estimate of effort/time remaining.
 Reconcile older evidence against this revision; do not carry generic search/viewer
 or main-only passes forward as proof of required LEANN, Obsidian or team readiness.
 
-| Component | State | Evidence / observed time | Limitation | Next action / actor |
-|---|---|---|---|---|
-| Hermes and model access | not-tested | | | |
-| Main assistant | not-tested | | | |
-| Responsibilities and roster | not-tested | | | |
-| Canonical context and projects | not-tested | | | |
-| OpenViking memory | not-tested | | | |
-| Memory watchdog | not-tested | | | |
-| Local file discovery | not-tested | | | |
-| Scheduled index refresh | not-tested | | | |
-| Curated knowledge and scoped currentness | not-tested | | | |
-| Knowledge viewing and device workflow | not-tested | | | |
-| Slack | not-tested | | | |
-| Hermes Desktop | not-tested | | | |
-| Tailscale/private transport | not-tested | | | |
-| Herdr and Herdr Web UI | not-tested | | | |
-| Parsec remote debugging | not-tested | | | |
-| Capability allocation | not-tested | | | |
-| Maintenance and recovery data | not-tested | | | |
-| Complete operating cycle | not-tested | | | |
+Use evidence basis `fresh`, `historical`, `owner-relayed` or `none`. Verified and
+failed rows require a concrete receipt/reference; unresolved rows need a next
+action and actor. The checker cannot establish truth or adequate scope from a
+reference alone. Keep cells on one line without pipe characters.
+
+| Component | State | Evidence basis | Evidence / observed time | Limitation | Next action / actor |
+|---|---|---|---|---|---|
+| Hermes and model access | not-tested | none | | | |
+| Main assistant | not-tested | none | | | |
+| Responsibilities and roster | not-tested | none | | | |
+| Canonical context and projects | not-tested | none | | | |
+| OpenViking memory | not-tested | none | | | |
+| Memory watchdog | not-tested | none | | | |
+| Local file discovery | not-tested | none | | | |
+| Scheduled index refresh | not-tested | none | | | |
+| Curated knowledge and scoped currentness | not-tested | none | | | |
+| Knowledge viewing and device workflow | not-tested | none | | | |
+| Slack | not-tested | none | | | |
+| Hermes Desktop | not-tested | none | | | |
+| Tailscale/private transport | not-tested | none | | | |
+| Herdr and Herdr Web UI | not-tested | none | | | |
+| Parsec remote debugging | not-tested | none | | | |
+| Capability allocation | not-tested | none | | | |
+| Maintenance and recovery data | not-tested | none | | | |
+| Complete operating cycle | not-tested | none | | | |
 
 Operating-cycle proof: [request -> original source -> correct project/agent ->
 grounded output -> retained decision -> fresh-session retrieval; actual evidence,
@@ -141,13 +151,37 @@ Neither hashes nor a pure filter test proves correct answers across all retrieva
 |---|---|---|---|---|
 | [target] | [actual action] | [actual result] | [reference] | [actor and action] |
 
-## Resume and handoff
+## Current checkpoint and resume
+
+Update before every setup reply. Field labels are literal and unique; keep values
+on one line. Do not copy placeholders into a claimed passing checkpoint. Use the
+checker footer rather than storing another percentage. Record missing facts as
+unknown only where permitted; unknown owner outcomes block completion.
+
+Checkpoint states and next actors: `continue`/`agent`, `owner-action`/`owner`,
+`waiting`/`job`, `blocked`/`agent` or `owner` or `external`, `paused`/`owner`,
+`complete`/`none`. An owner step names the device/app, action and success signal.
+Waiting requires a real job and registered callback/delivery evidence, not a promise.
+Paused means an explicit owner pause; do not automatically resume it.
+
+- Checkpoint state: [one state above]
+- Current component: [exact unfinished component name, Owner decisions and additional outcomes, or none when complete]
+- Just verified: [actual result, or none when no new check passed]
+- Next actor: [actor consistent with state]
+- Blocker: [exact blocker when blocked; otherwise concrete remaining failure or none]
+- Continuation evidence: [job and registered callback/delivery receipt when waiting; otherwise none]
 
 - Verified work that must not be repeated: [list and applicable proof]
 - Next incomplete action and prerequisite: [one concrete action]
 - Owner action needed: [none, or exact unavailable permission/access/decision]
-- Additional owner-required outcomes: [separate acceptance rows and evidence; none only if established]
+- Additional owner-required outcomes: [remaining outcomes or unknown; none outstanding only after review, retaining completed extras and their proof below]
 - Unselected experiments / remaining ungoverned paths: [limits, not completed features]
 - Maintenance/recovery reference and selected method: [locations]
-- Baseline complete: **No**, until every required row and additional owner-required
-  outcome has target-specific proof and relevant decisions are resolved.
+- Setup complete: no
+
+Change to `yes` only with state `complete`, all baseline rows verified, all relevant
+decisions resolved and no additional owner outcomes outstanding. Then current
+component, next action, actor, owner action, blocker and continuation are `none`.
+A declined decision is resolved as a decision, not as proof a required outcome was
+met. Do not count a declined required component as verified. Record completed extra
+outcomes and their evidence here without removing the baseline rows.
