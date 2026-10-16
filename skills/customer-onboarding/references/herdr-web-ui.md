@@ -48,6 +48,55 @@ prerequisite repair separately with a verified resume/recovery path.
   credentials even though session files stay on the host. Do not enable them or
   add paid API requirements silently. Browser speech is not automatically offline.
 
+## Standard four-pane development preset
+
+Offer this preset during the responsibility/workflow decision. It is the standard
+development option, not a compulsory specialist roster or a requirement to route
+ordinary conversations through Herdr. Carry an existing valid choice forward.
+
+| Top left | Top right |
+|---|---|
+| Executive Assistant | CTO |
+| Engineer #1 | Engineer #2 |
+
+The existing primary assistant fills Executive Assistant; display names and role
+assignments adapt to the owner. The Engineer panes can be distinct sessions of one
+Engineer profile, not two new permanent profiles. They may work in parallel only
+with non-overlapping ownership and isolated writable workspaces where needed.
+Do not create unapproved worktrees or two writers for the same files. Keep one
+coordinator; the preset does not make every pane a coordinator.
+
+Present the mapping and reuse selected profiles. Do not create or reactivate
+specialists merely to fill the grid. If the owner chooses main-only use, offer
+main sessions or clearly labelled idle slots, or record an alternative layout.
+An idle slot labelled CTO is not evidence that a CTO agent exists or is running.
+Distinguish persistent profile, terminal pane, running process and conversation.
+
+After approval, the setup agent configures the selected preset with supported
+native operations, using the installed version's help. Preserve existing sessions,
+drafts, working directories and pane identities. Never rearrange a busy workspace
+or auto-start model sessions to demonstrate a layout. If native support is missing,
+report the exact limitation rather than inventing a command or silently updating.
+
+Verify and record positions, labels, actual profile/session bindings, project
+roots and idle/running state. Check the owner's chosen client: an active pane may
+be zoomed, and client/version capabilities can differ. Do not infer the entire
+workspace layout from one visible pane or claim a four-pane view from labels alone.
+
+## Explain the owner-facing step
+
+Before sending the owner to Herdr, state whether this is an access check, preset
+selection or a ready development session. Name the expected workspace and exactly
+what the owner should observe. A shell prompt is a terminal, not an assistant
+waiting for a natural-language request. For an access-only check, explicitly say
+not to type commands; a loaded idle shell proves only that limited check.
+
+Do not leave the owner at a blank terminal to work out setup. Configure approved
+work yourself where tools permit; otherwise give one precise owner action and
+explain the access limitation. Confirm an actual intended agent is ready before
+asking the owner to send it a task, with the applicable launch/model-use authority.
+An update banner is not a prerequisite or permission to upgrade a working client.
+
 ## Acceptance evidence
 
 The agent checks and records:
@@ -56,6 +105,8 @@ The agent checks and records:
    connection to the intended Herdr server. A queued plugin action is not success.
 2. Existing workspaces/panes and terminal identities are preserved. No duplicate
    sessions, replaced drafts, unrequested worktrees or accidental sends.
+   The selected preset's positions, profile/session mapping and idle/running states
+   are recorded. A browser-load check alone does not verify the development preset.
 3. The owner's browser opens the intended session and can use the supported
    chat/terminal view. Any input test needs the right target and approved scope;
    do not type into a busy agent, a user draft or a dangerous terminal prompt.

@@ -59,6 +59,12 @@ Declining a product requires a suitable equivalent or an incomplete outcome.
 | Maintenance triggers, failure recipient and recovery | not-offered | | | |
 | Optional orchestration and separately scoped extensions | not-offered | | | |
 
+Herdr preset: [standard four-pane development preset offered, selected alternative,
+or unresolved decision; authority reference]. Record each pane's position, display
+label, actual profile/session, project root and idle/running state. Distinguish
+browser-access proof, preset verification and agent-task readiness. Do not infer
+specialist creation or launch approval from the existence of four slots.
+
 ## Baseline evidence
 
 Use `verified`, `failed` or `not-tested`. A planned change or deferred client is
