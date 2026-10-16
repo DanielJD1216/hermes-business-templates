@@ -48,6 +48,15 @@ Ordinary work stays in its requesting conversation. Skills, plugins, MCP servers
 and extra tools are assigned according to need and owner-approved access, not
 enabled everywhere. Only the memory watchdog is a baseline recurring job.
 
+For repeatable per-project setup, use the bundled
+[project-onboarding skill](skills/project-onboarding/SKILL.md). It retrieves the
+project name/location/goal, preserves the existing primary assistant as EA,
+prepares only approved missing role profiles through native operations, and creates
+or reuses the selected four-pane Herdr layout. Its stdlib helper creates shells,
+not model sessions; the skill separately checks launch authority and readiness.
+Install the complete skill in the selected coordinator's skill root and verify
+discovery. It is not installed merely by reading this repository.
+
 See [onboarding](skills/customer-onboarding/SKILL.md),
 [context and file guidance](skills/customer-onboarding/references/context-and-files.md),
 [sources and capability limits](skills/customer-onboarding/references/sources-and-capabilities.md),

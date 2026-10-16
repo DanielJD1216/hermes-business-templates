@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.4.1
+version: 0.5.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -23,6 +23,7 @@ a second installer merely because a native command or dependency needs diagnosis
 - [Capability reference sheet](../../capabilities/REFERENCE.md): selection rules
   first, then only relevant records and their selected source/procedure references.
 - [Herdr Web UI and terminal-access safety](references/herdr-web-ui.md).
+- [Reusable project onboarding](../project-onboarding/SKILL.md) when the owner selects project/Herdr setup.
 - [Maintenance and recovery](references/maintenance.md).
 - [Mac findings](references/mac-notes.md) when the host or client is a Mac.
 
