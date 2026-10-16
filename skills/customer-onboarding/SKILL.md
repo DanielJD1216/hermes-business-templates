@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.4.0
+version: 0.4.1
 license: MIT
 platforms: [linux, macos]
 ---
