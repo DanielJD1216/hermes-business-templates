@@ -58,6 +58,13 @@ are outside onboarding. Parsec is mandatory for owner-approved remote debugging
 and hands-on troubleshooting, not as a backup or data-restoration mechanism.
 Existing tools and data are preserved; backups and restore verification remain mandatory.
 
+LEANN refresh must share its exclusion rules with its precheck: excluded caches
+must not stop approved sources from updating. Unknown roots stay excluded pending
+approval, while genuine safety/build failures preserve the last working index and
+raise attention. Require bounded search, helper-binding and failure/recovery checks
+through the [existing maintenance path](skills/customer-onboarding/references/maintenance.md#required-leann-refresh-schedule),
+including when no rebuild is needed. These requirements do not install a runtime repair.
+
 Memory acceptance must also prove growth/tail recall, distinct-source retrieval,
 owner scope, source preservation and truthful failure handling. Follow the required
 [memory reliability checks](skills/customer-onboarding/references/memory-reliability.md):

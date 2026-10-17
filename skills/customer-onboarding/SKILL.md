@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.8.0
+version: 0.9.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -174,6 +174,12 @@ watchdog's failed/stalled-save and update-drift detection on the target host.
 Keep fixtures isolated from real memories. A small write or healthy search alone
 does not satisfy acceptance. Missing compatible artifacts or Mac evidence remain
 explicit blockers; do not manufacture a customer-specific patch during setup.
+
+For LEANN, follow the [refresh scope and proof requirements](references/maintenance.md#required-leann-refresh-schedule).
+Share exclusions between precheck and discovery, keep unapproved roots excluded,
+and distinguish nonblocking hygiene warnings from genuine safety failures. Verify
+search and helper binding even on unchanged refreshes; use the existing monitoring
+path for stale/failed evidence and explicit recovery, not another agent or service.
 
 Install/discover the complete project-onboarding skill and prove the required
 per-project four-pane team. Establish LEANN, its approved recurring refresh and
