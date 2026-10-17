@@ -48,13 +48,49 @@ needed. Record roots, exclusions, embedding model/runtime, resources/cost, caden
 timezone, overlap prevention, startup behavior, last success and failure recipient.
 Preserve the last usable index on a failed refresh; do not publish a partial build.
 
-Read the job back, run an authorized bounded refresh and retrieve the changed source
-through LEANN. Verify rename/removal and exclusion behavior with approved fixtures.
-Check failure reporting safely without breaking the live index or sending an
-unapproved message. A failing precheck must leave an explicit stale/failed state,
-not a successful schedule result. An unrelated cache-folder warning must not be
-silently mistaken for completed index maintenance. Missing support/authority is a
-required-row blocker, not grounds to substitute manual-only refresh.
+Use one exclusion policy in precheck and discovery. Already-excluded caches must
+not block updates to approved sources. Keep unfamiliar top-level directories and
+loose files out of ingestion until explicitly approved; report a scoped warning
+without stopping the approved refresh. Do not inspect their contents merely to
+make the warning disappear. Historical folder inventories and a baseline snapshot
+are not ingestion approval. For an existing index, reconcile its verified source
+manifest with owner-approved scope; for a new index, obtain that scope first.
+Never automatically accept the current filesystem as a new baseline.
+
+New eligible documents within an approved directory may follow its existing
+filters and bounded expansion policy; that does not authorize new top-level roots.
+Apply the same boundary to manual builds, scheduled refreshes and validation.
+Unsafe paths, invalid scope/configuration, unreadable eligible sources and genuine
+integrity errors remain blocking. Do not turn every failed precheck into a warning.
+Preserve the prior index and manifest on failed build or validation. Validate the
+candidate before promotion, verify caught publication failures restore usable
+state, and document any interruption window requiring manual recovery.
+
+Read the job back, run an authorized bounded refresh and retrieve a known source
+through the actual agent surface. Verify edits, rename/removal and exclusions with
+approved isolated fixtures, never test data mixed into production. Also prove an
+unchanged refresh performs a bounded search rather than returning success solely
+because source hashes match. Verify the selected local model/runtime and effective
+helper bindings before/after native work. Same-host helpers should use loopback;
+no current listener proves inactivity, not safe configuration. Revalidate reviewed
+compatibility changes after upgrades; do not copy private package patches or
+silently accept changed hashes. Native Mac evidence is separate from Linux/WSL.
+
+Record freshness time, search/binding results, warnings and failures separately.
+An existing script-only watcher should check the actual service/timer outcome and
+missing, stale or invalid evidence, including precheck failures that never reached
+the builder. Reuse the existing approved delivery route. Confirm attention and
+recovery messages at that destination, even when unrelated issues remain open.
+Retain known delivery failures across silent checks; script success is not receipt
+proof, and ambiguous sends do not authorize blind retries. Test failures safely
+without breaking the live index or sending an unapproved message. Label fixture,
+manual-service and observed automatic-run evidence distinctly. No new monitoring
+platform or chat model is required. Missing support/authority remains a required-row
+blocker, not grounds to substitute manual-only refresh or claim readiness from this guide.
+
+On resume, reconcile only affected LEANN rows and dependent proof against these
+requirements. Preserve valid identity, login, team and other baseline evidence;
+do not reset onboarding or repeat unrelated tests.
 
 ## Before any consequential change
 
