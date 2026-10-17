@@ -150,6 +150,37 @@ enabled it. Proof from another host does not certify the customer's native setup
 
 ## Required Obsidian and optional private device synchronization
 
+### Select device roles before installation
+
+Discover existing setup records and relevant local metadata before asking. Map
+roles, not hardware models: the agent host runs Hermes/background services;
+viewing/editing devices are where the owner wants to use Obsidian; knowledge storage
+identifies the authoritative files and approved replicas. One computer may fill all
+roles. A laptop may be the host, a desktop may be the viewer, and two machines of
+the same model may have different roles. Do not assume the current execution host
+is the owner's daily driver or selected viewer, including when connected remotely.
+
+If the viewing choice is unknown, ask: "Will you use Obsidian on the computer
+running your agent, another computer, or several devices?" Then resolve only the
+missing device identities and whether each is for viewing, editing or both. Use
+owner-friendly labels tied to verified device identities; two identical hardware
+names do not identify two endpoints. Carry forward valid owner decisions rather
+than repeating this interview on every resume.
+
+Record the mapping in the existing private progress record: host identity, each
+selected device and access state, vault location per device, authoritative storage,
+editing permissions, and access/sync route or no-replica rationale. Inspect existing
+vaults before proposing a new one. Do not replace an existing vault, create a
+competing empty vault, or relocate authoritative files merely to fit an example.
+
+For a same-computer workflow, use the approved vault directly without adding sync
+unless replicas are actually needed. For separate devices, reuse or propose a
+supported access/sync route with approved direction, exclusions, conflict handling
+and recovery. Do not stack sync services or grant new remote access implicitly.
+Install/open Obsidian on every selected viewing device, not only the agent host.
+If a device is inaccessible, continue independent host work and report the smallest
+necessary device-local action. Leave that device's acceptance incomplete.
+
 Obsidian and its actual owner-device viewing check are required. Reuse a suitable
 existing installation/vault or install through the approved native route. A skill,
 folder or another viewer does not prove this requirement. Record an unavailable
@@ -181,13 +212,18 @@ If the owner selects Syncthing over Tailscale:
 - Read mutations back by identity. Syncthing can reorder device arrays; inspect
   after an assertion failure before retrying a write that may already have worked.
 
-Acceptance requires received-file hashes, a return edit, retained prior versions
-on both receivers, per-device ignore isolation, zero pending items/errors and
-actual viewer navigation from a concept to its source. A remote completion counter
-is protocol evidence, not proof that Obsidian displayed the right vault. Label
-relayed client evidence separately from direct host observations. Preserve test
-artifacts until approved cleanup. This proves the tested device pair, not universal
-OS compatibility, a cold-boot recovery path or memory lifecycle enforcement.
+Acceptance follows the selected device mapping. On each selected viewing device,
+verify the intended vault, current content and navigation from index to concept to
+source. A host installation or remote completion counter cannot substitute for
+that device's viewer proof. For selected synchronization, verify received-file
+hashes, per-device ignore isolation, retained prior versions and zero pending
+items/errors. Test a return edit only for approved two-way editing; for a one-way
+route, verify its configured direction without enabling reverse writes for a test.
+Verify each selected device, not only the first pair. Label relayed client evidence
+separately from direct observations. Preserve test artifacts until approved cleanup.
+This proves the tested routes, not universal OS compatibility, cold-boot recovery or
+memory lifecycle enforcement. On resume, reopen only affected device/sync proof;
+preserve valid host work and all existing vaults, edits and conflict copies.
 
 References: [Syncthing configuration](https://docs.syncthing.net/users/config.html),
 [REST configuration](https://docs.syncthing.net/rest/config.html),
