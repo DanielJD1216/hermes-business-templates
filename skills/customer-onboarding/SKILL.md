@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.11.0
+version: 0.12.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -154,6 +154,12 @@ Propose minimum data/tool/channel access, project locations and provider/account
 requirements. Explain costs and processing. Show the actual proposed changes;
 obtain owner approval before live identity/context adoption, role creation or
 connections. Do not infer approvals from imported conversations.
+
+Adapt the [team coordination rules](../project-onboarding/references/role-setup.md#adapt-coordination-to-the-owners-setup)
+to the actual owner, host resources, approved sessions, project boundaries and
+available control/return routes. Reuse known decisions and record the mapping in
+the existing private progress/project record. Do not copy the publisher's worker
+limits, private identity or orchestration stack, or add a new coordinator service.
 
 Before implementation, show a compact system map covering every baseline domain.
 Retrieve the owner's intended work and first useful outcome; setup activity itself

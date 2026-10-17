@@ -83,6 +83,48 @@ keep deployment, sends, purchases and sensitive access under their actual gates;
 verify outcomes and preserve failures. Add the owner's approved communication style,
 not the publisher's personal identity, private context or schedules.
 
+## Adapt coordination to the owner's setup
+
+Reuse existing decisions and inspect the actual host, profile/session mapping,
+project roots, available tools and control transport before assigning work. Record
+the coordinator, write boundaries, prerequisites, capacity limits and result route
+in the existing private project/progress record, not another queue or database.
+Ask only for missing material choices. Apply approved instruction changes narrowly;
+do not replace the owner's identity or copy the publisher's private configuration.
+
+- Keep ordinary bounded work in its originating conversation unless the owner has
+  selected team orchestration. A code task alone does not require a handoff, board,
+  formal pipeline or extra planning stage. Required team setup remains separate.
+- Use one coordinator per workstream. Give each task one implementation owner and
+  explicit writable scope. Parallel writers need disjoint files or approved isolated
+  checkouts with a named integration owner. Separate sessions do not isolate files
+  or profile memory. Do not create extra profiles merely to fill worker slots.
+- Run already-authorized independent work in parallel when useful; dependencies
+  must represent real required outputs or approvals. Use a different reviewer when
+  independent review is required. Role labels alone do not prove independence.
+- Select conservative capacity from observed host resources, current work, provider
+  limits and approved costs. Count active workers across relevant sessions/profiles;
+  bound heavy builds/tests separately from lightweight work. Do not copy fixed
+  worker counts from another machine or treat available panes as a capacity target.
+  If global visibility or enforcement is missing, record that limit rather than
+  claiming a global cap is enforced. Do not raise existing limits silently.
+- Confirm the supported control route before promising a handoff. Preserve the
+  originating conversation and its authority; read the exact target and preserve
+  active turns, approvals and drafts. Pass only necessary context, prerequisites,
+  write boundaries, checks and the agreed result route. Verify acknowledgement and
+  returned evidence, not just submission. Never retry an ambiguous send blindly or
+  promise a background return without a registered working continuation route.
+- Continue independent authorized work while a dependency is blocked. Diagnose
+  failed checks within scope, preserve evidence and stop for genuinely missing
+  authority or owner action. Do not request the same approval again for an unchanged
+  scope or treat a prior approval as permission for new costs, sends or deployments.
+
+These are coordination instructions, not a scheduler, access boundary or automatic
+capacity guard. Reuse installed native tools and repository-required checks. Do not
+add Kanban, Fabled, nested workers or a permanent monitoring agent to implement this
+baseline; separately selected workflows retain their own approvals and constraints.
+On resume, reuse valid mappings and inspect only relevant changed state.
+
 ## Concurrent sessions and final mapping
 
 Check the installed runtime, existing active sessions and profile memory writers
