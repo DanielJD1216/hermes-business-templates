@@ -1,7 +1,7 @@
 ---
 name: project-onboarding
 description: "Create or reuse an approved project and Herdr team."
-version: 0.4.0
+version: 0.5.0
 author: Hermes Business Templates contributors, Hermes Agent
 license: MIT
 platforms: [linux, macos]
@@ -142,6 +142,8 @@ Owner-attended sign-in stays in its native secure interface, never in chat.
 One coordinator owns the project. Assign one implementation owner for overlapping
 files. Leave the second Engineer idle or read-only until independent work and any
 required isolated writable checkout are approved. Four panes are not four jobs.
+Apply the [owner-adapted coordination rules](references/role-setup.md#adapt-coordination-to-the-owners-setup)
+when assigning work; the layout helper does not schedule workers or enforce capacity.
 Do not start provider calls merely to prove labels. For authorized task handoffs,
 read the destination, preserve drafts, submit the bounded brief through the native
 agent surface, and read back the exact target before claiming delivery. A timeout
