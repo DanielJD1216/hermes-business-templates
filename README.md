@@ -58,6 +58,16 @@ are outside onboarding. Parsec is mandatory for owner-approved remote debugging
 and hands-on troubleshooting, not as a backup or data-restoration mechanism.
 Existing tools and data are preserved; backups and restore verification remain mandatory.
 
+Memory acceptance must also prove growth/tail recall, distinct-source retrieval,
+owner scope, source preservation and truthful failure handling. Follow the required
+[memory reliability checks](skills/customer-onboarding/references/memory-reliability.md):
+reuse version-bound release evidence and run bounded checks on the actual host.
+The watchdog must expose failed/stalled saves and version/patch drift, not just
+healthy search. This guide ships no memory repair or acceptance runner and does
+not certify a universally supported runtime combination. Missing compatible
+artifacts or platform evidence block the memory requirement, not independent work;
+Linux/WSL evidence does not establish native Mac support.
+
 For repeatable per-project setup, use the bundled
 [project-onboarding skill](skills/project-onboarding/SKILL.md). It retrieves the
 project name/location/goal, preserves the existing primary assistant as EA,

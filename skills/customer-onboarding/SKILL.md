@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.7.0
+version: 0.8.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -17,6 +17,7 @@ a second installer merely because a native command or dependency needs diagnosis
 ## Read first
 
 - [Required finished state and proof](references/baseline.md).
+- [Required memory reliability and compatibility](references/memory-reliability.md).
 - [Context, instruction files and private progress](references/context-and-files.md).
 - [Knowledge, viewer/sync and lifecycle acceptance](references/knowledge-lifecycle.md).
 - [Sources, capabilities and legacy boundary](references/sources-and-capabilities.md).
@@ -165,6 +166,14 @@ actual retrieval. Existing operating documents can exercise this path; do not
 demand a business data dump. Keep comprehensive memory-engine work and the owner's
 first custom business automation separately scoped. Unsupported baseline behavior
 remains a named gap; it is not permission to fork a service during onboarding.
+
+For memory, select a supported exact runtime combination and follow
+[memory reliability](references/memory-reliability.md). Reuse its release evidence,
+then verify fresh save/index/recall, bounded growth and scope checks, and the
+watchdog's failed/stalled-save and update-drift detection on the target host.
+Keep fixtures isolated from real memories. A small write or healthy search alone
+does not satisfy acceptance. Missing compatible artifacts or Mac evidence remain
+explicit blockers; do not manufacture a customer-specific patch during setup.
 
 Install/discover the complete project-onboarding skill and prove the required
 per-project four-pane team. Establish LEANN, its approved recurring refresh and
