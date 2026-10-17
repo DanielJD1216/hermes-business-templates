@@ -14,7 +14,11 @@ When the owner requests onboarding, explicitly read:
 Work in the owner's private, tool-capable agent on the intended host. Any suitable
 model may conduct setup; this is not a requirement to use a particular model,
 subscription or new main assistant. The baseline requires the EA/CTO/two-Engineer
-development layout with owner-specific names and approved profiles. If you cannot
+development layout with owner-specific names and approved profiles: three profiles
+by default, with two distinct sessions of one Engineer profile. New role profiles
+reuse the EA's model-provider account through supported native credential sharing,
+not separate providers or cloned credential files. Preserve owner-selected exceptions.
+If you cannot
 execute there,
 disclose that limit and help open a capable private session. Do not simulate work.
 

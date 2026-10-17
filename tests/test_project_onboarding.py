@@ -66,8 +66,8 @@ class Onboarding(unittest.TestCase):
             roles = {
                 'executive-assistant': {'profile': 'default', 'label': 'Existing assistant'},
                 'cto': {'profile': 'tech-lead', 'label': 'Architecture'},
-                'engineer1': {'profile': 'builder-a', 'label': 'Builder one'},
-                'engineer2': {'profile': 'builder-b', 'label': 'Builder two'},
+                'engineer1': {'profile': 'engineer', 'label': 'Builder one'},
+                'engineer2': {'profile': 'engineer', 'label': 'Builder two'},
             }
             for entry in roles.values():
                 p = home if entry['profile'] == 'default' else home / 'profiles' / entry['profile']
@@ -90,6 +90,11 @@ class Onboarding(unittest.TestCase):
             self.assertEqual(list(project.iterdir()), [project / 'AGENTS.md'])
             for role, command in rec['launch'].items():
                 self.assertEqual(command[-4:], ['-p', roles[role]['profile'], '--in', str(project)])
+            self.assertEqual(len({r['profile'] for r in rec['roles'].values()}), 3)
+            self.assertNotEqual(rec['panes']['engineer1'], rec['panes']['engineer2'])
+            self.assertNotEqual(rec['launch']['engineer1'][3], rec['launch']['engineer2'][3])
+            self.assertTrue(all('--continue' not in c and '--resume' not in c
+                                for c in rec['launch'].values()))
             receipt = ws / '.hbt-projects.json'
             first = receipt.read_bytes()
             mutations = [c for c in api.calls if c[1] in ('create', 'split')]
