@@ -42,9 +42,19 @@ Parsec for remote debugging/troubleshooting; and verified data backup/restoratio
 
 The required project layout is EA top left, CTO top right, Engineer #1 bottom left
 and Engineer #2 bottom right. Reuse the owner's main assistant as EA and approved
-permanent specialist profiles. Names adapt; the required roles and positions do
-not disappear. Default to separate Engineer profiles; sharing needs verified
-memory/write safety. Extra non-development roles are not mandatory.
+permanent specialist profiles. The default is three profiles: EA, CTO and one
+Engineer profile used by two distinct Engineer sessions. Engineer #1 and #2 are
+pane/session labels, not profile names. Verify shared-profile memory/write safety
+before concurrent use; do not create another profile as an automatic workaround.
+Names adapt; the required roles and positions do not disappear. Extra
+non-development roles are not mandatory.
+
+All new role profiles start with the EA's existing model provider and owner account,
+reusing its model-provider credentials through a supported native sharing mechanism.
+Do not require separate providers, subscriptions or repeated sign-ins by default.
+Verify effective access per profile; a matching model name is not authentication.
+Preserve existing owner-selected exceptions. This default does not share Slack/bot
+tokens, copy credential files or grant specialists the EA's private context.
 
 Review the full capability catalog, then install, authenticate where needed and
 test a required role-specific set of skills, plugins, MCP integrations and toolsets.

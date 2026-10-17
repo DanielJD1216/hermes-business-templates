@@ -9,9 +9,12 @@ duplicate the main assistant. Profiles separate application state, not OS/filesy
 1. Inspect non-secret native profile metadata, existing role instructions and valid
    owner decisions. Identify the actual primary assistant and its display name.
    Preserve its identity. Do not ask for information already established.
-2. Map the required EA, CTO and two Engineer slots to permanent profiles. Preserve
-   the existing EA; use a distinct CTO and separate Engineer role. Ask only missing
-   choices about responsibilities, names, access, model/provider and costs. Labels
+2. Map the four slots to three permanent profiles by default: the existing EA,
+   a distinct CTO, and one Engineer profile used by two distinct sessions. Engineer
+   #1 and #2 are session labels, not two profile IDs. Default new role profiles to
+   the EA's existing model provider/account and supported native credential reuse.
+   Preserve existing owner-selected exceptions. Ask only missing choices about
+   responsibilities, names, access or costs, not a provider choice for every role. Labels
    such as CTO can become Technical Lead; the profile identifier is a separate
    validated native ID. Do not silently normalize an invalid supplied identifier.
 3. Present one concrete plan: reuse these profiles; create these missing profiles;
@@ -43,12 +46,22 @@ Install and test the required role-specific tools/skills and approved source acc
 A directory name is not an access control. Do not copy the main assistant's personal
 context or memory.
 
-Use the owner's supported authentication route. A working primary login does not
-prove the specialist is authenticated. Use native owner-attended sign-in or an
-explicitly approved supported sharing mechanism; never copy credential files,
-silently substitute API-key billing, or expose tokens. Keep authentication blocked
-if necessary rather than inventing readiness. No model prompt is required merely
-to create a profile. Actual authorized startup/use is a separate verification.
+Default all new role profiles to the EA's existing provider, model and owner account,
+reusing the EA's model-provider credentials through a supported native sharing
+mechanism. Include this scope in the approved setup plan; do not ask for a new
+provider, subscription or repeated login per role when working reuse is available.
+Verify the installed provider's actual sharing mechanism and effective authentication
+per profile without reading or printing secret contents. Same model/provider settings
+alone do not prove shared account access. Preserve approved per-role model exceptions.
+
+If sharing is unsupported or authentication has expired, report the exact gap and
+the smallest required owner action for the same intended account. Do not silently
+substitute another provider, account or API-key billing, copy auth files, or invent
+readiness. Owner-attended consent stays in the native secure interface. This is
+model-provider credential reuse only: messaging bots retain distinct bot tokens,
+tool/MCP access remains separately scoped, and role histories/memories stay separate.
+No model prompt is required merely to create a profile. Actual authorized startup/use
+is a separate verification.
 
 ## Generic role briefs to adapt, not blindly overwrite
 
@@ -75,11 +88,13 @@ not the publisher's personal identity, private context or schedules.
 Check the installed runtime, existing active sessions and profile memory writers
 before launching concurrent processes. Upstream [profile guidance](https://hermes-agent.nousresearch.com/docs/user-guide/profiles/)
 warns about multiple processes writing one profile. Two Engineer slots are two work
-positions, not a guarantee that sharing a profile is safe. Recommend separate worker
-profiles for simultaneous independent memory writers, or verify a supported scoped
-write-isolation arrangement before sharing. Otherwise stop the unsafe launch and
-record readiness incomplete until an approved safe profile mapping is available.
-Do not create a new worker for every project by default or silently turn off memory.
+positions using one Engineer profile by default, not proof that concurrent writes
+are safe. Verify supported shared-profile memory/write safety before launching both.
+Separate conversation IDs and worktrees alone do not establish that safety. If it
+cannot be verified, stop the unsafe launch and report a named readiness blocker;
+do not automatically provision another Engineer profile or silently turn off memory.
+Preserve existing profiles and receipts. An older two-profile setup requires reviewed
+owner-approved reconciliation, not automatic deletion, merging or session reassignment.
 
 Finish with approved profile IDs/display labels, role briefs, tool/data scope,
 model/auth state, concurrent-use decision and any blockers. The agent writes the

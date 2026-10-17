@@ -1,7 +1,7 @@
 ---
 name: project-onboarding
 description: "Create or reuse an approved project and Herdr team."
-version: 0.3.0
+version: 0.4.0
 author: Hermes Business Templates contributors, Hermes Agent
 license: MIT
 platforms: [linux, macos]
@@ -47,22 +47,27 @@ Show this mapping before mutation:
 |---|---|---|
 | Top left | Executive Assistant | Existing primary assistant, retaining its own name |
 | Top right | CTO | Selected existing or approved new architecture/review profile |
-| Bottom left | Engineer #1 | Selected implementation profile/session |
-| Bottom right | Engineer #2 | Selected second session/profile; idle until safely assigned |
+| Bottom left | Engineer #1 | First distinct session of the selected Engineer profile |
+| Bottom right | Engineer #2 | Second distinct session of that same Engineer profile; idle until safely assigned |
 
 Main-only operation or another layout does not satisfy this baseline. A declined
 team requirement remains incomplete; it is not permission to force creation.
 Reuse approved profiles across projects; do not recreate them for every project.
 EA and CTO must be distinct profiles, and neither may stand in for the Engineer
-role. Two Engineer slots may share a profile only with the safety proof below.
+role. The default is three profiles, not four: one EA, one CTO and one Engineer.
+Engineer #1 and Engineer #2 label separate sessions, not separate profiles. New
+role profiles reuse the EA's model-provider account through the supported native
+credential-sharing route in the role preparation procedure. Preserve existing
+owner-selected exceptions; do not create new provider accounts by default.
 
 **Before launching concurrent sessions**, inspect the installed runtime's memory
 and shared-profile behavior. Current upstream profile guidance warns that multiple
 processes can write the same profile memory. Separate session IDs/worktrees do not
 isolate that memory. Reusing one Engineer profile in both slots is not automatic
-permission to run both simultaneously. Use separately approved worker profiles,
-a verified supported write-isolation arrangement. Otherwise keep the unsafe slot
-stopped and record incomplete readiness until an approved safe mapping is available.
+permission to run both simultaneously. Verify a supported shared-profile memory/write
+safety arrangement on the actual host. Otherwise keep the unsafe slot stopped and
+report the specific concurrency blocker. Do not automatically create a second Engineer
+profile; a different mapping requires a separate owner decision.
 Apply the same check to the primary assistant and other already-running sessions.
 Do not silently disable owner memory, clone profiles or copy credentials to solve it.
 
@@ -76,8 +81,8 @@ not an instruction to create these names:
 {
   "executive-assistant": {"profile": "default", "label": "Primary assistant"},
   "cto": {"profile": "architect", "label": "Technical lead"},
-  "engineer1": {"profile": "builder-a", "label": "Engineer #1"},
-  "engineer2": {"profile": "builder-b", "label": "Engineer #2"}
+  "engineer1": {"profile": "engineer", "label": "Engineer #1"},
+  "engineer2": {"profile": "engineer", "label": "Engineer #2"}
 }
 ```
 

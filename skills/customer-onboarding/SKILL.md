@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.9.0
+version: 0.10.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -37,8 +37,15 @@ to invent it. This guide does not install a skill merely because it is read.
 
 - Confirm a private audience and the actual execution host. A chat-only model can
   advise but cannot claim installation. Prefer the owner's existing private main
-  assistant as EA. Require permanent CTO/Engineer roles and two ready Engineer
-  sessions in the four-pane layout. Do not create a second main agent or force Ops.
+  assistant as EA. Require three profiles by default: EA, CTO and one Engineer
+  profile with two distinct ready sessions in the four-pane layout. Verify shared
+  memory/write safety before concurrent use. Do not create a second Engineer profile
+  as an automatic workaround, a second main agent or a mandatory Ops role.
+- New role profiles default to the EA's existing model provider/account and native
+  credential-sharing route. Verify access, preserve existing approved exceptions,
+  and do not introduce separate providers or new subscriptions by default. Follow
+  the project skill's role preparation procedure; never clone credential files or
+  share bot tokens to implement this model-authentication default.
 - Retrieve authorized host/context facts before asking. Ask one missing decision
   or give one unavailable-to-your-tools owner action at a time. Batch independent
   checks yourself. Do not require the owner to edit JSON or relay routine logs.
