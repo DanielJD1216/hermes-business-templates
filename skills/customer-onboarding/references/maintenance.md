@@ -18,6 +18,12 @@ Track pending drafts and failed checks without applying or deleting data to make
 the status green. Do not promise automatic memory pruning from skill-curator
 settings; retention, archive and deletion have different scopes and authority.
 
+For memory, apply the required [reliability and watchdog checks](memory-reliability.md).
+Monitor failed/stalled saves, unknown submission outcomes and version/patch drift
+as well as health/search. Preserve the distinction between an available service
+and unresolved save failures. Verify the scheduled job's actual profile/environment
+and authorized alert delivery; a manual shell check alone is not enough.
+
 The recovery set must cover the selected profiles/configuration and approved
 skills, session/history state, project/task records, canonical work/wiki files and
 native memory stores. Record exclusions and a protected credential-recovery or
@@ -91,6 +97,12 @@ required-row blocker, not grounds to substitute manual-only refresh.
   process/resume when required; do not rewrite working source to fix mixed imports.
   If checks fail, retain diagnostics and return to the known build only after checking
   data compatibility. A code downgrade cannot reverse an incompatible data migration.
+- Revalidate affected [memory reliability evidence](memory-reliability.md#updates-and-resumed-onboarding)
+  after service, adapter, model or patch changes. Preserve historical failures and
+  never refresh expected hashes blindly. Fence writers and client auto-start paths;
+  idle queues do not prevent new submissions. If maintenance stops the coordinating
+  chat service, establish an independent attended route first. After incompatible
+  writes, preserve new data and use the documented repair-forward path.
 
 ## Maintain lifecycle eligibility
 
