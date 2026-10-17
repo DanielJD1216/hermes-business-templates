@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.12.0
+version: 0.13.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -117,6 +117,8 @@ owner decisions or additional outcomes. The checker is stdlib-only, reads local
 files, makes no provider/network calls and writes nothing. It checks commit format
 and the local baseline fingerprint, not source authenticity, receipt truth,
 approval validity, test scope, or delivery. Inspect those underlying facts yourself.
+Do not use this checker's zero exit status alone as an automated goal-completion
+gate. Record validity, reviewed evidence and actual host readiness are distinct.
 
 For `waiting`, record the actual job plus supported registered callback/delivery
 evidence before promising a return. If that route is unavailable, finish a bounded
@@ -137,6 +139,17 @@ Inspect the relevant existing installation and ownership records before writes.
 Inventory only necessary paths and metadata. Preserve unknown/partial state.
 If a required client device is unavailable, continue independent host work and
 mark client acceptance pending. Do not demand access to a device the owner lacks.
+
+Check feasibility and control access before provisioning each required stage.
+Record the actual execution context, supported version/platform combination,
+available acceptance procedure and needed owner authority in the existing private
+record. General terminal access does not establish Herdr control access or access
+to another device. Establish the permitted stage operator and result route early;
+do not discover that dependency only after preparing owner-run launch scripts.
+For memory, locate the [supported artifact and release evidence](references/memory-reliability.md#select-a-supported-combination)
+before changing memory services. If a required route or artifact is unavailable,
+name the blocker and continue independent work; do not invent a private fork or
+claim that another host's successful tests establish compatibility.
 
 Before choosing installation targets, follow the
 [device-role selection](references/knowledge-lifecycle.md#select-device-roles-before-installation).

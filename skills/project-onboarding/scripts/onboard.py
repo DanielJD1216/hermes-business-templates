@@ -5,6 +5,7 @@ Run only from an authorized Herdr pane. The SKILL handles discovery, consent,
 profile/session startup and handoffs; this helper owns only layout receipts.
 """
 import argparse
+from contextlib import nullcontext
 import fcntl
 import hashlib
 import json
@@ -25,7 +26,7 @@ def validate_roles(roles, hermes_root):
     home = Path(hermes_root).expanduser().resolve(strict=True)
     if not home.is_dir():
         raise ValueError('Hermes root must be an existing directory')
-    result = {}
+    result, homes = {}, {}
     for slot in SLOTS:
         entry = roles[slot]
         if not isinstance(entry, dict) or set(entry) != {'profile', 'label'}:
@@ -43,8 +44,12 @@ def validate_roles(roles, hermes_root):
         if not path.resolve().is_relative_to(home) or not (path / 'config.yaml').is_file():
             raise ValueError('Selected profile is missing or outside the approved Hermes root')
         result[slot] = dict(entry)
+        homes[slot] = path.resolve()
     if len({r['label'] for r in result.values()}) != len(SLOTS):
         raise ValueError('Pane display labels must be distinct')
+    leads = {homes[slot] for slot in SLOTS[:2]}
+    if len(leads) != 2 or any(homes[slot] in leads for slot in SLOTS[2:]):
+        raise ValueError('EA, CTO and Engineer responsibilities need distinct profiles')
     return result, home
 
 
@@ -83,7 +88,8 @@ def verify(rec, api):
         raise ValueError('Recorded workspace is missing or changed; inspect it, do not recreate blindly')
     panes = api('pane', 'list', '--workspace', rec['workspace_id'])['panes']
     by_id = {p['pane_id']: p for p in panes}
-    if set(by_id) != set(rec['panes'].values()):
+    if (set(rec['panes']) != set(SLOTS) or len(panes) != 4
+            or len(set(rec['panes'].values())) != 4 or set(by_id) != set(rec['panes'].values())):
         raise ValueError('Recorded pane set changed; no layout edits made')
     for role, pid in rec['panes'].items():
         p = by_id[pid]
@@ -92,16 +98,74 @@ def verify(rec, api):
             raise ValueError('Recorded pane label/location changed; no input sent')
     layout = api('pane', 'layout', '--pane', rec['panes']['engineer1'])['layout']
     rects = {p['pane_id']: p['rect'] for p in layout['panes']}
-    if layout['zoomed'] or set(rects) != set(by_id):
+    if (layout['zoomed'] or layout.get('workspace_id') != rec['workspace_id']
+            or len(layout['panes']) != 4 or set(rects) != set(by_id)):
         raise ValueError('Recorded layout changed or is zoomed; inspect before reuse')
     a, b, c, d = [rects[rec['panes'][role]] for role in SLOTS]
     if not (a['x'] == c['x'] < b['x'] == d['x'] and a['y'] == b['y'] < c['y'] == d['y']
-            and all(r['width'] > 0 and r['height'] > 0 for r in (a, b, c, d))):
+            and all(type(r[k]) is int for r in (a, b, c, d) for k in ('x', 'y', 'width', 'height'))
+            and all(r['width'] > 0 and r['height'] > 0 for r in (a, b, c, d))
+            and a['width'] == c['width'] and b['width'] == d['width']
+            and a['height'] == b['height'] and c['height'] == d['height']
+            and abs(a['width'] - b['width']) <= 1 and abs(a['height'] - c['height']) <= 1
+            and b['x'] - a['x'] - a['width'] in (0, 1)
+            and c['y'] - a['y'] - a['height'] in (0, 1)):
         raise ValueError('Expected EA/CTO/engineer1/engineer2 2x2 layout changed')
     return layout
 
 
-def onboard(workspace, name, path, goal, create, api, identity, roles, hermes_root):
+def inspect_record(rec, api):
+    """Read only recorded targets; process recognition is not session readiness."""
+    report = {'receipt_status': rec['status'], 'layout_status': 'unknown',
+              'readiness': 'not-verified', 'panes': {}}
+    wid = rec.get('workspace_id')
+    if not wid:
+        report['reason'] = 'No recorded workspace ID; manual authorized reconciliation required'
+        return report
+    matches = [w for w in api('workspace', 'list')['workspaces'] if w['workspace_id'] == wid]
+    if len(matches) != 1 or matches[0].get('label') != rec['name']:
+        report['reason'] = 'Recorded workspace missing or changed; ownership uncertain'
+        return report
+    panes = api('pane', 'list', '--workspace', wid)['panes']
+    report['unrecorded_pane_count'] = sum(p['pane_id'] not in rec['panes'].values() for p in panes)
+    for slot, pid in rec['panes'].items():
+        found = [p for p in panes if p['pane_id'] == pid and p['workspace_id'] == wid]
+        obs = {'pane_id': pid, 'exists': len(found) == 1,
+               'process_exists': None, 'recognized_state': 'unknown', 'hermes_recognized': None}
+        report['panes'][slot] = obs
+        if len(found) != 1:
+            continue
+        pane = found[0]
+        obs['metadata_matches'] = (pane.get('label') == rec['roles'][slot]['label']
+                                   and pane.get('cwd') == rec['path'])
+        if not obs['metadata_matches']:
+            continue  # Changed identity is not permission to inspect a new occupant.
+        status = pane.get('agent_status')
+        if status in ('idle', 'working', 'blocked', 'done', 'unknown'):
+            obs['recognized_state'] = status
+        if 'agent' in pane and (pane['agent'] is None or isinstance(pane['agent'], str)):
+            obs['hermes_recognized'] = pane['agent'] == 'hermes'
+        info = api('pane', 'process-info', '--pane', pid).get('process_info')
+        processes = info.get('foreground_processes') if isinstance(info, dict) else None
+        if isinstance(processes, list):
+            obs['process_exists'] = any(isinstance(p, dict) and type(p.get('pid')) is int
+                                        and p['pid'] > 0 for p in processes)
+    report['layout_status'] = 'incomplete'
+    if set(rec['panes']) == set(SLOTS):
+        try:
+            verify(rec, api)
+            report['layout_status'] = 'verified'
+        except ApiError:
+            raise
+        except ValueError as exc:
+            report['layout_status'] = 'changed'
+            report['reason'] = str(exc)
+    return report
+
+
+def onboard(workspace, name, path, goal, create, api, identity, roles, hermes_root, *, inspect=False, finalize=False):
+    if inspect and finalize or (inspect or finalize) and create:
+        raise ValueError("Inspection/finalization cannot be combined with creation or each other")
     roles, home = validate_roles(roles, hermes_root)
     plain(name, 'Project name')
     if len(name) > 80:
@@ -114,21 +178,73 @@ def onboard(workspace, name, path, goal, create, api, identity, roles, hermes_ro
     if receipt.is_symlink() or lock.is_symlink():
         raise ValueError('Refusing symlink receipt/lock')
     # ponytail: one local lock per workspace; shard only if onboarding throughput requires it.
-    with lock.open('a') as guard:
-        fcntl.flock(guard, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    if (inspect or finalize) and not receipt.is_file():
+        raise ValueError('Inspection/finalization requires an existing receipt; nothing created')
+    with nullcontext() if inspect else lock.open('a') as guard:
+        if guard is not None:
+            fcntl.flock(guard, fcntl.LOCK_EX | fcntl.LOCK_NB)
         state = json.loads(receipt.read_text()) if receipt.exists() else {'version': 2, 'projects': {}}
         if not isinstance(state, dict) or state.get('version') != 2 or not isinstance(state.get('projects'), dict):
             raise ValueError('Unknown project receipt format; preserve and inspect it')
         old = state['projects'].get(name)
-        if old:
+        if (inspect or finalize) and old is None:
+            raise ValueError('Project is not recorded in the receipt')
+        if old is not None:
+            if not isinstance(old, dict) or old.get('name') != name:
+                raise ValueError('Malformed project receipt')
+            if old.get('endpoint') != identity:
+                raise ValueError('Interrupted onboarding or different server; inspect the receipt before recovery')
+            if old.get('roles') != roles or old.get('hermes_root') != str(home):
+                raise ValueError('Recorded profile mapping changed; inspect before reuse')
+            plain(old.get('goal'), 'Recorded goal')
+            recorded_path = old.get('path')
+            if (not isinstance(recorded_path, str) or not Path(recorded_path).is_absolute()
+                    or str(Path(recorded_path).resolve(strict=True)) != recorded_path
+                    or not Path(recorded_path).is_dir()):
+                raise ValueError('Recorded project path is missing or changed')
+            panes = old.get('panes')
+            if (old.get('status') not in ('creating', 'layout-ready') or not isinstance(panes, dict)
+                    or not set(panes).issubset(SLOTS)):
+                raise ValueError('Malformed receipt status or pane IDs')
+            for pid in panes.values():
+                plain(pid, 'Recorded pane ID')  # Opaque native handles may contain letters.
+            if len(set(panes.values())) != len(panes):
+                raise ValueError('Duplicate recorded pane IDs')
+            wid = old.get('workspace_id')
+            if wid is not None:
+                plain(wid, 'Recorded workspace ID')
+            if panes and (not wid or any(not pid.startswith(wid + ':') for pid in panes.values())):
+                raise ValueError('Malformed recorded workspace ID')
             if path and str(Path(path).expanduser().resolve()) != old['path']:
                 raise ValueError('Project name already points to a different path')
             if goal is not None and goal != old['goal']:
                 raise ValueError('Project has a different recorded goal; review the existing project first')
-            if old['endpoint'] != identity or old['status'] != 'layout-ready':
+            if inspect:
+                return inspect_record(old, api)
+            if finalize:
+                if not wid or set(panes) != set(SLOTS):
+                    raise ValueError('Incomplete recorded IDs; manual authorized reconciliation required')
+                if ('launch' in old or old['status'] == 'layout-ready') and old.get('launch') != launch_commands(old):
+                    raise ValueError('Recorded launch commands changed; no finalization')
+                layout = verify(old, api)
+                if 'layout' in old or old['status'] == 'layout-ready':
+                    recorded = old.get('layout')
+                    if (not isinstance(recorded, dict) or recorded.get('workspace_id') != wid
+                            or recorded.get('zoomed') is not False
+                            or not isinstance(recorded.get('panes'), list)
+                            or len(recorded['panes']) != 4
+                            or any(not isinstance(p, dict) for p in recorded['panes'])
+                            or {p.get('pane_id'): p.get('rect') for p in recorded['panes']}
+                            != {p['pane_id']: p['rect'] for p in layout['panes']}):
+                        raise ValueError('Recorded geometry changed or malformed; no finalization')
+                if old['status'] != 'layout-ready':
+                    old.setdefault('prior_status', old['status'])
+                    old.update(layout=layout, launch=launch_commands(old), status='layout-ready')
+                    save(receipt, state)
+                return old
+            if old['status'] != 'layout-ready':
                 raise ValueError('Interrupted onboarding or different server; inspect the receipt and native state before recovery')
-            if (old.get('roles') != roles or old.get('hermes_root') != str(home)
-                    or old.get('launch') != launch_commands(old)):
+            if old.get('launch') != launch_commands(old):
                 raise ValueError('Recorded profile/launch commands changed; inspect before reuse')
             verify(old, api)
             return old
@@ -176,6 +292,65 @@ def onboard(workspace, name, path, goal, create, api, identity, roles, hermes_ro
         return rec
 
 
+class ApiError(ValueError):
+    def __init__(self, operation, outcome, error=None):
+        # Only structured code/message, never command argv, raw streams or error data.
+        detail = ''
+        if isinstance(error, dict):
+            fields = []
+            for key in ('code', 'message'):
+                value = error.get(key)
+                if not isinstance(value, (str, int)):
+                    continue
+                text = str(value)[:8192]
+                text = re.sub(r'(?i)\b(?:bearer|basic)\s+[^\s,;]+', '[REDACTED]', text)
+                text = re.sub(r'''(?ix)([\w-]*(?:token|secret|password|passwd|api[_-]?key|credential|authorization|cookie)[\w-]*["']?\s*[:=]\s*)(?:"[^"]*(?:"|$)|'[^']*(?:'|$)|[^\s,;]+)''',
+                              r'\1[REDACTED]', text)
+                text = re.sub(r'''(?ix)(--[\w-]*(?:token|secret|password|passwd|api[_-]?key|credential)[\w-]*\s+)(?:"[^"]*(?:"|$)|'[^']*(?:'|$)|[^\s,;]+)''',
+                              r'\1[REDACTED]', text)
+                text = re.sub(r'https?://[^\s]+', '[REDACTED-URL]', text)
+                text = re.sub(r'\b(?:sk-|gh[pousr]_|xox[baprs]-)[\w-]+', '[REDACTED]', text)
+                text = ''.join(c if 32 <= ord(c) != 127 else ' ' for c in text)
+                fields.append(f'{key}={text[:256]}')
+            detail = '; ' + '; '.join(fields) if fields else ''
+        super().__init__(f'{operation}: {outcome}{detail}')
+
+
+def native_api(*parts):
+    operation = ' '.join(parts[:2])
+    try:
+        result = subprocess.run(['herdr', *parts], check=False, capture_output=True, text=True, timeout=30)
+    except subprocess.TimeoutExpired:
+        raise ApiError(operation, 'timeout=30s; outcome unknown') from None
+    except OSError as exc:
+        raise ApiError(operation, f'OS error errno={exc.errno}') from None
+    outcome = f'exit={result.returncode}'
+    if result.returncode:
+        error = None
+        for stream in (result.stderr, result.stdout):
+            if len(stream) > 16384:
+                continue
+            try:
+                data = json.loads(stream)
+            except ValueError:
+                continue
+            if isinstance(data, dict) and isinstance(data.get('error'), dict):
+                error = data['error']
+                break
+        raise ApiError(operation, outcome, error)
+    try:
+        data = json.loads(result.stdout)
+    except ValueError:
+        raise ApiError(operation, outcome + '; invalid JSON response') from None
+    if not isinstance(data, dict):
+        raise ApiError(operation, outcome + '; invalid response envelope')
+    if 'error' in data:
+        raise ApiError(operation, outcome, data['error'])
+    if not isinstance(data.get('result'), dict):
+        raise ApiError(operation, outcome + '; missing result object')
+    return data['result']
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--workspace', required=True, help='Approved workspace containing the private project receipt')
@@ -185,29 +360,30 @@ def main():
     parser.add_argument('--path', help='Existing approved absolute directory, or approved new directory')
     parser.add_argument('--goal')
     parser.add_argument('--create', action='store_true', help='Permit creating the explicit missing directory only')
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument('--inspect', action='store_true', help='Read recorded native metadata without writing files or opening a lock; not a readiness check')
+    modes.add_argument('--finalize', action='store_true', help='Finalize only an already complete matching recorded layout under lock; never mutate Herdr')
     args = parser.parse_args()
+    if args.create and (args.inspect or args.finalize):
+        parser.error('--create cannot be combined with --inspect or --finalize')
     if os.environ.get('HERDR_ENV') != '1' or not os.environ.get('HERDR_SOCKET_PATH'):
         parser.error('Run inside an authorized Herdr pane; no focused-session fallback is allowed')
-    endpoint = Path(os.environ['HERDR_SOCKET_PATH']).resolve(strict=True)
-    info = endpoint.stat()
-    if not stat.S_ISSOCK(info.st_mode):
-        parser.error('Inherited Herdr endpoint is not a Unix socket')
-    identity = {'socket': str(endpoint), 'inode': info.st_ino, 'device': info.st_dev}
-
-    def api(*parts):
-        result = subprocess.run(['herdr', *parts], check=True, capture_output=True, text=True, timeout=30)
-        data = json.loads(result.stdout)
-        if 'error' in data:
-            raise ValueError(str(data['error']))
-        return data['result']
-
+    stage = 'endpoint'
     try:
+        endpoint = Path(os.environ['HERDR_SOCKET_PATH']).resolve(strict=True)
+        info = endpoint.stat()
+        if not stat.S_ISSOCK(info.st_mode):
+            raise ValueError('Inherited Herdr endpoint is not a Unix socket')
+        identity = {'socket': str(endpoint), 'inode': info.st_ino, 'device': info.st_dev}
+        stage = 'roles'
         roles = json.loads(Path(args.roles).read_text(encoding='utf-8'))
+        stage = 'inspect' if args.inspect else 'finalize' if args.finalize else 'onboard'
         result = onboard(args.workspace, args.name, args.path, args.goal, args.create,
-                         api, identity, roles, args.hermes_root)
+                         native_api, identity, roles, args.hermes_root,
+                         inspect=args.inspect, finalize=args.finalize)
         print(json.dumps(result, indent=2))
-    except (ValueError, OSError, KeyError, subprocess.SubprocessError) as exc:
-        parser.exit(1, f'Onboarding stopped: {exc}\nPreserve the receipt and inspect native state before retrying.\n')
+    except (ValueError, OSError, KeyError, TypeError) as exc:
+        parser.exit(1, f'Onboarding stopped [{stage}]: {exc}\nPreserve the receipt and inspect native state before retrying.\n')
 
 
 if __name__ == '__main__':
