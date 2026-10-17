@@ -1,7 +1,7 @@
 ---
 name: project-onboarding
 description: "Create or reuse an approved project and Herdr team."
-version: 0.5.0
+version: 0.6.0
 author: Hermes Business Templates contributors, Hermes Agent
 license: MIT
 platforms: [linux, macos]
@@ -23,6 +23,13 @@ spend or send. No legacy Creator installation is required.
 - Identify the actual primary assistant's profile ID and display name. Reuse that
   assistant as Executive Assistant (EA). A role is a responsibility, not a mandate
   to rename the assistant or create a second main profile.
+- Check the permitted Herdr control context before preparing layout or launch work.
+  A host-capable Desktop conversation may still lack the inherited pane context
+  required below. Reuse an authorized in-Herdr operator if available; preserve the
+  original coordinator and verify the result route. If no supported route exists,
+  name the boundary and one necessary owner action, not a chain of improvised
+  scripts. Do not claim native transport is impossible merely because a policy or
+  helper rejects this caller. Never spoof context or select the focused session.
 - Ask the project name first only if missing; then resolve the existing location
   and goal. Reuse existing repositories, branches, instructions and owner edits.
   For a new project, agree an exact folder within an approved root. No implicit
@@ -119,6 +126,33 @@ paths, sockets, layouts or partial operations need inspection; do not delete a
 receipt, retry an ambiguous mutation, or close possibly active panes as rollback.
 The receipt is cooperative local bookkeeping, not an authorization or OS sandbox.
 
+### Inspect and reconcile an interrupted layout
+
+From the same authorized Herdr context, run the existing helper with `--inspect`
+and the same `--workspace`, `--hermes-root`, `--roles` and `--name` arguments.
+Do not add `--create`. This mode reads the existing receipt and scoped native
+metadata without creating a lock or writing files. It does not adopt unrecorded
+IDs, inspect terminal text or authenticate agents. A foreground process can be a
+shell; `process_exists` is not proof of a Hermes process or ready session.
+Missing recognition metadata remains unknown. Read `layout_status` separately
+from `readiness`, which remains `not-verified` even for a verified layout.
+
+If the native layout is already complete and the receipt contains all four exact
+pane IDs, use `--finalize` instead of `--inspect` only within approved reconciliation
+scope. It rereads under the existing lock and checks the endpoint, role mapping,
+project path, labels, pane membership and geometry before changing the receipt to
+`layout-ready`. Existing recorded geometry must match. This never creates, splits,
+renames, starts or deletes anything in Herdr; it does not complete agent readiness.
+Back up the private receipt before this write and preserve the original evidence.
+
+If a response was lost before an ID was recorded, a pane is missing, ownership is
+uncertain or the server endpoint changed, stop automatic recovery. Report the exact
+gap for scoped agent-led native inspection and owner-approved reconciliation where
+needed. Do not hand-edit IDs, delete the receipt, recreate the layout or use a
+focused-session fallback to make the check pass. The two recovery modes are
+mutually exclusive. Inspection success means an observation was obtained, not that
+the layout or sessions passed; parse the report instead of using exit zero alone.
+
 Update the existing project catalog with its canonical path, goal, authority,
 audience, owner, status and receipt reference. Do not overwrite owner instructions
 or create a second task/project database. Review any necessary project-local
@@ -131,6 +165,15 @@ Before any launch, use native `pane get`, `pane process-info`, `pane read` and
 and drafts. Reuse verified sessions rather than starting duplicates. Resolve
 shared-profile concurrency and applicable model/tool-connection authority first.
 
+Check the installed client/server compatibility and the applicable
+[Hermes session integration](../../capabilities/REFERENCE.md#plugin-0196) for each
+selected profile. Record native installation and loading evidence where required
+by the selected workflow; do not infer it from another profile. The integration's
+session identity reporting is distinct from process recognition and lifecycle
+detection. An absent plugin is not by itself proof of a readiness-timeout cause.
+Use the supported approved installation route if needed, preserving active sessions;
+do not blindly reinstall or restart to diagnose an existing recognition failure.
+
 For an approved idle shell, use the receipt's native `herdr agent start` argv
 only after confirming it matches the approved profile and project. Each new session
 uses explicit `-p` and `--in`, without `--continue` or a shared resume ID. Read native
@@ -138,6 +181,13 @@ agent state and visible output afterward. Verify the actual profile, working roo
 conversation ID and readiness; Herdr recognizing the kind `hermes` is not enough.
 A login prompt or unknown state is a named blocker, not a successful launch.
 Owner-attended sign-in stays in its native secure interface, never in chat.
+
+For any authorized launch sequence, retain the exact target, start/end timestamps,
+numeric exit status and bounded sanitized native error details. Inspect after-state
+even when the command returns nonzero: a process may have started before a readiness
+timeout. Preserve that process and inspect recognition/detection before deciding
+whether another action is safe. Prefer direct native operations; do not hide these
+observations behind a success-only wrapper or retry the original batch blindly.
 
 One coordinator owns the project. Assign one implementation owner for overlapping
 files. Leave the second Engineer idle or read-only until independent work and any
@@ -156,8 +206,10 @@ ready agent session. A shell prompt is not a chat prompt; do not ask the owner t
 invent commands. The agent performs authorized setup where its tools permit.
 
 Report project/root, approved role map, exact workspace/pane IDs, preserved files,
-geometry/reuse result, and per-slot state: shell-only, awaiting authorization/login,
-or verified agent session. Baseline acceptance requires authenticated readiness
+geometry/reuse result, and per-slot observations: shell-only, process-running,
+recognized, ready, or verified, with authorization/login blockers kept explicit.
+Each observation needs its own evidence; none implies the next. Baseline acceptance
+requires authenticated readiness
 in all four slots, not four shell labels. Ready agents may wait idle until safely
 assigned. Record launch and useful-task proof separately. Do not
 claim native Mac acceptance from Linux tests, or model readiness from layout tests.

@@ -61,10 +61,13 @@ an older approval for main-only access does not authorize creation or model laun
 | Engineer #1 | Engineer #2 |
 
 The existing primary assistant fills Executive Assistant; display names and role
-assignments adapt to the owner. The Engineer panes can be distinct sessions of one
-Engineer profile only after verifying supported shared-profile memory/write safety;
-separate session IDs do not isolate profile memory. Otherwise use approved separate
-worker profiles. An unresolved concurrency issue leaves readiness incomplete; do
+assignments adapt to the owner. Default to one Engineer profile with two distinct
+sessions. Verify supported shared-profile memory/write safety before concurrent
+use; separate session IDs do not isolate profile memory. If that safety is unverified,
+report the concurrency blocker rather than automatically creating a second profile.
+Preserve separately approved exceptions through the
+[role preparation procedure](../../project-onboarding/references/role-setup.md).
+An unresolved concurrency issue leaves readiness incomplete; do
 not substitute a shell-only slot for acceptance. They may work in parallel only
 with non-overlapping ownership and isolated writable workspaces where needed.
 Do not create unapproved worktrees or two writers for the same files. Keep one

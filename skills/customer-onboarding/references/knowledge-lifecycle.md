@@ -123,6 +123,11 @@ checks cannot replace new evidence or source review.
 
 ## Prove the actual route before expanding
 
+The baseline requires the source-grounded current/corrected/conflicting/scope
+checks above. The mechanical withholding, renewal, adapter and policy-binding
+checks in this section apply only when the owner selected that enforcement
+extension. They do not require building a custom retrieval guard for onboarding.
+
 Test a current eligible source, a controlled stale/withheld source, and reviewed
 renewal restoring legitimate recall. Keep synthetic controls outside live memory
 and authoritative knowledge. A new session should answer from returned evidence
