@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.10.0
+version: 0.11.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -138,6 +138,12 @@ Inventory only necessary paths and metadata. Preserve unknown/partial state.
 If a required client device is unavailable, continue independent host work and
 mark client acceptance pending. Do not demand access to a device the owner lacks.
 
+Before choosing installation targets, follow the
+[device-role selection](references/knowledge-lifecycle.md#select-device-roles-before-installation).
+Distinguish the agent host, selected Obsidian viewing/editing devices and knowledge
+storage. Retrieve existing choices first; ask only unresolved device choices.
+Never infer these roles from hardware model or the machine this agent controls.
+
 ### 2. Understand the owner and propose the setup
 
 Reuse current preferences and instructions; ask only missing facts. Do not offer
@@ -190,7 +196,8 @@ path for stale/failed evidence and explicit recovery, not another agent or servi
 
 Install/discover the complete project-onboarding skill and prove the required
 per-project four-pane team. Establish LEANN, its approved recurring refresh and
-Obsidian on the owner's viewing device. Review the full capability catalog and
+Obsidian on each selected viewing/editing device. Host-only installation does not
+complete a separate device's requirement. Review the full capability catalog and
 install/authenticate/test the required set through each assigned agent surface.
 Do not stop at an inventory, create Kanban boards or invoke formal delivery
 pipelines to complete onboarding. Reuse or install Parsec for approved remote
