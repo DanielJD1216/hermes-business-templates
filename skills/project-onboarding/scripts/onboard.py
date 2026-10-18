@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Create/reuse a role-labelled Herdr layout. Never send input or start a model.
 
-Run only from an authorized Herdr pane. The SKILL handles discovery, consent,
+Use inherited pane context or an explicitly approved host-local --session.
+The SKILL handles discovery, consent,
 profile/session startup and handoffs; this helper owns only layout receipts.
 """
 import argparse
@@ -316,10 +317,13 @@ class ApiError(ValueError):
         super().__init__(f'{operation}: {outcome}{detail}')
 
 
-def native_api(*parts):
+def native_api(*parts, session=None):
     operation = ' '.join(parts[:2])
+    prefix = ['herdr'] if session is None else ['herdr', '--session', session]
+    # Explicit server selection must not carry another pane's caller identity.
+    env = None if session is None else {k: v for k, v in os.environ.items() if not k.startswith('HERDR_')}
     try:
-        result = subprocess.run(['herdr', *parts], check=False, capture_output=True, text=True, timeout=30)
+        result = subprocess.run([*prefix, *parts], env=env, check=False, capture_output=True, text=True, timeout=30)
     except subprocess.TimeoutExpired:
         raise ApiError(operation, 'timeout=30s; outcome unknown') from None
     except OSError as exc:
@@ -346,6 +350,8 @@ def native_api(*parts):
         raise ApiError(operation, outcome + '; invalid response envelope')
     if 'error' in data:
         raise ApiError(operation, outcome, data['error'])
+    if parts == ('status', '--json'):
+        return data  # Native status has no result envelope.
     if not isinstance(data.get('result'), dict):
         raise ApiError(operation, outcome + '; missing result object')
     return data['result']
@@ -360,27 +366,58 @@ def main():
     parser.add_argument('--path', help='Existing approved absolute directory, or approved new directory')
     parser.add_argument('--goal')
     parser.add_argument('--create', action='store_true', help='Permit creating the explicit missing directory only')
+    parser.add_argument('--session', help='Owner-approved host-local Herdr session; use default explicitly for the default server')
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument('--inspect', action='store_true', help='Read recorded native metadata without writing files or opening a lock; not a readiness check')
     modes.add_argument('--finalize', action='store_true', help='Finalize only an already complete matching recorded layout under lock; never mutate Herdr')
     args = parser.parse_args()
     if args.create and (args.inspect or args.finalize):
         parser.error('--create cannot be combined with --inspect or --finalize')
-    if os.environ.get('HERDR_ENV') != '1' or not os.environ.get('HERDR_SOCKET_PATH'):
-        parser.error('Run inside an authorized Herdr pane; no focused-session fallback is allowed')
+    if args.session is None and (os.environ.get('HERDR_ENV') != '1' or not os.environ.get('HERDR_SOCKET_PATH')):
+        parser.error('Run inside an authorized Herdr pane or supply an approved --session; no focused-session fallback is allowed')
     stage = 'endpoint'
     try:
-        endpoint = Path(os.environ['HERDR_SOCKET_PATH']).resolve(strict=True)
+        if args.session is not None:
+            plain(args.session, 'Herdr session')
+            status = native_api('status', '--json', session=args.session)
+            client, server = status.get('client'), status.get('server')
+            expected = None if args.session == 'default' else args.session
+            if (not isinstance(client, dict) or not isinstance(server, dict)
+                    or 'session' not in client or client['session'] != expected
+                    or server.get('running') is not True or server.get('compatible') is not True):
+                raise ValueError('Selected Herdr session is unavailable, incompatible or mismatched; no automatic start or fallback')
+            socket_path = server.get('socket')
+        else:
+            socket_path = os.environ['HERDR_SOCKET_PATH']
+        if not isinstance(socket_path, str) or not Path(socket_path).is_absolute():
+            raise ValueError('Herdr endpoint must be an absolute Unix socket path')
+        endpoint = Path(socket_path).resolve(strict=True)
         info = endpoint.stat()
         if not stat.S_ISSOCK(info.st_mode):
-            raise ValueError('Inherited Herdr endpoint is not a Unix socket')
+            raise ValueError('Herdr endpoint is not a Unix socket')
+        if args.session is not None and (info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) & 0o077):
+            raise ValueError('Explicit Herdr endpoint must be owner-only and owned by the current user')
         identity = {'socket': str(endpoint), 'inode': info.st_ino, 'device': info.st_dev}
+
+        def api(*parts):
+            current = endpoint.stat()
+            if (Path(socket_path).resolve(strict=True) != endpoint
+                    or (current.st_ino, current.st_dev) != (info.st_ino, info.st_dev)):
+                raise ValueError('Herdr endpoint changed during onboarding; stop and reconcile')
+            return native_api(*parts, session=args.session)
+
         stage = 'roles'
         roles = json.loads(Path(args.roles).read_text(encoding='utf-8'))
         stage = 'inspect' if args.inspect else 'finalize' if args.finalize else 'onboard'
         result = onboard(args.workspace, args.name, args.path, args.goal, args.create,
-                         native_api, identity, roles, args.hermes_root,
+                         api, identity, roles, args.hermes_root,
                          inspect=args.inspect, finalize=args.finalize)
+        result = dict(result)  # Never rewrite old receipts merely to select a transport.
+        result['control'] = {'mode': 'inherited' if args.session is None else 'explicit-session',
+                             'session': args.session, 'endpoint': identity}
+        if args.session is not None and 'launch' in result:
+            result['launch'] = {slot: ['herdr', '--session', args.session, *command[1:]]
+                                for slot, command in result['launch'].items()}
         print(json.dumps(result, indent=2))
     except (ValueError, OSError, KeyError, TypeError) as exc:
         parser.exit(1, f'Onboarding stopped [{stage}]: {exc}\nPreserve the receipt and inspect native state before retrying.\n')

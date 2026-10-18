@@ -87,13 +87,17 @@ as EA; create missing specialists only after approval, once for reuse rather tha
 once per project. Never copy the publisher's profile names, identity or credentials.
 
 Verify the complete installed skill and authorized control/return route before
-layout creation. Follow the project skill's
+layout creation. The originating Slack, Desktop or terminal conversation can use
+the project helper's explicit `--session` route when its tools reach the approved
+host. Running inside a Herdr pane is not required for that route. Keep exact server
+and project binding; browser access alone does not supply host execution authority.
+Follow the project skill's
 [single-session acceptance gate](../../project-onboarding/SKILL.md#prove-one-fresh-session-before-expanding-the-team):
 prove one fresh role's startup, recognition and authorized response round trip on
 the actual host before launching the remaining slots. Preserve each command's
 exit status and target binding. Existing working agents, echoed prompt text,
 sidebar status and a later successful read are not substitutes for that proof.
-After the gate passes, the in-Herdr operator continues approved setup; do not make
+After the gate passes, the authorized operator continues approved setup; do not make
 the owner execute every routine step. A missing control route or a runtime defect
 remains a named blocker, not a reason to spoof context or modify working agents.
 

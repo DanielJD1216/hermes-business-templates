@@ -93,6 +93,10 @@ or reuses the required four-pane Herdr layout. Its stdlib helper creates shells,
 not model sessions; the skill separately checks launch authority and readiness.
 Install the complete skill in the selected coordinator's skill root and verify
 discovery. It is not installed merely by reading this repository.
+Invoke it from Slack, Hermes Desktop or a terminal with tools on the approved host.
+The helper accepts an explicitly approved Herdr `--session` as well as inherited
+pane context; it never guesses the focused server or requires moving your chat.
+Host access, target verification and agent readiness remain separate checks.
 
 See [onboarding](skills/customer-onboarding/SKILL.md),
 [context and file guidance](skills/customer-onboarding/references/context-and-files.md),
