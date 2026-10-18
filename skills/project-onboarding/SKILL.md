@@ -1,7 +1,7 @@
 ---
 name: project-onboarding
 description: "Create or reuse an approved project and Herdr team."
-version: 0.6.0
+version: 0.7.0
 author: Hermes Business Templates contributors, Hermes Agent
 license: MIT
 platforms: [linux, macos]
@@ -39,6 +39,22 @@ spend or send. No legacy Creator installation is required.
   supported native skill/write-approval route. A repository link or lone SKILL.md
   is not installation. Preserve any existing skill and review differences before
   updating. Verify native discovery and helper availability before claiming ready.
+  Load the installed skill, verify its complete file set against the selected
+  source revision, and run the installed helper's `--help`. Reading the repository
+  alone is not this check. If a native scanner blocks installation, review its
+  exact findings and obtain any required package-specific override; never bypass
+  the scanner by copying files or granting blanket trust.
+
+Resolve the execution route before creating a layout. Record the originating
+coordinator, the authorized in-Herdr operator, and the exact result-return route
+in the existing private project record. If the current conversation lacks genuine
+inherited context, prefer an already-authorized in-Herdr operator that can safely
+receive the bounded handoff. Preserve busy agents and drafts. If no such route is
+available, give one necessary owner handoff, explain whether it targets a shell
+or an assistant, and keep acceptance pending. Do not fabricate context, move or
+restart a working conversation, or promise autonomous continuation without a
+verified route. Once that route exists, the operator performs routine authorized
+steps and returns evidence; the owner is not a command-by-command relay.
 
 ## Adapt the team once, not once per project
 
@@ -181,6 +197,72 @@ agent state and visible output afterward. Verify the actual profile, working roo
 conversation ID and readiness; Herdr recognizing the kind `hermes` is not enough.
 A login prompt or unknown state is a named blocker, not a successful launch.
 Owner-attended sign-in stays in its native secure interface, never in chat.
+
+### Prove one fresh session before expanding the team
+
+For first-host acceptance, or after a relevant runtime/launcher change, start one
+selected role in the approved new test/project layout before launching the other
+slots. Do not interrupt or use the owner's working team as test targets. A
+successful existing session does not prove fresh startup; matching version numbers
+or similar launcher source does not prove either failure or compatibility.
+Reuse valid evidence for an unchanged combination rather than repeat model tests
+for every project. Record the host, client/server versions, Hermes runtime,
+profile, pane and conversation binding with that evidence.
+
+1. Verify the target is the recorded available shell. Start that role once using
+   the recorded native launch arguments. Retain the numeric exit status and native
+   response. After a timeout or nonzero result, inspect the same pane read-only;
+   a process may already exist. Do not retry startup or launch the remaining slots
+   while the outcome is unresolved.
+2. Verify recognition, interactive readiness, actual profile and working root.
+   Record conversation identity separately; an absent identity is not a missing
+   process. Do not install a session plugin as an assumed recognition repair.
+3. With existing model-use/handoff authority, exercise one bounded response through
+   `herdr agent prompt <target> <text> --wait --timeout <milliseconds>`. First read
+   the exact destination and require an idle/done agent with an empty composer,
+   no active turn, approval or draft. Use a unique non-sensitive acknowledgement
+   marker, ask for no tools or durable memory writes, and read the response back
+   from that same target. Prefer an isolated approved test conversation/memory
+   scope. An instruction not to save is not isolation from automatic memory hooks;
+   if isolation is unavailable, defer the synthetic probe or use the owner's
+   approved first useful task. Do not silently disable shared memory settings.
+4. Keep startup, submission evidence, completion wait and output retrieval results
+   separate. A prompt-and-wait command may combine submission and waiting; its
+   failure can leave submission unknown. A later successful read must not replace
+   that command's exit status. A marker in echoed input is not an assistant reply.
+   A sidebar completion icon or readable answer does not establish wait success.
+5. Pass the round trip only when the native wait succeeds with the intended agent
+   settled in idle/done and the expected assistant response is read back from the
+   same bound conversation. Blocked, timeout, stalled, wrong target, missing
+   response or missing result remains failed or unverified, not passed. Do not
+   resend an ambiguous prompt. Inspect the existing attempt instead.
+
+The agent can use this shell evidence-capture pattern after establishing the
+target, prompt, timeout and a private evidence directory. Variables are discovered
+values, not defaults to copy. Preserve separate command outcomes even in a shell
+with `set -e`; do not rerun this block to recover a lost result.
+
+```bash
+prompt_wait_rc=0
+herdr agent prompt "$target" "$probe" --wait --timeout "$timeout_ms" >"$evidence/prompt-wait.json" 2>"$evidence/prompt-wait.stderr" || prompt_wait_rc=$?
+read_rc=0
+herdr agent read "$target" --source recent-unwrapped --lines 80 >"$evidence/read.json" 2>"$evidence/read.stderr" || read_rc=$?
+printf 'prompt_wait_exit=%s\nread_exit=%s\n' "$prompt_wait_rc" "$read_rc" >"$evidence/exits.txt"
+```
+
+Use a new private evidence directory per authorized attempt so prior results are
+not overwritten. Keep raw terminal evidence private and bounded; redact secrets
+and unrelated context before sharing. Record timestamps, exact target/session,
+startup exit, submission evidence or uncertainty, wait exit/final state, read exit
+and reply verification in the existing project/progress record. This example
+captures evidence; it neither validates the results nor supplies authorization.
+
+After this gate passes, the authorized in-Herdr operator continues the remaining
+approved slot launches and per-slot readiness checks without another routine
+"go on". Preserve concurrency/resource limits and stop only the affected work on
+a real blocker. One successful role is not full-team acceptance or proof that
+another host works. A runtime recognition defect remains a separate repair;
+this procedure does not patch Herdr, extend timeouts or replace a working launcher.
 
 For any authorized launch sequence, retain the exact target, start/end timestamps,
 numeric exit status and bounded sanitized native error details. Inspect after-state
