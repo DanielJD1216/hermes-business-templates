@@ -1,7 +1,7 @@
 ---
 name: project-onboarding
 description: "Create or reuse an approved project and Herdr team."
-version: 0.7.0
+version: 0.8.0
 author: Hermes Business Templates contributors, Hermes Agent
 license: MIT
 platforms: [linux, macos]
@@ -23,13 +23,13 @@ spend or send. No legacy Creator installation is required.
 - Identify the actual primary assistant's profile ID and display name. Reuse that
   assistant as Executive Assistant (EA). A role is a responsibility, not a mandate
   to rename the assistant or create a second main profile.
-- Check the permitted Herdr control context before preparing layout or launch work.
-  A host-capable Desktop conversation may still lack the inherited pane context
-  required below. Reuse an authorized in-Herdr operator if available; preserve the
-  original coordinator and verify the result route. If no supported route exists,
-  name the boundary and one necessary owner action, not a chain of improvised
-  scripts. Do not claim native transport is impossible merely because a policy or
-  helper rejects this caller. Never spoof context or select the focused session.
+- Check the permitted host and Herdr control route before layout or launch work.
+  Slack, Hermes Desktop and terminal conversations may coordinate setup without
+  running inside a Herdr pane. Require actual tools on the approved host, not a
+  particular chat interface. Use inherited context or the explicit-session route
+  below; preserve the original coordinator and verify the result-return route.
+  If neither route is available, name the missing access and one necessary owner
+  action. Never fabricate pane context or select the user's focused session.
 - Ask the project name first only if missing; then resolve the existing location
   and goal. Reuse existing repositories, branches, instructions and owner edits.
   For a new project, agree an exact folder within an approved root. No implicit
@@ -46,15 +46,17 @@ spend or send. No legacy Creator installation is required.
   the scanner by copying files or granting blanket trust.
 
 Resolve the execution route before creating a layout. Record the originating
-coordinator, the authorized in-Herdr operator, and the exact result-return route
-in the existing private project record. If the current conversation lacks genuine
-inherited context, prefer an already-authorized in-Herdr operator that can safely
-receive the bounded handoff. Preserve busy agents and drafts. If no such route is
-available, give one necessary owner handoff, explain whether it targets a shell
-or an assistant, and keep acceptance pending. Do not fabricate context, move or
-restart a working conversation, or promise autonomous continuation without a
-verified route. Once that route exists, the operator performs routine authorized
-steps and returns evidence; the owner is not a command-by-command relay.
+coordinator, authorized execution host, selected Herdr session/endpoint, project
+scope and exact result-return route in the existing private project record.
+Retrieve approved target choices before asking; ordinary setup authority covers
+routine target-bound operations, not unrelated servers or projects. Prefer direct
+execution from this conversation when its tools reach that host. An authorized
+in-Herdr operator is an alternative, not a prerequisite or a new coordinator.
+Preserve busy agents and drafts. Do not move or restart a working conversation,
+create a bridge/service, or promise continuation without a verified route. If
+access is genuinely unavailable, give one necessary owner action, explain whether
+it targets a shell or assistant, and keep acceptance pending. The operator does
+routine authorized work; the owner is not a command-by-command relay.
 
 ## Adapt the team once, not once per project
 
@@ -115,11 +117,28 @@ tombstone and config-file metadata, not authentication or private config content
 Missing/deleted profiles must be resolved through the approved role procedure first.
 
 Use `terminal` to inspect `herdr --help`, `herdr --skill` and relevant native help.
-The helper requires a genuine inherited `HERDR_ENV=1` and `HERDR_SOCKET_PATH` from
-an authorized Herdr pane. It never falls back to the user's focused session.
-If that transport is unavailable, report the specific limitation and one supported
-owner action or authorized handoff. Do not spoof the environment, change session
-ownership or move the originating business conversation merely to bypass a guard.
+The helper supports two authorized host-local routes:
+
+- **Inherited:** genuine `HERDR_ENV=1` and `HERDR_SOCKET_PATH` from an authorized
+  Herdr pane. Existing invocations remain supported.
+- **Explicit session:** add `--session <approved-session>` from a tool-capable
+  conversation on the intended host. Use `--session default` only when that server
+  is the approved target, never as a guessed fallback. The helper uses native
+  `herdr --session <name> status --json`, requires a matching running compatible
+  server and a same-user, owner-only Unix socket, then checks the receipt's endpoint
+  identity and project metadata. Every native call carries the selected session;
+  inherited Herdr caller variables are removed from those child processes, not
+  invented or changed in the originating conversation. Endpoint replacement stops
+  the operation. No automatic server start, restart, migration or fallback occurs.
+
+Herdr's bundled agent guidance may describe only in-pane operation. That is not
+proof that its documented external-client CLI is unavailable. Use this explicit
+route within owner-approved host/project scope; do not pretend to satisfy the
+inherited-context check. The socket checks and receipt are not an OS sandbox or
+protection against a hostile same-user process. Preserve native OS permissions.
+This helper does not forward to arbitrary remote hosts. If chat tools run elsewhere,
+use an existing approved execution route to run the helper on the intended host;
+otherwise report missing access. No token copying or new network listener is needed.
 
 Read workspace/pane/agent metadata before acting. Reuse recorded layouts. An
 unrecorded matching name/location needs reconciliation, not a duplicate workspace.
@@ -133,6 +152,12 @@ Add `--create` only for the explicitly approved missing project folder; its pare
 must exist. No repo, instructions, accounts or agents are created by this helper.
 For repeat onboarding, omit path/goal only when the existing record remains valid.
 Retain `--workspace`, `--hermes-root`, `--roles` and `--name`.
+For explicit-session execution, retain `--session` on every helper invocation.
+The output's `control` field identifies the route. Returned launch argv includes
+the explicit native session prefix; stored legacy launch argv stays unchanged.
+For later native reads, launches, prompts and waits, retain that same prefix and
+an exact verified pane ID or unique agent name. Never execute old unqualified
+receipt commands from an external caller or use `--current` there.
 
 The helper creates labelled shells without changing focus, verifies geometry,
 and saves `.hbt-projects.json` in the approved business workspace. It returns
@@ -144,7 +169,7 @@ The receipt is cooperative local bookkeeping, not an authorization or OS sandbox
 
 ### Inspect and reconcile an interrupted layout
 
-From the same authorized Herdr context, run the existing helper with `--inspect`
+Using the same verified route and target, run the existing helper with `--inspect`
 and the same `--workspace`, `--hermes-root`, `--roles` and `--name` arguments.
 Do not add `--create`. This mode reads the existing receipt and scoped native
 metadata without creating a lock or writing files. It does not adopt unrecorded
@@ -257,7 +282,7 @@ startup exit, submission evidence or uncertainty, wait exit/final state, read ex
 and reply verification in the existing project/progress record. This example
 captures evidence; it neither validates the results nor supplies authorization.
 
-After this gate passes, the authorized in-Herdr operator continues the remaining
+After this gate passes, the authorized operator continues the remaining
 approved slot launches and per-slot readiness checks without another routine
 "go on". Preserve concurrency/resource limits and stop only the affected work on
 a real blocker. One successful role is not full-team acceptance or proof that

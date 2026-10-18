@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.14.0
+version: 0.15.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -214,7 +214,11 @@ search and helper binding even on unchanged refreshes; use the existing monitori
 path for stale/failed evidence and explicit recovery, not another agent or service.
 
 Install/discover the complete project-onboarding skill and establish its authorized
-in-Herdr operator/result route before creating the layout. Follow its
+host/session/result route before creating the layout. Slack, Desktop and terminal
+conversations may execute directly through the skill's verified explicit-session
+route; inherited pane context is an alternative, not a requirement for every caller.
+Preserve the originating coordinator and approved target without focused-session
+fallbacks, fabricated context or a new bridge service. Follow its
 [single-session acceptance gate](../project-onboarding/SKILL.md#prove-one-fresh-session-before-expanding-the-team)
 before expanding first-host startup to the required four-session team. Preserve
 separate startup, prompt/wait and response-readback outcomes; a working layout or
