@@ -86,6 +86,17 @@ role-preparation step and stdlib layout helper. Reuse the owner's existing assis
 as EA; create missing specialists only after approval, once for reuse rather than
 once per project. Never copy the publisher's profile names, identity or credentials.
 
+Verify the complete installed skill and authorized control/return route before
+layout creation. Follow the project skill's
+[single-session acceptance gate](../../project-onboarding/SKILL.md#prove-one-fresh-session-before-expanding-the-team):
+prove one fresh role's startup, recognition and authorized response round trip on
+the actual host before launching the remaining slots. Preserve each command's
+exit status and target binding. Existing working agents, echoed prompt text,
+sidebar status and a later successful read are not substitutes for that proof.
+After the gate passes, the in-Herdr operator continues approved setup; do not make
+the owner execute every routine step. A missing control route or a runtime defect
+remains a named blocker, not a reason to spoof context or modify working agents.
+
 After approval, the setup agent configures the selected preset with supported
 native operations, using the installed version's help. Preserve existing sessions,
 drafts, working directories and pane identities. Never rearrange a busy workspace

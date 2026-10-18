@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.13.0
+version: 0.14.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -213,8 +213,15 @@ and distinguish nonblocking hygiene warnings from genuine safety failures. Verif
 search and helper binding even on unchanged refreshes; use the existing monitoring
 path for stale/failed evidence and explicit recovery, not another agent or service.
 
-Install/discover the complete project-onboarding skill and prove the required
-per-project four-pane team. Establish LEANN, its approved recurring refresh and
+Install/discover the complete project-onboarding skill and establish its authorized
+in-Herdr operator/result route before creating the layout. Follow its
+[single-session acceptance gate](../project-onboarding/SKILL.md#prove-one-fresh-session-before-expanding-the-team)
+before expanding first-host startup to the required four-session team. Preserve
+separate startup, prompt/wait and response-readback outcomes; a working layout or
+later successful command cannot stand in for them. The operator continues safe
+authorized steps without making the owner relay each command. Missing transport,
+model-use authority or memory isolation remains an explicit blocker, not permission
+to bypass it. Establish LEANN, its approved recurring refresh and
 Obsidian on each selected viewing/editing device. Host-only installation does not
 complete a separate device's requirement. Review the full capability catalog and
 install/authenticate/test the required set through each assigned agent surface.
