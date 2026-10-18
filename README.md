@@ -90,7 +90,10 @@ For repeatable per-project setup, use the bundled
 project name/location/goal, preserves the existing primary assistant as EA,
 prepares only approved missing role profiles through native operations, and creates
 or reuses the required four-pane Herdr layout. Its stdlib helper creates shells,
-not model sessions; the skill separately checks launch authority and readiness.
+not model sessions. `layout-ready` is an intermediate result: the agent continues
+authorized startup and verifies all four sessions. The skill checks integration
+per profile and actual terminal-tool working roots; a banner or `--in` is not proof.
+An undecided product goal permits setup, not unassigned research or development.
 Install the complete skill in the selected coordinator's skill root and verify
 discovery. It is not installed merely by reading this repository.
 Invoke it from Slack, Hermes Desktop or a terminal with tools on the approved host.
