@@ -1,7 +1,7 @@
 ---
 name: project-onboarding
 description: "Create or reuse an approved project and Herdr team."
-version: 0.8.0
+version: 0.8.1
 author: Hermes Business Templates contributors, Hermes Agent
 license: MIT
 platforms: [linux, macos]
@@ -34,6 +34,8 @@ spend or send. No legacy Creator installation is required.
   and goal. Reuse existing repositories, branches, instructions and owner edits.
   For a new project, agree an exact folder within an approved root. No implicit
   Git initialization, clone, relocation, worktree or replacement AGENTS.md.
+  If the owner has not chosen a goal or audience, record them as undecided. This
+  does not block authorized setup or authorize research or development assignments.
 - Install this entire reviewed skill directory, including `scripts/onboard.py` and
   `references/role-setup.md`, in the selected coordinator's skill root through the
   supported native skill/write-approval route. A repository link or lone SKILL.md
@@ -167,6 +169,11 @@ paths, sockets, layouts or partial operations need inspection; do not delete a
 receipt, retry an ambiguous mutation, or close possibly active panes as rollback.
 The receipt is cooperative local bookkeeping, not an authorization or OS sandbox.
 
+`layout-ready` is an intermediate result. Continue the authorized session launches
+and readiness checks below without another routine approval. If a real blocker
+stops startup, report each slot's actual state and name the blocker and next actor;
+do not present empty panes as a completed team.
+
 ### Inspect and reconcile an interrupted layout
 
 Using the same verified route and target, run the existing helper with `--inspect`
@@ -209,7 +216,9 @@ shared-profile concurrency and applicable model/tool-connection authority first.
 Check the installed client/server compatibility and the applicable
 [Hermes session integration](../../capabilities/REFERENCE.md#plugin-0196) for each
 selected profile. Record native installation and loading evidence where required
-by the selected workflow; do not infer it from another profile. The integration's
+by the selected workflow; do not infer it from another profile. Use the
+[per-profile integration checks](references/role-setup.md#verify-the-session-integration-per-profile)
+before starting new sessions. The integration's
 session identity reporting is distinct from process recognition and lifecycle
 detection. An absent plugin is not by itself proof of a readiness-timeout cause.
 Use the supported approved installation route if needed, preserving active sessions;
@@ -222,6 +231,12 @@ agent state and visible output afterward. Verify the actual profile, working roo
 conversation ID and readiness; Herdr recognizing the kind `hermes` is not enough.
 A login prompt or unknown state is a named blocker, not a successful launch.
 Owner-attended sign-in stays in its native secure interface, never in chat.
+
+Verify each session's actual terminal working root through the
+[terminal-root check](references/role-setup.md#verify-and-correct-the-session-terminal-root).
+Pane cwd, launch `--in`, banners and session metadata do not replace tool output.
+Use an authorized useful task for this check; a no-tools acknowledgement cannot
+prove the terminal root. Keep any necessary correction local to the new session.
 
 ### Prove one fresh session before expanding the team
 

@@ -38,10 +38,10 @@ After creation, read back native profile metadata. Draft the selected role's SOU
 and approved shared/project-policy pointers using the briefs below; apply through
 the host's instruction/write-approval mechanism. Preserve the primary SOUL. Configure
 supported settings with the native configuration tool, scoped to the chosen profile.
-For profiles reused across projects, review a launch-directory-aware terminal cwd
-(for example `.` on the supported local backend). Do not globally repoint a reused
-profile to each new project. Verify actual tool cwd after launch; pane cwd and
-`--in` alone do not prove an explicit terminal.cwd override was avoided.
+For profiles reused across projects, preserve the owner's terminal configuration.
+Do not globally repoint a reused profile to each new project. Use the session-local
+terminal-root check below; consider a launch-directory-aware default (for example
+`.` on a supported local backend) only as a separately approved shared change.
 Install and test the required role-specific tools/skills and approved source access.
 A directory name is not an access control. Do not copy the main assistant's personal
 context or memory.
@@ -62,6 +62,40 @@ model-provider credential reuse only: messaging bots retain distinct bot tokens,
 tool/MCP access remains separately scoped, and role histories/memories stay separate.
 No model prompt is required merely to create a profile. Actual authorized startup/use
 is a separate verification.
+
+## Verify the session integration per profile
+
+Inspect the installed `herdr integration --help` and its `status` and `install`
+help before use. On a host that supports profile-local `HERMES_HOME`, run
+`HERMES_HOME='<selected-profile-home>' herdr integration status` for each distinct
+selected profile. Substitute the discovered absolute profile home. One profile's
+installed integration does not prove that another profile has it.
+
+If the Hermes integration is required and missing, use the approved native route:
+`HERMES_HOME='<selected-profile-home>' herdr integration install hermes`.
+Read status back for that same home and verify plugin discovery/enabled state
+through the installed Hermes plugin-list command for that exact profile. After
+launch, verify loading and conversation identity on the bound new session. Two
+Engineer sessions of one profile share this installation, not their identities.
+Do not copy plugin files, assume an install changed an existing process, or restart
+working sessions to make a check pass. Installation, loading, identity reporting
+and interactive readiness remain separate results.
+
+## Verify and correct the session terminal root
+
+During an authorized useful setup task, ask the bound new agent to run `pwd`
+through its terminal tool. Do not supply a one-command workdir override: that would
+hide the session's default root. Read the actual tool result, not only the agent's
+summary, and bind the evidence to the profile, pane and conversation ID.
+
+If the root is wrong, preserve the failed check. Within that same new session,
+run `cd '<approved-project-root>'` as a session-only terminal action, then run
+`pwd` in a separate terminal call. Quote the discovered absolute root correctly.
+Require a successful command and exact canonical-root match before acceptance.
+If the terminal backend does not retain the correction, report that blocker;
+do not change the shared profile's terminal configuration or restart the team.
+Keep this check separate from a synthetic no-tools response probe. No source-file
+edits, memory saves, delegation or product work are needed to verify the root.
 
 ## Generic role briefs to adapt, not blindly overwrite
 
