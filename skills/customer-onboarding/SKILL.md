@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.15.0
+version: 0.16.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -217,6 +217,12 @@ Install/discover the complete project-onboarding skill and establish its authori
 host/session/result route before creating the layout. Slack, Desktop and terminal
 conversations may execute directly through the skill's verified explicit-session
 route; inherited pane context is an alternative, not a requirement for every caller.
+If an approved restart changes only the recorded socket identity, use the project
+skill's [explicit receipt-rebinding procedure](../project-onboarding/SKILL.md#rebind-a-receipt-after-an-approved-server-restart).
+Keep endpoint recovery separate from process recognition and agent readiness.
+Do not repeatedly retry a blocked helper or make public maintainer posting a setup
+requirement. Continue independent authorized checks; a real missing dependency
+remains blocked until new evidence or authority changes it.
 Preserve the originating coordinator and approved target without focused-session
 fallbacks, fabricated context or a new bridge service. Follow its
 [single-session acceptance gate](../project-onboarding/SKILL.md#prove-one-fresh-session-before-expanding-the-team)
