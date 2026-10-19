@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.17.0
+version: 0.18.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -17,7 +17,7 @@ a second installer merely because a native command or dependency needs diagnosis
 ## Read first
 
 - [Required finished state and proof](references/baseline.md).
-- [Required memory reliability and compatibility](references/memory-reliability.md).
+- [Required memory reliability, compatibility and evidence reuse](references/memory-reliability.md).
 - [Context, instruction files and private progress](references/context-and-files.md).
 - [Knowledge, viewer/sync and lifecycle acceptance](references/knowledge-lifecycle.md).
 - [Sources, capabilities and legacy boundary](references/sources-and-capabilities.md).
