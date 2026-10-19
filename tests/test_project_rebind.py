@@ -66,6 +66,83 @@ class Rebind(unittest.TestCase):
         self.assertEqual(self.fx.receipt.read_bytes(), self.original)
         self.assertEqual(self.fx.api.calls, [])
 
+    def resize(self, width=60, height=20):
+        for slot, (x, y) in zip(self.fx.helper.SLOTS, ((0, 0), (1, 0), (0, 1), (1, 1))):
+            self.fx.api.rects[self.fx.rec['panes'][slot]] = {
+                'x': x * width, 'y': y * height, 'width': width, 'height': height}
+
+    def test_resize_rebind_preserves_identity_and_audits_both_layouts(self):
+        for row in self.fx.rec['layout']['panes']:
+            rect = row['rect']
+            right, bottom = rect['x'] > 0, rect['y'] > 0
+            row['rect'] = {'x': 40 if right else 0, 'y': 25 if bottom else 0,
+                           'width': 38 if right else 39, 'height': 24}
+        self.fx.receipt.write_text(json.dumps(self.fx.state))
+        self.original = self.fx.receipt.read_bytes()
+        self.resize()
+        code, out, err = self.run_rebind()
+        self.assertEqual((code, err), (0, ''))
+        report = json.loads(out)
+        self.assertEqual(report['geometry_status'], 'updated')
+        record = json.loads(self.fx.receipt.read_text())['projects']['Project']
+        event, = record.pop('endpoint_rebindings')
+        self.assertEqual(event['previous_layout'], self.fx.rec['layout'])
+        self.assertEqual(event['current_layout'], record['layout'])
+        self.assertEqual(record, {**self.fx.rec, 'endpoint': self.current, 'layout': record['layout']})
+        self.assertEqual(Path(event['backup']).read_bytes(), self.original)
+        self.assertTrue(all(c[:2] in [('workspace', 'list'), ('pane', 'list'), ('pane', 'layout')]
+                            for c in self.fx.api.calls))
+        before = self.fx.receipt.read_bytes()
+        self.assertEqual(self.run_rebind()[0], 0)
+        self.assertEqual(self.fx.receipt.read_bytes(), before)
+        with mock.patch.object(self.fx.helper.subprocess, 'run', side_effect=self.fx.native):
+            code, out, err = self.fx.cli('--session', 'sandbox', '--inspect')
+        self.assertEqual((code, err), (0, ''))
+        self.assertEqual(json.loads(out)['layout_status'], 'verified')
+        self.assertEqual(json.loads(out)['readiness'], 'not-verified')
+
+    def test_same_endpoint_resize_is_not_mistaken_for_noop(self):
+        self.fx.rec['endpoint'] = self.current
+        self.fx.receipt.write_text(json.dumps(self.fx.state))
+        original = self.fx.receipt.read_bytes()
+        self.resize()
+        with mock.patch.object(self.fx.helper.subprocess, 'run', side_effect=self.fx.native):
+            self.assertEqual(self.fx.cli('--session', 'sandbox', '--finalize')[0], 1)
+        self.assertEqual(self.fx.receipt.read_bytes(), original)
+        code, out, err = self.run_rebind()
+        self.assertEqual((code, err), (0, ''))
+        self.assertEqual(json.loads(out)['binding_status'], 'unchanged')
+        self.assertEqual(json.loads(out)['geometry_status'], 'updated')
+        self.assertEqual(next(self.backups.iterdir()).read_bytes(), original)
+
+    def test_resize_rejects_corrupt_history_and_changed_positions(self):
+        self.resize()
+        for source in ('recorded', 'current'):
+            with self.subTest(source=source):
+                state = copy.deepcopy(self.fx.state)
+                rects = (state['projects']['Project']['layout']['panes'] if source == 'recorded'
+                         else [{'rect': r} for r in self.fx.api.rects.values()])
+                rects[0]['rect'], rects[1]['rect'] = rects[1]['rect'], rects[0]['rect']
+                if source == 'current':
+                    for pid, row in zip(self.fx.api.rects, rects):
+                        self.fx.api.rects[pid] = row['rect']
+                self.fx.receipt.write_text(json.dumps(state))
+                before = self.fx.receipt.read_bytes()
+                self.assertEqual(self.run_rebind()[0], 1)
+                self.assertEqual(self.fx.receipt.read_bytes(), before)
+                self.assertEqual(list(self.backups.iterdir()), [])
+
+    def test_second_resize_during_backup_is_rejected(self):
+        self.resize()
+        real_sync = self.fx.helper.sync_directory
+        def resize_again(path):
+            real_sync(path)
+            self.resize(70, 22)
+        with mock.patch.object(self.fx.helper, 'sync_directory', side_effect=resize_again):
+            self.assertEqual(self.run_rebind()[0], 1)
+        self.assertEqual(self.fx.receipt.read_bytes(), self.original)
+        self.assertEqual(next(self.backups.iterdir()).read_bytes(), self.original)
+
     def test_incomplete_changed_or_migrated_record_is_not_rebound(self):
         original = copy.deepcopy(self.fx.state)
         changes = [('endpoint', {**self.previous, 'socket': '/different/socket'}),

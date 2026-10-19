@@ -1,7 +1,7 @@
 ---
 name: project-onboarding
 description: "Create or reuse an approved project and Herdr team."
-version: 0.9.0
+version: 0.10.0
 author: Hermes Business Templates contributors, Hermes Agent
 license: MIT
 platforms: [linux, macos]
@@ -210,6 +210,9 @@ reject this mismatch. Do not loop those commands or remove the identity guard.
 Use `--rebind` only after the owner authorizes recovery of this exact host, server
 path and recorded project. Existing setup authority alone does not authorize
 rebinding an unexpected server. Retrieve the approved scope before asking again.
+The same operation can reconcile terminal cell dimensions changed by a resize,
+with or without a socket replacement. Require owner-approved receipt recovery,
+unchanged pane identities and role positions, not an unchanged window size.
 
 1. Read the original receipt and establish the intended host and native session.
    Require a version-2 `layout-ready` record with all four pane IDs, its original
@@ -230,20 +233,27 @@ rebinding an unexpected server. Retrieve the approved scope before asking again.
 
    The helper requires the same canonical socket path, same-user ownership and
    owner-only socket permissions. Under the existing receipt lock it checks exact
-   recorded workspace/pane IDs, labels, project paths, tab and geometry. A changed
-   path, role, pane set, tab or geometry is a separate reconciliation, not a restart
-   exception. It never launches agents or changes Herdr state.
+   recorded workspace/pane IDs, labels, project paths and tab. Both the saved and
+   current rectangles must independently prove the same role-labelled, unzoomed
+   2x2 layout. Different cell dimensions are accepted; changed roles, pane IDs,
+   tab, project paths, malformed rectangles or moved/uneven panes are not. Keep
+   the window size and layout stable during the operation. The helper never
+   resizes panes, launches agents or changes Herdr state.
 4. Before changing the binding, the helper saves and fsyncs the original receipt
    bytes to a unique owner-only backup. It rechecks native metadata, the socket and
-   the receipt, then atomically saves only the endpoint update and an
-   `endpoint_rebindings` audit entry: timestamp, old/new identities, backup path
-   and original SHA-256. Other projects and historical fields stay intact. Native
+   the receipt, then atomically saves the endpoint and any verified geometry update
+   with an `endpoint_rebindings` audit entry: timestamp, old/new identities, backup
+   path and original SHA-256. A resize also records `previous_layout` and
+   `current_layout`. A second geometry change after the initial observation stops
+   recovery and retains the backup. Other projects and historical fields stay intact. Native
    inspection is not an atomic transaction with Herdr; these are drift checks for
    cooperative owner-controlled state, not protection against a hostile same-user
    process. Keep the layout quiescent during recovery.
 5. Read the result. `binding_status: rebound` is receipt recovery, with
-   `readiness: not-verified`. An already matching, verified binding returns
-   `unchanged` without another backup or receipt write. On failure, preserve any
+   `readiness: not-verified`. `geometry_status: updated` means the verified resize
+   was recorded, not that panes were moved. A matching socket reports
+   `binding_status: unchanged` even if geometry was updated; only when both are
+   unchanged is there no backup or receipt write. On failure, preserve any
    backup and inspect the receipt before retrying; a final durability error can
    occur after atomic replacement. Never assume a failed command means no write.
    Then run `--inspect` normally and separately verify each agent before startup
