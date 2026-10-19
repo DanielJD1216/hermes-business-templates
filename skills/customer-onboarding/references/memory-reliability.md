@@ -27,6 +27,67 @@ locate the applicable supported artifact and release checks before making change
 If they are unavailable or incompatible, mark the memory row blocked and name the
 missing artifact, evidence or platform support. Continue independent onboarding;
 do not invent commands, silently change providers or ask the customer to build a fork.
+Missing proof is not proof of a broken installation or an unsupported platform.
+Different OS or Python versions alone do not establish incompatibility; identify
+the actual unverified boundary in the selected combination.
+
+## Reuse native Mac evidence without overstating it
+
+The official [Mac API/CLI job](https://github.com/volcengine/OpenViking/actions/runs/35500420728/job/106051099500)
+ran on 2026-09-20 at commit `3fca2577520f00b7f580d85d4ac6ae42bb9ba6f1`.
+Its structured reports identify macOS 14.8.9 arm64 and Python 3.10.11. The job log
+confirms the full VLM/embedding-credential branch ran, not the credential-free fallback.
+
+| Executed group | Passed | Skipped |
+|---|---:|---:|
+| Serial API filesystem/resource checks | 34 | 0 |
+| Remaining non-slow API checks | 93 | 0 |
+| Released CLI compatibility checks | 16 | 0 |
+| Current-source CLI integration checks | 45 | 1 |
+
+These are test executions across separate invocations, not distinct reliability
+guarantees. The HTML reports omit the separate serial and compatibility runs;
+read the job log as well. Slow suites were excluded by the
+[pinned workflow](https://github.com/volcengine/OpenViking/blob/3fca2577520f00b7f580d85d4ac6ae42bb9ba6f1/.github/workflows/api_test.yml).
+The skipped CLI wait-timeout test records a query/body parameter mismatch at that
+revision. Check installed-version applicability before using it for a bounded wait;
+do not assume either that the defect persists or that it is fixed.
+
+The report artifact is `api-test-reports-macos-14-35500420728`, ID `10603295699`;
+its downloaded ZIP matched GitHub's SHA-256
+`1f1171ce83f113745d8256b4ef0d86018bd6fe6efdb14ead63fff8a2b3eafa1e`.
+Artifacts can expire. This is a version-bound evidence reference, not a promise
+of permanent download availability or a recommendation to install that revision.
+
+This proves native Mac execution, not the customer's complete Hermes memory route.
+For example, the pinned session-commit tests check response/session/task identifiers,
+not completed extraction followed by fresh-session recall. The nominal account
+isolation file mainly checks health/search counters; it is not denied cross-owner
+access proof. Map assertions to requirements instead of accepting test names or
+green job labels. Growth/tail retrieval, owner boundaries, durable recovery and
+customer watchdog coverage still need applicable evidence below.
+
+### When detailed reports require authorization
+
+A 401 from an artifact endpoint is an access gap, not a failed test or absent Mac
+support. Use an existing authorized read-only connection, or obtain an evidence
+copy from an authorized reviewer/publisher. Do not repeatedly retry anonymous
+downloads, share credentials, bypass access controls or require a new customer
+GitHub account solely when an authorized evidence-copy route is available.
+
+Retain the original repository, run/job, commit, artifact identifier and digest,
+plus retrieval/review attribution. Verify copied bytes against the published digest
+when available. Separate direct artifact inspection from an attributed summary;
+a digest proves byte identity, not coverage. Keep credentials, owner data and
+unreviewed raw logs out of shared summaries.
+
+In the existing private progress record, map each required behavior to applicable
+release and host evidence. Name partial coverage and exact missing proof. Prepare
+only the uncovered host checks using an existing supported procedure, with expected
+results, isolated data, provider/request/time limits and stop conditions. If that
+procedure is unavailable, name the specific gap; do not invent a runner or claim
+the requirements below are themselves a complete tested procedure. This research
+does not authorize live/provider tests, upgrades, history replay or resumed paused work.
 
 ## Release evidence and bounded host acceptance
 
@@ -125,3 +186,5 @@ valid login, identity, team, file and other baseline evidence. Reconcile the new
 baseline fingerprint in the existing private progress record; do not reset setup
 or lower the denominator. A working installation can have unresolved save alerts;
 report that limit instead of claiming the full baseline is complete.
+If an older audit finding has a later verified repair receipt, retain that repair
+as completed. Do not reopen it merely because separate memory coverage is still missing.
