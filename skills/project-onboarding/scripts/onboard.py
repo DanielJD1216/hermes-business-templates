@@ -7,6 +7,7 @@ profile/session startup and handoffs; this helper owns only layout receipts.
 """
 import argparse
 from contextlib import nullcontext
+from datetime import datetime, timezone
 import fcntl
 import hashlib
 import json
@@ -164,9 +165,76 @@ def inspect_record(rec, api):
     return report
 
 
-def onboard(workspace, name, path, goal, create, api, identity, roles, hermes_root, *, inspect=False, finalize=False):
-    if inspect and finalize or (inspect or finalize) and create:
-        raise ValueError("Inspection/finalization cannot be combined with creation or each other")
+def check_rebind_endpoint(identity):
+    """Rebinding needs a stable, private, same-user socket, including inherited mode."""
+    if (not isinstance(identity, dict) or set(identity) != {'socket', 'inode', 'device'}
+            or not isinstance(identity['socket'], str)
+            or type(identity['inode']) is not int or identity['inode'] <= 0
+            or type(identity['device']) is not int or identity['device'] < 0):
+        raise ValueError('Malformed endpoint identity')
+    endpoint = Path(identity['socket'])
+    if not endpoint.is_absolute() or str(endpoint.resolve(strict=True)) != str(endpoint):
+        raise ValueError('Rebinding requires the same canonical absolute socket path')
+    info = endpoint.stat()
+    if (not stat.S_ISSOCK(info.st_mode) or info.st_uid != os.getuid()
+            or stat.S_IMODE(info.st_mode) & 0o077
+            or (info.st_ino, info.st_dev) != (identity['inode'], identity['device'])):
+        raise ValueError('Rebind endpoint changed or is not an owner-only socket owned by the current user')
+
+
+def sync_directory(path):
+    fd = os.open(path, os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0))
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+def rebind_record(receipt, state, rec, identity, api, backup_dir, original):
+    report = {'receipt_status': rec['status'], 'layout_status': 'verified',
+              'readiness': 'not-verified', 'binding_status': 'unchanged'}
+    check_rebind_endpoint(identity)
+    if receipt.is_symlink() or receipt.read_bytes() != original:
+        raise ValueError('Receipt changed during rebind; nothing updated')
+    if rec['endpoint'] == identity:
+        return report
+    destination = Path(backup_dir).expanduser()
+    if not destination.is_absolute() or destination.is_symlink():
+        raise ValueError('Backup directory must be an existing absolute private directory, not a symlink')
+    destination = destination.resolve(strict=True)
+    info = destination.stat()
+    if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) & 0o077:
+        raise ValueError('Backup directory must be owner-only and owned by the current user')
+    fd, filename = tempfile.mkstemp(prefix='hbt-endpoint-', suffix='.json', dir=destination)
+    with os.fdopen(fd, 'wb') as out:
+        out.write(original)
+        out.flush()
+        os.fsync(out.fileno())
+    sync_directory(destination)  # Original receipt must be durable before replacing its binding.
+    layout = verify(rec, api)  # Recheck after the backup, not only before it.
+    if (rec['layout'].get('tab_id') != layout.get('tab_id')
+            or {p['pane_id']: p['rect'] for p in rec['layout']['panes']}
+            != {p['pane_id']: p['rect'] for p in layout['panes']}):
+        raise ValueError('Recorded geometry changed during rebind; backup retained')
+    check_rebind_endpoint(identity)
+    if receipt.is_symlink() or receipt.read_bytes() != original:
+        raise ValueError('Receipt changed during rebind; backup retained, receipt not overwritten')
+    event = {'at': datetime.now(timezone.utc).isoformat(), 'previous': rec['endpoint'],
+             'current': identity, 'backup': filename,
+             'receipt_sha256': hashlib.sha256(original).hexdigest()}
+    rec.setdefault('endpoint_rebindings', []).append(event)
+    rec['endpoint'] = identity
+    save(receipt, state)
+    sync_directory(receipt.parent)
+    return {**report, 'binding_status': 'rebound', 'audit': event}
+
+
+def onboard(workspace, name, path, goal, create, api, identity, roles, hermes_root, *,
+            inspect=False, finalize=False, rebind=False, backup_dir=None):
+    if sum((inspect, finalize, rebind)) > 1 or (inspect or finalize or rebind) and create:
+        raise ValueError('Recovery modes cannot be combined with creation or each other')
+    if rebind != (backup_dir is not None):
+        raise ValueError('Rebinding requires --backup-dir; other modes cannot use it')
     roles, home = validate_roles(roles, hermes_root)
     plain(name, 'Project name')
     if len(name) > 80:
@@ -179,21 +247,32 @@ def onboard(workspace, name, path, goal, create, api, identity, roles, hermes_ro
     if receipt.is_symlink() or lock.is_symlink():
         raise ValueError('Refusing symlink receipt/lock')
     # ponytail: one local lock per workspace; shard only if onboarding throughput requires it.
-    if (inspect or finalize) and not receipt.is_file():
+    if (inspect or finalize or rebind) and not receipt.is_file():
         raise ValueError('Inspection/finalization requires an existing receipt; nothing created')
     with nullcontext() if inspect else lock.open('a') as guard:
         if guard is not None:
             fcntl.flock(guard, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        state = json.loads(receipt.read_text()) if receipt.exists() else {'version': 2, 'projects': {}}
+        original = receipt.read_bytes() if receipt.exists() else None
+        state = json.loads(original) if original is not None else {'version': 2, 'projects': {}}
         if not isinstance(state, dict) or state.get('version') != 2 or not isinstance(state.get('projects'), dict):
             raise ValueError('Unknown project receipt format; preserve and inspect it')
         old = state['projects'].get(name)
-        if (inspect or finalize) and old is None:
+        if (inspect or finalize or rebind) and old is None:
             raise ValueError('Project is not recorded in the receipt')
         if old is not None:
             if not isinstance(old, dict) or old.get('name') != name:
                 raise ValueError('Malformed project receipt')
-            if old.get('endpoint') != identity:
+            if rebind:
+                previous = old.get('endpoint')
+                if (not isinstance(previous, dict) or set(previous) != {'socket', 'inode', 'device'}
+                        or previous.get('socket') != identity.get('socket')
+                        or type(previous.get('inode')) is not int or previous['inode'] <= 0
+                        or type(previous.get('device')) is not int or previous['device'] < 0):
+                    raise ValueError('Rebind requires a valid prior identity at the same socket path; migration is not allowed')
+                if old.get('status') != 'layout-ready' or not isinstance(old.get('endpoint_rebindings', []), list):
+                    raise ValueError('Rebind requires a complete layout-ready receipt and valid audit history')
+                check_rebind_endpoint(identity)
+            elif old.get('endpoint') != identity:
                 raise ValueError('Interrupted onboarding or different server; inspect the receipt before recovery')
             if old.get('roles') != roles or old.get('hermes_root') != str(home):
                 raise ValueError('Recorded profile mapping changed; inspect before reuse')
@@ -222,7 +301,7 @@ def onboard(workspace, name, path, goal, create, api, identity, roles, hermes_ro
                 raise ValueError('Project has a different recorded goal; review the existing project first')
             if inspect:
                 return inspect_record(old, api)
-            if finalize:
+            if finalize or rebind:
                 if not wid or set(panes) != set(SLOTS):
                     raise ValueError('Incomplete recorded IDs; manual authorized reconciliation required')
                 if ('launch' in old or old['status'] == 'layout-ready') and old.get('launch') != launch_commands(old):
@@ -232,12 +311,15 @@ def onboard(workspace, name, path, goal, create, api, identity, roles, hermes_ro
                     recorded = old.get('layout')
                     if (not isinstance(recorded, dict) or recorded.get('workspace_id') != wid
                             or recorded.get('zoomed') is not False
+                            or recorded.get('tab_id') != layout.get('tab_id')
                             or not isinstance(recorded.get('panes'), list)
                             or len(recorded['panes']) != 4
                             or any(not isinstance(p, dict) for p in recorded['panes'])
                             or {p.get('pane_id'): p.get('rect') for p in recorded['panes']}
                             != {p['pane_id']: p['rect'] for p in layout['panes']}):
                         raise ValueError('Recorded geometry changed or malformed; no finalization')
+                if rebind:
+                    return rebind_record(receipt, state, old, identity, api, backup_dir, original)
                 if old['status'] != 'layout-ready':
                     old.setdefault('prior_status', old['status'])
                     old.update(layout=layout, launch=launch_commands(old), status='layout-ready')
@@ -367,12 +449,16 @@ def main():
     parser.add_argument('--goal')
     parser.add_argument('--create', action='store_true', help='Permit creating the explicit missing directory only')
     parser.add_argument('--session', help='Owner-approved host-local Herdr session; use default explicitly for the default server')
+    parser.add_argument('--backup-dir', help='Existing private durable directory for the original receipt; required only with --rebind')
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument('--inspect', action='store_true', help='Read recorded native metadata without writing files or opening a lock; not a readiness check')
     modes.add_argument('--finalize', action='store_true', help='Finalize only an already complete matching recorded layout under lock; never mutate Herdr')
+    modes.add_argument('--rebind', action='store_true', help='Explicitly authorize receipt-only rebinding after a same-path server restart; never mutate Herdr')
     args = parser.parse_args()
-    if args.create and (args.inspect or args.finalize):
-        parser.error('--create cannot be combined with --inspect or --finalize')
+    if args.create and (args.inspect or args.finalize or args.rebind):
+        parser.error('--create cannot be combined with recovery modes')
+    if args.rebind != (args.backup_dir is not None):
+        parser.error('--rebind requires --backup-dir; other modes cannot use it')
     if args.session is None and (os.environ.get('HERDR_ENV') != '1' or not os.environ.get('HERDR_SOCKET_PATH')):
         parser.error('Run inside an authorized Herdr pane or supply an approved --session; no focused-session fallback is allowed')
     stage = 'endpoint'
@@ -408,10 +494,11 @@ def main():
 
         stage = 'roles'
         roles = json.loads(Path(args.roles).read_text(encoding='utf-8'))
-        stage = 'inspect' if args.inspect else 'finalize' if args.finalize else 'onboard'
+        stage = 'inspect' if args.inspect else 'finalize' if args.finalize else 'rebind' if args.rebind else 'onboard'
         result = onboard(args.workspace, args.name, args.path, args.goal, args.create,
                          api, identity, roles, args.hermes_root,
-                         inspect=args.inspect, finalize=args.finalize)
+                         inspect=args.inspect, finalize=args.finalize,
+                         rebind=args.rebind, backup_dir=args.backup_dir)
         result = dict(result)  # Never rewrite old receipts merely to select a transport.
         result['control'] = {'mode': 'inherited' if args.session is None else 'explicit-session',
                              'session': args.session, 'endpoint': identity}

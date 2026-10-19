@@ -1,7 +1,7 @@
 ---
 name: project-onboarding
 description: "Create or reuse an approved project and Herdr team."
-version: 0.8.1
+version: 0.9.0
 author: Hermes Business Templates contributors, Hermes Agent
 license: MIT
 platforms: [linux, macos]
@@ -165,7 +165,8 @@ The helper creates labelled shells without changing focus, verifies geometry,
 and saves `.hbt-projects.json` in the approved business workspace. It returns
 `layout-ready` and proposed native launch argv, **not running agents**. Version-1
 legacy receipts are refused rather than automatically migrated. Changed role maps,
-paths, sockets, layouts or partial operations need inspection; do not delete a
+paths, sockets, layouts or partial operations need inspection or the explicit
+same-path endpoint recovery below; do not delete a
 receipt, retry an ambiguous mutation, or close possibly active panes as rollback.
 The receipt is cooperative local bookkeeping, not an authorization or OS sandbox.
 
@@ -194,12 +195,69 @@ renames, starts or deletes anything in Herdr; it does not complete agent readine
 Back up the private receipt before this write and preserve the original evidence.
 
 If a response was lost before an ID was recorded, a pane is missing, ownership is
-uncertain or the server endpoint changed, stop automatic recovery. Report the exact
-gap for scoped agent-led native inspection and owner-approved reconciliation where
-needed. Do not hand-edit IDs, delete the receipt, recreate the layout or use a
-focused-session fallback to make the check pass. The two recovery modes are
-mutually exclusive. Inspection success means an observation was obtained, not that
+uncertain or the server endpoint changed, stop automatic recovery. A same-path
+socket replacement has the explicit recovery below; other gaps need scoped native
+inspection and owner-approved reconciliation. Do not hand-edit IDs, delete the
+receipt, recreate the layout or use a focused-session fallback to make a check
+pass. Recovery modes are mutually exclusive. Inspection success means an observation was obtained, not that
 the layout or sessions passed; parse the report instead of using exit zero alone.
+
+### Rebind a receipt after an approved server restart
+
+A restarted Herdr server can recreate its Unix socket at the same path with a
+different inode/device. Ordinary onboarding, `--inspect` and `--finalize` still
+reject this mismatch. Do not loop those commands or remove the identity guard.
+Use `--rebind` only after the owner authorizes recovery of this exact host, server
+path and recorded project. Existing setup authority alone does not authorize
+rebinding an unexpected server. Retrieve the approved scope before asking again.
+
+1. Read the original receipt and establish the intended host and native session.
+   Require a version-2 `layout-ready` record with all four pane IDs, its original
+   role map, launch arguments and layout. A partially created or unknown layout
+   is not eligible. Do not adopt IDs from names, sidebar order or a different server.
+2. Select an existing private durable backup directory under an approved root,
+   outside scratch/cache. The agent can create an owner-only subdirectory for this
+   authorized recovery. Preserve all earlier backups; the owner need not edit JSON.
+3. Run the helper on that host with the original workspace/name/roles/Hermes root
+   and verified route, adding `--rebind --backup-dir '/absolute/private/backups'`.
+   Do not add `--create`, `--inspect` or `--finalize`. For external callers, include
+   the explicit native session as in this single-line example, substituting known
+   owner values, not the publisher's paths:
+
+   ```bash
+   python3 /path/to/project-onboarding/scripts/onboard.py --workspace '/approved/business-workspace' --hermes-root '/actual/hermes-home' --roles '/private/roles.json' --name 'Existing project' --session 'approved-session' --rebind --backup-dir '/approved/private/backups'
+   ```
+
+   The helper requires the same canonical socket path, same-user ownership and
+   owner-only socket permissions. Under the existing receipt lock it checks exact
+   recorded workspace/pane IDs, labels, project paths, tab and geometry. A changed
+   path, role, pane set, tab or geometry is a separate reconciliation, not a restart
+   exception. It never launches agents or changes Herdr state.
+4. Before changing the binding, the helper saves and fsyncs the original receipt
+   bytes to a unique owner-only backup. It rechecks native metadata, the socket and
+   the receipt, then atomically saves only the endpoint update and an
+   `endpoint_rebindings` audit entry: timestamp, old/new identities, backup path
+   and original SHA-256. Other projects and historical fields stay intact. Native
+   inspection is not an atomic transaction with Herdr; these are drift checks for
+   cooperative owner-controlled state, not protection against a hostile same-user
+   process. Keep the layout quiescent during recovery.
+5. Read the result. `binding_status: rebound` is receipt recovery, with
+   `readiness: not-verified`. An already matching, verified binding returns
+   `unchanged` without another backup or receipt write. On failure, preserve any
+   backup and inspect the receipt before retrying; a final durability error can
+   occur after atomic replacement. Never assume a failed command means no write.
+   Then run `--inspect` normally and separately verify each agent before startup
+   or handoff. Restored shells are not restored authenticated agent sessions.
+
+This does not repair Hermes recognition or make an unavailable upstream fix exist.
+Linux tests do not establish native macOS acceptance. On a Mac, first run the
+selected revision's stdlib recovery tests in isolated HOME/HERMES_HOME with dotenv
+and lazy installs disabled: `python3 -B -m unittest discover -s tests -p test_project_rebind.py`.
+They use synthetic native responses and local test sockets, not real Herdr or model
+calls. Preserve their exact result, then perform the separately authorized native
+receipt operation and read it back. Native macOS recovery remains unverified until
+those host checks pass. Missing guidance should be routed to its owner once;
+public issue posting is optional coordination, not a required recovery gate.
 
 Update the existing project catalog with its canonical path, goal, authority,
 audience, owner, status and receipt reference. Do not overwrite owner instructions
