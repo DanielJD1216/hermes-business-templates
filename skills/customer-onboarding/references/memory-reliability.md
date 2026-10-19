@@ -114,15 +114,34 @@ retrieval paths, not a helper-only simulation:
   indexing must not become a successful save. Record bounded retry and recovery
   limits; do not promise indefinite retries or automatic recovery not demonstrated.
 
-On the actual host, use the selected release's bounded acceptance procedure:
+On the actual host, start with the ordinary save-and-recall check in steps 1 and 2
+on the existing installed route, under applicable owner/provider authority. Use
+supported native operations and existing controls, not a new runner. Broader growth,
+scope and recovery proof remains required for full acceptance, but is not a
+prerequisite for this first check unless a concrete safety dependency requires it.
+Name that dependency and its owner rather than blocking on general missing coverage.
+Distinguish enforced limits from proposed or observed limits; do not claim a caller
+deadline caps internal provider calls or cancels server work. Missing consent or a
+necessary safety control still blocks the affected operation.
+
+Run these checks independently; preserve each check's evidence and limits:
 
 1. Verify installed versions/hashes, effective provider/model bindings, private
-   service access and the intended owner/profile route. Confirm the active process
-   loaded the selected revision; changed files alone do not prove this.
+   service access and the intended owner/profile route. Record evidence that the
+   active process loaded the selected revision; changed files alone do not prove
+   this. If that evidence is unavailable, retain the version-attribution gap and
+   identify whether it prevents safe execution or only limits attribution. Do not
+   restart working sessions just to strengthen attribution for the first check.
 2. Save an authorized new useful fact or decision through the real agent memory
-   route. Match the session/task/account evidence, wait within a recorded deadline,
-   and verify the resulting canonical memory is indexed, searchable and readable
-   from the intended fresh client/session. Submission, `.done`, empty queues and
+   route once. Match the session/task/account evidence and observe within a recorded
+   request budget and deadline. Recognized queued/running states permit continued
+   observation, not resubmission. Stop on failure, unknown/malformed state, identity
+   mismatch or exhausted limits. A timeout/disconnect can leave server work running;
+   retain identifiers, report an uncertain write outcome and never blindly replay it.
+   Verify completed indexing and the actual canonical memory contents. Then verify
+   recall in a fresh Hermes conversation without supplying the answer in its prompt,
+   and retain the retrieved source reference. A fresh CLI search alone proves only
+   service retrieval, not fresh-Hermes recall. Submission, `.done`, empty queues and
    HTTP 200 are not completion. A legitimate extraction skip is not a demonstrated
    new save; do not force duplicate memories to obtain a pass.
 3. Run the release's small growth/tail, distinct-source and scope checks using a
@@ -188,3 +207,8 @@ or lower the denominator. A working installation can have unresolved save alerts
 report that limit instead of claiming the full baseline is complete.
 If an older audit finding has a later verified repair receipt, retain that repair
 as completed. Do not reopen it merely because separate memory coverage is still missing.
+Record a successful ordinary save/recall check separately from full memory acceptance.
+Retain existing save and recall evidence in the private progress record; distinguish
+owner-confirmed results from directly inspected evidence. Do not repeat a successful
+check merely to populate paperwork. Keep broader unverified requirements visible and
+do not mark the whole memory row complete from this first check alone.
