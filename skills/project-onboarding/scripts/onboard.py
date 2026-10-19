@@ -6,6 +6,7 @@ The SKILL handles discovery, consent,
 profile/session startup and handoffs; this helper owns only layout receipts.
 """
 import argparse
+from copy import deepcopy
 from contextlib import nullcontext
 from datetime import datetime, timezone
 import fcntl
@@ -99,13 +100,25 @@ def verify(rec, api):
                 or p.get('cwd') != rec['path']):
             raise ValueError('Recorded pane label/location changed; no input sent')
     layout = api('pane', 'layout', '--pane', rec['panes']['engineer1'])['layout']
+    verify_geometry(rec, layout)
+    return layout
+
+
+def verify_geometry(rec, layout):
+    """Validate role positions independently of terminal cell dimensions."""
+    if (not isinstance(layout, dict) or layout.get('zoomed') is not False
+            or layout.get('workspace_id') != rec['workspace_id']
+            or not isinstance(layout.get('panes'), list) or len(layout['panes']) != 4
+            or any(not isinstance(p, dict) or not isinstance(p.get('pane_id'), str)
+                   or not isinstance(p.get('rect'), dict) for p in layout['panes'])):
+        raise ValueError('Recorded layout changed or is malformed; inspect before reuse')
     rects = {p['pane_id']: p['rect'] for p in layout['panes']}
-    if (layout['zoomed'] or layout.get('workspace_id') != rec['workspace_id']
-            or len(layout['panes']) != 4 or set(rects) != set(by_id)):
+    if set(rects) != set(rec['panes'].values()):
         raise ValueError('Recorded layout changed or is zoomed; inspect before reuse')
     a, b, c, d = [rects[rec['panes'][role]] for role in SLOTS]
-    if not (a['x'] == c['x'] < b['x'] == d['x'] and a['y'] == b['y'] < c['y'] == d['y']
-            and all(type(r[k]) is int for r in (a, b, c, d) for k in ('x', 'y', 'width', 'height'))
+    if not (all(type(r.get(k)) is int for r in (a, b, c, d) for k in ('x', 'y', 'width', 'height'))
+            and a['x'] == c['x'] < b['x'] == d['x'] and a['y'] == b['y'] < c['y'] == d['y']
+            and all(r['x'] >= 0 and r['y'] >= 0 for r in (a, b, c, d))
             and all(r['width'] > 0 and r['height'] > 0 for r in (a, b, c, d))
             and a['width'] == c['width'] and b['width'] == d['width']
             and a['height'] == b['height'] and c['height'] == d['height']
@@ -114,6 +127,12 @@ def verify(rec, api):
             and c['y'] - a['y'] - a['height'] in (0, 1)):
         raise ValueError('Expected EA/CTO/engineer1/engineer2 2x2 layout changed')
     return layout
+
+
+def same_geometry(previous, current):
+    return (previous.get('tab_id') == current.get('tab_id')
+            and {p['pane_id']: p['rect'] for p in previous['panes']}
+            == {p['pane_id']: p['rect'] for p in current['panes']})
 
 
 def inspect_record(rec, api):
@@ -190,13 +209,16 @@ def sync_directory(path):
         os.close(fd)
 
 
-def rebind_record(receipt, state, rec, identity, api, backup_dir, original):
+def rebind_record(receipt, state, rec, identity, api, backup_dir, original, layout):
+    layout = deepcopy(layout)  # Preserve the pre-backup observation for the drift check.
+    resized = not same_geometry(rec['layout'], layout)
     report = {'receipt_status': rec['status'], 'layout_status': 'verified',
-              'readiness': 'not-verified', 'binding_status': 'unchanged'}
+              'readiness': 'not-verified', 'binding_status': 'unchanged',
+              'geometry_status': 'updated' if resized else 'unchanged'}
     check_rebind_endpoint(identity)
     if receipt.is_symlink() or receipt.read_bytes() != original:
         raise ValueError('Receipt changed during rebind; nothing updated')
-    if rec['endpoint'] == identity:
+    if rec['endpoint'] == identity and not resized:
         return report
     destination = Path(backup_dir).expanduser()
     if not destination.is_absolute() or destination.is_symlink():
@@ -211,10 +233,7 @@ def rebind_record(receipt, state, rec, identity, api, backup_dir, original):
         out.flush()
         os.fsync(out.fileno())
     sync_directory(destination)  # Original receipt must be durable before replacing its binding.
-    layout = verify(rec, api)  # Recheck after the backup, not only before it.
-    if (rec['layout'].get('tab_id') != layout.get('tab_id')
-            or {p['pane_id']: p['rect'] for p in rec['layout']['panes']}
-            != {p['pane_id']: p['rect'] for p in layout['panes']}):
+    if not same_geometry(layout, verify(rec, api)):
         raise ValueError('Recorded geometry changed during rebind; backup retained')
     check_rebind_endpoint(identity)
     if receipt.is_symlink() or receipt.read_bytes() != original:
@@ -222,11 +241,14 @@ def rebind_record(receipt, state, rec, identity, api, backup_dir, original):
     event = {'at': datetime.now(timezone.utc).isoformat(), 'previous': rec['endpoint'],
              'current': identity, 'backup': filename,
              'receipt_sha256': hashlib.sha256(original).hexdigest()}
+    if resized:
+        event.update(previous_layout=rec['layout'], current_layout=layout)
+        rec['layout'] = layout
     rec.setdefault('endpoint_rebindings', []).append(event)
     rec['endpoint'] = identity
     save(receipt, state)
     sync_directory(receipt.parent)
-    return {**report, 'binding_status': 'rebound', 'audit': event}
+    return {**report, 'binding_status': 'rebound' if event['previous'] != identity else 'unchanged', 'audit': event}
 
 
 def onboard(workspace, name, path, goal, create, api, identity, roles, hermes_root, *,
@@ -308,18 +330,12 @@ def onboard(workspace, name, path, goal, create, api, identity, roles, hermes_ro
                     raise ValueError('Recorded launch commands changed; no finalization')
                 layout = verify(old, api)
                 if 'layout' in old or old['status'] == 'layout-ready':
-                    recorded = old.get('layout')
-                    if (not isinstance(recorded, dict) or recorded.get('workspace_id') != wid
-                            or recorded.get('zoomed') is not False
-                            or recorded.get('tab_id') != layout.get('tab_id')
-                            or not isinstance(recorded.get('panes'), list)
-                            or len(recorded['panes']) != 4
-                            or any(not isinstance(p, dict) for p in recorded['panes'])
-                            or {p.get('pane_id'): p.get('rect') for p in recorded['panes']}
-                            != {p['pane_id']: p['rect'] for p in layout['panes']}):
+                    recorded = verify_geometry(old, old.get('layout'))
+                    if (recorded.get('tab_id') != layout.get('tab_id')
+                            or not rebind and not same_geometry(recorded, layout)):
                         raise ValueError('Recorded geometry changed or malformed; no finalization')
                 if rebind:
-                    return rebind_record(receipt, state, old, identity, api, backup_dir, original)
+                    return rebind_record(receipt, state, old, identity, api, backup_dir, original, layout)
                 if old['status'] != 'layout-ready':
                     old.setdefault('prior_status', old['status'])
                     old.update(layout=layout, launch=launch_commands(old), status='layout-ready')
@@ -453,7 +469,7 @@ def main():
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument('--inspect', action='store_true', help='Read recorded native metadata without writing files or opening a lock; not a readiness check')
     modes.add_argument('--finalize', action='store_true', help='Finalize only an already complete matching recorded layout under lock; never mutate Herdr')
-    modes.add_argument('--rebind', action='store_true', help='Explicitly authorize receipt-only rebinding after a same-path server restart; never mutate Herdr')
+    modes.add_argument('--rebind', action='store_true', help='Authorize receipt-only recovery after a same-path restart or verified 2x2 resize; never mutate Herdr')
     args = parser.parse_args()
     if args.create and (args.inspect or args.finalize or args.rebind):
         parser.error('--create cannot be combined with recovery modes')
