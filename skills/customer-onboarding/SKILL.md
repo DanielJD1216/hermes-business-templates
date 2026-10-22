@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.18.1
+version: 0.19.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -66,6 +66,17 @@ to invent it. This guide does not install a skill merely because it is read.
   changes to the only recovery route when existing authority does not cover them.
 - Keep a private progress record with observed evidence and next actions. Resume
   from that evidence, not from a remembered success claim. Never erase failures.
+
+## Later profiles and changes
+
+On additions, instruction revisions, retirement and relevant runtime/provider/tool
+updates, use the [profile lifecycle](references/maintenance.md#profile-lifecycle).
+Discover current profiles and reconcile affected evidence rather than assuming the
+original roster is complete. Apply [identity and behavior guidance](references/context-and-files.md#identity-and-behavior-across-profiles)
+to shared rules, role-specific SOUL and approved USER/context. Creation, stored
+configuration, active loading and verified readiness are distinct. This procedure
+installs no background detector and grants no new profile, data or schedule authority.
+Keep historical memory repair separate while retaining every required baseline row.
 
 ## Mandatory progress checkpoint
 

@@ -35,6 +35,12 @@ behaviors as a reviewed starting point, not an automatic replacement SOUL:
 
 A compatible existing instruction set can satisfy this with reviewed no-change.
 Model names and personality are owner choices, not acceptance requirements.
+For each affected approved profile, follow [identity and behavior guidance](context-and-files.md#identity-and-behavior-across-profiles)
+and the [profile lifecycle](maintenance.md#profile-lifecycle). Verify the approved
+instruction sources and active loading in the intended fresh session, not a preferred
+personality or file presence alone. Reconcile affected roster, context, memory,
+capability and maintenance proof after changes; retain the same required rows and
+preserve valid unrelated evidence. A profile inventory is not automatic enforcement.
 
 ## Components and proof
 

@@ -63,6 +63,40 @@ tool/MCP access remains separately scoped, and role histories/memories stay sepa
 No model prompt is required merely to create a profile. Actual authorized startup/use
 is a separate verification.
 
+## Verify role identity and lifecycle coverage
+
+Apply the same preparation when a profile is added after initial setup. Rediscover
+the current native roster, effective profile homes and existing session bindings;
+do not assume a historical role map lists every writer. Discovery does not authorize
+changes to unrelated profiles. Preserve required role positions and approved names.
+
+Separate shared operating rules from role-specific SOUL and audience-scoped USER
+facts. Retrieve established preferences first; ask only missing material choices
+about purpose, tone, initiative and escalation. Draft a narrow approved diff or
+no-change, back up affected files, and preserve owner overrides. Discover actual
+native instruction/memory paths and loading precedence; do not copy the primary
+assistant's USER file, credentials, memories or personality into specialists.
+
+During authorized startup, verify source paths/revisions, selected profile and fresh
+conversation binding through the installed harness's loading route. Use a small
+role-appropriate interaction during useful setup work where possible; a model's
+unsupported loading claim or repetition of a rule supplied in the prompt is not
+proof. Keep private prompt/context content out of evidence. Missing visibility or
+model-use authority leaves loading unverified, not permission to restart active
+conversations or fabricate acceptance. Instructions are not an access boundary.
+
+Reconcile the affected profile's effective memory identity/provider and required
+capabilities, including local overrides of shared skills/plugins. A linked plugin,
+healthy server or namespace name does not prove save/recall or access isolation.
+Before claiming readiness, check applicable existing watchdog coverage, backup roots,
+writer inventory and approved discovery scope in the owner's maintenance record.
+Do not widen schedules, alerts, data ingestion or costs without applicable authority.
+Record created, configured, loaded and verified states separately. For updates or
+retirement, recheck affected dependencies and retain history; do not delete profiles,
+clear failures or replay pending work. This procedure supplies no automatic profile
+watcher and no repair for historical memory failures. Continue independent authorized
+work while preserving required-row blockers and shared-profile concurrency limits.
+
 ## Verify the session integration per profile
 
 Inspect the installed `herdr integration --help` and its `status` and `install`

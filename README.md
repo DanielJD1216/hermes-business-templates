@@ -119,6 +119,23 @@ Baseline acceptance demonstrates a small useful collection and a complete work
 and retrieval cycle. Comprehensive memory-engine enforcement and customer-specific
 business automation are separately scoped extensions, not hidden installation work.
 
+## Profiles and behavior after initial setup
+
+Follow the [profile lifecycle](skills/customer-onboarding/references/maintenance.md#profile-lifecycle)
+when approved profiles are added, changed or retired, and after relevant updates.
+Discover the actual roster; preserve owner-specific roles and existing exceptions.
+Reconcile each affected profile's instructions, capabilities, memory binding,
+monitoring and recovery coverage without copying secrets or histories.
+
+The [identity guidance](skills/customer-onboarding/references/context-and-files.md#identity-and-behavior-across-profiles)
+separates shared operating rules, role-specific SOUL and audience-scoped USER/context.
+Preserve personality and owner choices; verify active loading in the intended
+fresh session, not only files on disk. Missing required evidence stays incomplete.
+This is an agent-led procedure, not an automatic new-profile detector or installer.
+[Historical memory repair](skills/customer-onboarding/references/maintenance.md#keep-historical-memory-repair-separate)
+remains separate from independent template/onboarding work; required memory checks
+and unresolved failure alerts are not waived.
+
 ## Current status and limits
 
 This is a **published guide for an agent-led trial**, not a completed universal
