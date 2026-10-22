@@ -44,10 +44,10 @@ its assigned agent surface. Any unresolved required item blocks baseline complet
 
 The intended delivery inventory covers the publisher's reusable enabled library;
 that does not grant access or mean every component runs in every customer profile.
-Use the [reference sheet](../../../capabilities/REFERENCE.md),
-[machine-readable catalog](../../../capabilities/catalog.json),
-[pinned sources](../../../capabilities/sources.json) and
-[generic procedures](../../../reusable/procedures.md). All inventoried selections
+Use the [reference sheet](https://github.com/DanielJD1216/hermes-business-templates/blob/main/capabilities/REFERENCE.md),
+[machine-readable catalog](https://github.com/DanielJD1216/hermes-business-templates/blob/main/capabilities/catalog.json),
+[pinned sources](https://github.com/DanielJD1216/hermes-business-templates/blob/main/capabilities/sources.json) and
+[generic procedures](https://github.com/DanielJD1216/hermes-business-templates/blob/main/reusable/procedures.md). All inventoried selections
 are represented; excluded and unknown records remain distinct. The two unresolved
 third-party redistribution grants are explicit blockers, not hidden omissions.
 Do not vendor those packages without the missing rights. Public source inspection
@@ -81,7 +81,7 @@ only for the exact approved accounts, profiles, roots and audiences.
 
 ## Existing code and historical documentation
 
-Historical instructions are separated in [legacy/README.md](../../../legacy/README.md).
+Historical instructions are separated in [legacy/README.md](https://github.com/DanielJD1216/hermes-business-templates/blob/main/legacy/README.md).
 The runtime paths remain stable for existing installations. They predate this baseline:
 
 - Creator setup requires Ops and creates a Kanban board and dispatcher settings.

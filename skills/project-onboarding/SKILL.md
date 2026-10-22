@@ -1,7 +1,7 @@
 ---
 name: project-onboarding
 description: "Create or reuse an approved project and Herdr team."
-version: 0.11.0
+version: 0.11.1
 author: Hermes Business Templates contributors, Hermes Agent
 license: MIT
 platforms: [linux, macos]
@@ -14,6 +14,12 @@ and when the owner later requests a new project. Ordinary non-development chat
 stays in its originating conversation. Use the required team without Kanban or
 formal delivery pipelines. Setup is not permission to build, publish, deploy,
 spend or send. No legacy Creator installation is required.
+
+Repository-wide capability references are not bundled in this skill directory.
+Their GitHub `main` links are navigation links: retrieve evidence at this installed
+skill's recorded full source commit, or from a verified checkout of that revision.
+Do not assume a catalog exists beside installed skills or substitute a newer branch
+snapshot. Missing source identity/access leaves the dependent check unverified.
 
 ## Prerequisites and discovery
 
@@ -282,7 +288,7 @@ and drafts. Reuse verified sessions rather than starting duplicates. Resolve
 shared-profile concurrency and applicable model/tool-connection authority first.
 
 Check the installed client/server compatibility and the applicable
-[Hermes session integration](../../capabilities/REFERENCE.md#plugin-0196) for each
+[Hermes session integration](https://github.com/DanielJD1216/hermes-business-templates/blob/main/capabilities/REFERENCE.md#plugin-0196) for each
 selected profile. Record native installation and loading evidence where required
 by the selected workflow; do not infer it from another profile. Use the
 [per-profile integration checks](references/role-setup.md#verify-the-session-integration-per-profile)

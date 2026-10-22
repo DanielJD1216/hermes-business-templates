@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.19.0
+version: 0.19.1
 license: MIT
 platforms: [linux, macos]
 ---
@@ -21,12 +21,20 @@ a second installer merely because a native command or dependency needs diagnosis
 - [Context, instruction files and private progress](references/context-and-files.md).
 - [Knowledge, viewer/sync and lifecycle acceptance](references/knowledge-lifecycle.md).
 - [Sources, capabilities and legacy boundary](references/sources-and-capabilities.md).
-- [Capability reference sheet](../../capabilities/REFERENCE.md): review the whole
+- [Capability reference sheet](https://github.com/DanielJD1216/hermes-business-templates/blob/main/capabilities/REFERENCE.md): review the whole
   catalog's metadata, then load the sources/procedures for the required role-specific set.
 - [Herdr Web UI and terminal-access safety](references/herdr-web-ui.md).
 - [Required reusable project onboarding](../project-onboarding/SKILL.md).
 - [Maintenance and recovery](references/maintenance.md).
 - [Mac findings](references/mac-notes.md) when the host or client is a Mac.
+
+The capability catalog and other repository-wide references are not bundled inside
+this skill directory. Their GitHub `main` links are navigation links: retrieve them
+at the full source commit recorded for this installed skill, or from a verified
+checkout of that revision. Do not assume they exist beside installed skills or
+mix newer branch contents into pinned evidence. Missing source revision or access
+blocks the dependent check, not independent work. Install the sibling project skill
+through its supported route; a relative link alone does not install it.
 
 These files are the complete required reading set for this playbook. Do not rely
 on unpublished branches, a maintainer's private files, or inaccessible helpers.
