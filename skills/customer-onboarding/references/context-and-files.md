@@ -57,6 +57,46 @@ handles catalog drift and how it is detected. This can happen during authorized
 work; no new watcher or schedule is implied. A two-file search demo or an empty
 catalog does not prove this operating workflow.
 
+## Identity and behavior across profiles
+
+Keep three layers distinct when preparing or changing a profile:
+
+- **Shared operating baseline:** privacy, approval boundaries, evidence standards
+  and approved coordination rules. Identify their authoritative source and how the
+  installed harness loads them; a file pointer alone does not prove inheritance.
+- **Role-specific identity:** name, responsibilities, decision limits, communication
+  style and handoff behavior in the approved SOUL or native equivalent. Adapt to
+  the actual role rather than giving every specialist the main assistant's persona.
+- **Owner context:** approved durable preferences and facts in USER/context files,
+  limited to that role's audience and need. Shared working preferences do not grant
+  access to the owner's entire private history or business context.
+
+Retrieve existing choices first. Ask only missing material questions about the
+agent's purpose, name, tone, initiative and escalation boundaries. Preserve an
+existing suitable personality; do not impose the publisher's identity, preferences,
+company or personal facts. Keep project-local rules in project context and reusable
+procedures in skills, rather than expanding every SOUL or USER file.
+
+For an approved addition or revision, show the narrow diff or explicit no-change,
+back up affected files durably, and use the host's approval mechanism. Discover the
+actual instruction and memory paths for that profile; do not assume workspace
+USER.md and native profile memory are the same file. Resolve precedence, shared
+sources and profile-local overrides before writing. If the sources conflict, retain
+both and resolve the conflict rather than silently overwriting the owner's rules.
+
+Verify stored content separately from active loading. Bind evidence to the selected
+profile, source paths/revisions and a fresh authorized session. Check the installed
+harness's loading route and use a small approved role-appropriate interaction to
+check behavior, preferably during useful setup work. A model saying "I loaded it"
+or repeating a rule supplied in the test prompt is not sufficient loading proof.
+Do not dump private prompts or owner facts into shared evidence. Missing runtime
+visibility or model-use authority remains a named verification gap; file presence
+alone is not a pass. Preserve active sessions and drafts; do not restart the team
+just to test an instruction change. Instructions guide behavior, not OS access.
+
+Apply this procedure through the [profile lifecycle](maintenance.md#profile-lifecycle)
+for later additions and changes, not only the first onboarding.
+
 ## Decisions before implementation
 
 Use the owner's actual work, not the installation conversation, to map roles and

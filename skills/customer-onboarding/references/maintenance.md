@@ -92,6 +92,79 @@ On resume, reconcile only affected LEANN rows and dependent proof against these
 requirements. Preserve valid identity, login, team and other baseline evidence;
 do not reset onboarding or repeat unrelated tests.
 
+## Profile lifecycle
+
+At setup, resume, an approved profile addition/change/retirement, or a relevant
+service/plugin/provider update, inspect current native profile metadata and reconcile
+it with the existing private roster. Discover IDs and effective homes instead of
+copying a publisher's fixed profile list. A discovered profile is not permission to
+configure it, ingest its files, activate tools or add it to external reporting.
+Preserve unknown profiles and deletion markers; name missing ownership or authority.
+
+For each affected approved profile:
+
+1. Map its ID, role, owner, effective home, active sessions and intended data/tool/
+   channel access. Reuse profiles; a second session is not another profile. Keep
+   the required EA/CTO/two-Engineer layout and its shared-profile concurrency gate.
+   Extra roles need owner selection, not automatic creation.
+2. Apply the [identity and behavior procedure](context-and-files.md#identity-and-behavior-across-profiles):
+   shared operating rules, role-specific SOUL and audience-scoped USER/context.
+   Preserve approved overrides and use narrow reviewed changes, not blanket copying.
+3. Use supported native configuration and role preparation. Default model access
+   to the EA's approved account through supported native sharing, preserving owner
+   exceptions. Verify effective authentication per profile without copying secrets.
+   Review the full capability catalog and verify the required role-specific set;
+   check local copies/overrides that may shadow a shared skill or plugin revision.
+4. Verify the intended memory provider, endpoint and account/user/agent binding,
+   effective precedence and fresh-session route without printing secrets. A linked
+   plugin, healthy endpoint or different namespace does not prove correct loading,
+   successful save/recall or authenticated isolation. Follow the existing memory
+   acceptance procedure and its consent limits; do not inherit another profile's
+   readiness or pending writes. Reuse applicable evidence without replaying history.
+5. Reconcile applicable memory-watchdog coverage, backup/restore roots, maintenance
+   writer inventory, and approved discovery/index scopes. Reuse existing monitors
+   and jobs. Include cached clients, finalizers and startup paths, not just the new
+   profile directory. An inventory entry does not enforce exclusion. Broader data
+   access, alert destinations, schedules or costs require their applicable approval;
+   leave coverage gaps visible rather than silently expanding a job or duplicating it.
+6. Record creation, configuration, active loading and verification separately in the
+   existing private record, with source revisions and exact profile/session evidence.
+   Reopen affected baseline rows and dependencies only. Keep one baseline denominator;
+   a per-profile evidence table supports those rows, not a second completion score.
+   Required coverage is complete only when all applicable approved profiles have
+   proof. Preserve earlier valid evidence and explain why any row became incomplete.
+
+For rename, retirement or update, trace dependencies and cached bindings by native
+ID, not display name. Follow the supported native route; do not rename directories,
+merge histories or remove unknown state to match the roster. Use the retirement
+procedure below for stop/revoke/archive/delete decisions. Revalidate only affected
+instruction, identity, capability, memory and monitoring evidence; preserve unrelated
+working sessions and approved exceptions.
+
+This is a repeatable agent procedure, not an installed profile-creation hook or
+background detector. Assign the reconciliation owner and trigger in the existing
+maintenance record. Claim automatic discovery/configuration only if a supported
+mechanism is actually installed and verified within approved scope. Do not add a
+watcher, agent or service merely to make the template appear future-proof.
+
+## Keep historical memory repair separate
+
+A failed historical save is an incident with its own exact task/owner evidence and
+recovery authority, not a prerequisite for every template edit or independent
+onboarding step. Keep it open and visible while continuing unrelated authorized
+work. Do not downgrade required memory/watchdog checks, suppress old alerts or
+mark full acceptance complete because a fresh save succeeds.
+
+Do not ship private recovery helpers, synthetic acceptance or offline authentication
+designs as supported installed repairs. Live recovery requires the actual compatible
+artifact, identity, writer controls and backup/restore evidence. Stopping named bots
+or observing idle queues does not prove all writers excluded; native startup can
+resume internal work before an HTTP check. Even a status GET needs a source-backed
+no-mutation assessment rather than an assumption based on its HTTP method. Missing
+controls remain explicit blockers for the affected operation, not permission to
+build a private memory fork during onboarding. Use [memory reliability](memory-reliability.md)
+for the distinction between release evidence, first save/recall and full acceptance.
+
 ## Before any consequential change
 
 1. Read the private component map and actual current state. Identify the exact
