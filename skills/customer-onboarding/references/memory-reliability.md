@@ -140,7 +140,16 @@ Run these checks independently; preserve each check's evidence and limits:
    retain identifiers, report an uncertain write outcome and never blindly replay it.
    Verify completed indexing and the actual canonical memory contents. Then verify
    recall in a fresh Hermes conversation without supplying the answer in its prompt,
-   and retain the retrieved source reference. A fresh CLI search alone proves only
+   and retain the retrieved source reference. That recall chat is an ordinary
+   conversation: if the memory provider syncs primary chats, its transcript is stored
+   in the owner's memory and may be extracted. Check the installed provider; in the
+   reviewed Hermes OpenViking plugin, only cron, subagent and flush contexts skip
+   writes, and a session-list tag does not change that. Include this in the same
+   owner approval as the model use, ask a real useful question, and inspect what
+   extraction wrote afterward. Remove the chat only with explicit owner approval,
+   through the provider's native delete. Report the model and account from the
+   session record: a fresh chat uses the profile's configured model, not the
+   operator's current one. A fresh CLI search alone proves only
    service retrieval, not fresh-Hermes recall. Submission, `.done`, empty queues and
    HTTP 200 are not completion. A legitimate extraction skip is not a demonstrated
    new save; do not force duplicate memories to obtain a pass.
