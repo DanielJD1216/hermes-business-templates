@@ -89,6 +89,13 @@ profile, source paths/revisions and a fresh authorized session. Check the instal
 harness's loading route and use a small approved role-appropriate interaction to
 check behavior, preferably during useful setup work. A model saying "I loaded it"
 or repeating a rule supplied in the test prompt is not sufficient loading proof.
+Prefer evidence from real sessions the owner already ran. Where the harness records
+each session's exact prompt (Hermes: `sessions.system_prompt_hash` joined to
+`system_prompts` in that profile's `state.db`, opened read-only), compare it with the
+current approved files and check that no other profile's distinctive lines appear.
+A file changed after that session started makes the evidence stale, not passed; wait
+for the next natural use, or run a disclosed test chat under owner approval. A test
+chat is an ordinary conversation, so the memory provider may store it.
 Do not dump private prompts or owner facts into shared evidence. Missing runtime
 visibility or model-use authority remains a named verification gap; file presence
 alone is not a pass. Preserve active sessions and drafts; do not restart the team
