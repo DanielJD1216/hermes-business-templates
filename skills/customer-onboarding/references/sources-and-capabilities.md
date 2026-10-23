@@ -79,6 +79,27 @@ rights. Explain each extension before owner approval; connect through native sec
 flows. Preserve mention-only Slack behavior and owner administration. Broaden access
 only for the exact approved accounts, profiles, roots and audiences.
 
+## Keep credentials out of configuration
+
+Prefer a native login, such as `auth: oauth` for a remote MCP server that supports
+it. When a server needs a static header or environment value, put the secret in
+that profile's `.env` and write only a `${VAR}` reference in `config.yaml`. Hermes
+resolves the reference from the active profile's secret scope; see the
+[MCP environment variable references](https://hermes-agent.nousresearch.com/docs/reference/mcp-config-reference#environment-variable-references).
+Never write a literal credential into `config.yaml`: configuration is copied into
+backups, diffs and support material.
+
+Check each approved profile at setup and after each capability change. Read key
+names and test whether each credential-bearing value, for example in `headers`,
+`env` or an `api_key`, is a `${VAR}` reference. Do not print values. A literal
+value is a finding for the owner. With approval, back up `config.yaml` and `.env`
+privately, write the secret to the profile's `.env` without displaying it, and
+replace the value with its reference. Then run the native connection test, for
+example `hermes mcp test <server>`. An unset reference in `url` or `headers` fails
+closed and names the variable. A rejection with the reference resolved is a
+credential problem, not a move failure; the owner decides on renewal. Treat a
+credential that has left the host as exposed.
+
 ## Existing code and historical documentation
 
 Historical instructions are separated in [legacy/README.md](https://github.com/DanielJD1216/hermes-business-templates/blob/main/legacy/README.md).

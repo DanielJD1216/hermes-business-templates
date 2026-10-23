@@ -176,19 +176,34 @@ schedule, timezone and approved failure destination; test the actual scheduled
 execution context, not only an interactive shell with different settings.
 
 The monitor must check health and actual search, plus failed/cancelled/stalled saves,
-pending uploads without a confirmed task, and installed-version/patch drift.
+messages not uploaded within the bound, commit submissions without a confirmed task,
+and installed-version/patch drift.
 Require exact task-to-session and owner/account matching. An unknown state, missing
 identity, inaccessible task, malformed receipt, clock anomaly or exhausted checking
 budget is **unverified**, not healthy. Scope server task listings explicitly: a
 process cache or requester-only view is not an all-owner inventory.
+
+Separate message upload from extraction commit. A conversation that is open or
+below its commit threshold is normal however long it stays quiet, so receipt age
+alone is not a fault. Alert when any queued message has not reached the memory
+server within one hour (or the approved bound), with one stable line per
+conversation. A conversation that ended without a commit or a recorded skip is
+also a fault; if the selected monitor cannot detect it, record that coverage gap.
+
+Uploads are ordered per conversation: one upload with an unknown outcome, such as
+a client timeout, holds every later message. The server may already have stored
+it, so never resend it blindly. Compare its message or tool-call identifiers with
+the server session, send only messages that are absent, keep the original payload
+and record the result. This is a separately authorized repair, not a routine retry.
 
 Bound discovery, file/body sizes and total request time. Retained legacy receipts
 need an explicit classification, not blind replay or deletion. Preserve task IDs,
 failure history and unknown submission outcomes. Report service availability and
 save health separately so working search cannot hide failed saves.
 
-Use the selected monitor's isolated negative checks for failure, stalled work,
-unknown state and drift; do not corrupt production receipts to test alerts. Verify
+Use the selected monitor's isolated negative checks for failure, stalled work, an
+hour-old queued message, unknown state and drift, plus a quiet open conversation
+that must not alert. Do not corrupt production receipts to test alerts. Verify
 an authorized alert and recovery message at the exact destination. A script result
 or scheduler exit alone does not prove delivery. Keep delivery unverified when
 permission or destination access is missing; do not send an unapproved test message.

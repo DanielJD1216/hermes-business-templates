@@ -38,6 +38,35 @@ sensitive archives before off-host transfer and keep recovery-key custody separa
 from the archive. Git repositories suit code and sanitized instructions, not the
 default destination for large history databases or full recovery archives.
 
+### Back up configuration and instructions
+
+This method covers the configuration and instruction part of the recovery set.
+Session history, project records and memory stores still need their own
+supported backup and restore method.
+
+1. For each approved profile, select instruction and built-in memory files,
+   configuration, profile metadata, schedule definitions, scripts, plugins and skills.
+   Exclude `.env` and other credential files, databases with their sidecar files,
+   sessions, logs, caches, virtual environments and files over a size limit.
+   Record symlinks instead of following them.
+2. Commit the selection on the approved cadence to a private repository or other
+   approved destination that the owner controls. Read back private visibility
+   before the first push. Scan every outgoing commit with a pinned secret scanner.
+   Also refuse any configuration value under a secret-like key that is not a
+   `${VAR}` reference: scanners miss some formats, such as a plain bearer token.
+3. Hold every file that a scan or the size limit stops; do not drop it silently.
+   Record held paths and reasons only. The owner chooses: move the secret out (see
+   [credential references](sources-and-capabilities.md#keep-credentials-out-of-configuration)),
+   keep the hold, or approve an exact exception.
+4. After each push, confirm that the remote branch head equals the recorded
+   commit. Script exit status and scheduler success are not proof.
+5. Test restoration: clone into a separate private location and compare bytes with
+   the live selection. Report matched, changed, missing and extra counts. Explain
+   each difference, for example schedule state that changed after the snapshot.
+6. Name a reinstall source for each excluded skill, plugin and held file: bundled
+   with Hermes, an official optional skill or a pinned upstream source. Back up
+   an item that has no reinstall source, or record it as a recovery gap.
+
 ## Required LEANN refresh schedule
 
 Use current LEANN/native scheduler documentation and the actual installed help.
