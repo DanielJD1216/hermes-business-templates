@@ -288,6 +288,19 @@ Before apply or discard, the script saves exact pending bytes, memory bytes or a
 ~/.hermes/hermes-agent/venv/bin/python -m unittest discover -s tests -v
 ```
 
+## Retired Herdr development team
+
+T3 Code replaced Herdr as the required development team interface in
+customer-onboarding 0.22.0. The Herdr project-onboarding skill and Herdr Web UI
+guide were removed from the current guide. Read them at the last revision that
+included them:
+[project-onboarding](https://github.com/DanielJD1216/hermes-business-templates/tree/a7e24eb025794e41b6013bfbf0091eccd99e178b/skills/project-onboarding)
+and the
+[Herdr Web UI guide](https://github.com/DanielJD1216/hermes-business-templates/blob/a7e24eb025794e41b6013bfbf0091eccd99e178b/skills/customer-onboarding/references/herdr-web-ui.md).
+Updating customer-onboarding does not remove an installed copy of either. Keep an
+existing Herdr setup running until its active work moves to T3; retire it only
+after an owner-approved impact review.
+
 ## License
 
 MIT. See `LICENSE`.

@@ -320,7 +320,7 @@ Coordinate independently scoped work without conflicting writers or invented rev
 **Boundary:** One coordinator, one writer per boundary and one deployment owner.
 
 1. Decompose only independent tasks. Assign each worker exact inputs, writable paths, forbidden actions, acceptance checks and a return format.
-2. Keep one coordinator and reuse the required approved development team; do not create extra profiles for each task. Use the approved Herdr transport and preserve active sessions and drafts. No Kanban or formal pipeline is needed.
+2. Keep one coordinator and reuse the required approved development team; do not create extra profiles for each task. Use the approved T3 Code delegation route and preserve active sessions and drafts. No Kanban or formal pipeline is needed.
 3. Merge only after checking outputs, changed-file boundaries and test evidence. A worker’s self-review is not an independent review.
 4. Resolve conflicting edits with the designated owner. Do not parallelize dependent steps or publish before integrated verification.
 

@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.21.0
+version: 0.22.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -23,8 +23,8 @@ a second installer merely because a native command or dependency needs diagnosis
 - [Sources, capabilities and legacy boundary](references/sources-and-capabilities.md).
 - [Capability reference sheet](https://github.com/DanielJD1216/hermes-business-templates/blob/main/capabilities/REFERENCE.md): review the whole
   catalog's metadata, then load the sources/procedures for the required role-specific set.
-- [Herdr Web UI and terminal-access safety](references/herdr-web-ui.md).
-- [Required reusable project onboarding](../project-onboarding/SKILL.md).
+- [Role profile preparation and team coordination](references/role-setup.md).
+- [T3 Code setup prompt for the development team](references/t3-setup-prompt.md).
 - [Maintenance and recovery](references/maintenance.md).
 - [Mac findings](references/mac-notes.md) when the host or client is a Mac.
 
@@ -33,8 +33,7 @@ this skill directory. Their GitHub `main` links are navigation links: retrieve t
 at the full source commit recorded for this installed skill, or from a verified
 checkout of that revision. Do not assume they exist beside installed skills or
 mix newer branch contents into pinned evidence. Missing source revision or access
-blocks the dependent check, not independent work. Install the sibling project skill
-through its supported route; a relative link alone does not install it.
+blocks the dependent check, not independent work.
 
 These files are the complete required reading set for this playbook. Do not rely
 on unpublished branches, a maintainer's private files, or inaccessible helpers.
@@ -46,13 +45,13 @@ to invent it. This guide does not install a skill merely because it is read.
 - Confirm a private audience and the actual execution host. A chat-only model can
   advise but cannot claim installation. Prefer the owner's existing private main
   assistant as EA. Require three profiles by default: EA, CTO and one Engineer
-  profile with two distinct ready sessions in the four-pane layout. Verify shared
+  profile with two distinct ready sessions in T3 Code. Verify shared
   memory/write safety before concurrent use. Do not create a second Engineer profile
   as an automatic workaround, a second main agent or a mandatory Ops role.
 - New role profiles default to the EA's existing model provider/account and native
   credential-sharing route. Verify access, preserve existing approved exceptions,
   and do not introduce separate providers or new subscriptions by default. Follow
-  the project skill's role preparation procedure; never clone credential files or
+  the [role preparation procedure](references/role-setup.md); never clone credential files or
   share bot tokens to implement this model-authentication default.
 - Retrieve authorized host/context facts before asking. Ask one missing decision
   or give one unavailable-to-your-tools owner action at a time. Batch independent
@@ -162,7 +161,7 @@ mark client acceptance pending. Do not demand access to a device the owner lacks
 Check feasibility and control access before provisioning each required stage.
 Record the actual execution context, supported version/platform combination,
 available acceptance procedure and needed owner authority in the existing private
-record. General terminal access does not establish Herdr control access or access
+record. General terminal access does not establish T3 control access or access
 to another device. Establish the permitted stage operator and result route early;
 do not discover that dependency only after preparing owner-run launch scripts.
 For memory, locate the [supported artifact and release evidence](references/memory-reliability.md#select-a-supported-combination)
@@ -187,7 +186,7 @@ requirements. Explain costs and processing. Show the actual proposed changes;
 obtain owner approval before live identity/context adoption, role creation or
 connections. Do not infer approvals from imported conversations.
 
-Adapt the [team coordination rules](../project-onboarding/references/role-setup.md#adapt-coordination-to-the-owners-setup)
+Adapt the [team coordination rules](references/role-setup.md#adapt-coordination-to-the-owners-setup)
 to the actual owner, host resources, approved sessions, project boundaries and
 available control/return routes. Reuse known decisions and record the mapping in
 the existing private progress/project record. Do not copy the publisher's worker
@@ -232,26 +231,20 @@ and distinguish nonblocking hygiene warnings from genuine safety failures. Verif
 search and helper binding even on unchanged refreshes; use the existing monitoring
 path for stale/failed evidence and explicit recovery, not another agent or service.
 
-Install/discover the complete project-onboarding skill and establish its authorized
-host/session/result route before creating the layout. Slack, Desktop and terminal
-conversations may execute directly through the skill's verified explicit-session
-route; inherited pane context is an alternative, not a requirement for every caller.
-If an approved restart changes the recorded socket identity, or a resize changes
-only terminal dimensions while pane identities and role positions remain intact, use the project
-skill's [explicit receipt-rebinding procedure](../project-onboarding/SKILL.md#rebind-a-receipt-after-an-approved-server-restart).
-Keep endpoint recovery separate from process recognition and agent readiness.
-Do not repeatedly retry a blocked helper or make public maintainer posting a setup
-requirement. Continue independent authorized checks; a real missing dependency
-remains blocked until new evidence or authority changes it.
-Preserve the originating coordinator and approved target without focused-session
-fallbacks, fabricated context or a new bridge service. Follow its
-[single-session acceptance gate](../project-onboarding/SKILL.md#prove-one-fresh-session-before-expanding-the-team)
-before expanding first-host startup to the required four-session team. Preserve
-separate startup, prompt/wait and response-readback outcomes; a working layout or
-later successful command cannot stand in for them. The operator continues safe
-authorized steps without making the owner relay each command. Missing transport,
-model-use authority or memory isolation remains an explicit blocker, not permission
-to bypass it. Establish LEANN, its approved recurring refresh and
+Prepare approved missing role profiles with the [role preparation procedure](references/role-setup.md),
+then set up the development team in T3 Code. The owner installs T3 Code on the agent
+host, signs in one built-in T3 agent and pastes the [T3 setup prompt](references/t3-setup-prompt.md)
+into a new T3 thread. Before that, tell the owner which private folder to give when
+the T3 agent asks where to save its setup record. That agent connects each approved
+profile as a Local ACP provider; verify its saved record and matrix, not its summary.
+Prove one fresh Hermes conversation before running both Engineer threads at once.
+Preserve separate provider, answer, persistence and delegation outcomes; provider
+entries or a later successful command cannot stand in for them. Do not repeatedly
+retry a blocked step or make public maintainer posting a setup requirement. Continue
+independent authorized checks; a real missing dependency remains blocked until new
+evidence or authority changes it. Missing server access, model-use authority or
+memory isolation remains an explicit blocker, not permission to bypass it.
+Establish LEANN, its approved recurring refresh and
 Obsidian on each selected viewing/editing device. Host-only installation does not
 complete a separate device's requirement. Review the full capability catalog and
 install/authenticate/test the required set through each assigned agent surface.

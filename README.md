@@ -36,18 +36,19 @@ the whole operating workflow: preserved identity and model access; an explicit
 EA/CTO/Engineer responsibility map; file placement and project onboarding;
 persistent memory and a script-only watchdog; LEANN with scheduled index refresh,
 exact and history discovery; a source-backed curated wiki viewed in Obsidian;
-private Slack/Desktop/Tailscale access; four-pane Herdr development orchestration
-and its Web UI; installed/tested role-specific capabilities; maintenance ownership;
+private Slack/Desktop/Tailscale access; a T3 Code development team on a persistent
+server; installed/tested role-specific capabilities; maintenance ownership;
 Parsec for remote debugging/troubleshooting; and verified data backup/restoration.
 
-The required project layout is EA top left, CTO top right, Engineer #1 bottom left
-and Engineer #2 bottom right. Reuse the owner's main assistant as EA and approved
+The required development team is EA, CTO, Engineer #1 and Engineer #2, used through
+[T3 Code](https://github.com/pingdotgg/t3code) with each Hermes profile connected as
+its own Local ACP provider. Reuse the owner's main assistant as EA and approved
 permanent specialist profiles. The default is three profiles: EA, CTO and one
-Engineer profile used by two distinct Engineer sessions. Engineer #1 and #2 are
-pane/session labels, not profile names. Verify shared-profile memory/write safety
+Engineer profile used by two distinct Engineer threads. Engineer #1 and #2 are
+thread labels, not profile names. Verify shared-profile memory/write safety
 before concurrent use; do not create another profile as an automatic workaround.
-Names adapt; the required roles and positions do not disappear. Extra
-non-development roles are not mandatory.
+Names adapt; the required roles do not disappear. Extra non-development roles
+are not mandatory.
 
 All new role profiles start with the EA's existing model provider and owner account,
 reusing its model-provider credentials through a supported native sharing mechanism.
@@ -85,28 +86,20 @@ not certify a universally supported runtime combination. Missing compatible
 artifacts or platform evidence block the memory requirement, not independent work;
 Linux/WSL evidence does not establish native Mac support.
 
-For repeatable per-project setup, use the bundled
-[project-onboarding skill](skills/project-onboarding/SKILL.md). It retrieves the
-project name/location/goal, preserves the existing primary assistant as EA,
-prepares only approved missing role profiles through native operations, and creates
-or reuses the required four-pane Herdr layout. Its stdlib helper creates shells,
-not model sessions. `layout-ready` is an intermediate result: the agent continues
-authorized startup and verifies all four sessions. The skill checks integration
-per profile and actual terminal-tool working roots; a banner or `--in` is not proof.
-An undecided product goal permits setup, not unassigned research or development.
-Install the complete skill in the selected coordinator's skill root and verify
-discovery. It is not installed merely by reading this repository.
-Invoke it from Slack, Hermes Desktop or a terminal with tools on the approved host.
-The helper accepts an explicitly approved Herdr `--session` as well as inherited
-pane context; it never guesses the focused server or requires moving your chat.
-Host access, target verification and agent readiness remain separate checks.
+After the agent prepares the approved role profiles, you install T3 Code on the
+agent host, sign in one of its built-in agents and paste the
+[T3 setup prompt](skills/customer-onboarding/references/t3-setup-prompt.md) into a
+new T3 thread. That agent sets up the persistent server and private Tailscale access,
+connects each Hermes profile, tests it and saves a setup record your main agent can
+read. Your main agent then verifies the result from that record. A provider entry
+in T3 is not proof that the team works. Phone access is a separate choice covered
+by the same prompt. Herdr is no longer part of the baseline; an existing Herdr setup
+keeps running until its active work moves to T3.
 
 See [onboarding](skills/customer-onboarding/SKILL.md),
 [context and file guidance](skills/customer-onboarding/references/context-and-files.md),
 [sources and capability limits](skills/customer-onboarding/references/sources-and-capabilities.md),
 and [Mac troubleshooting evidence](skills/customer-onboarding/references/mac-notes.md).
-The [Herdr Web UI guide](skills/customer-onboarding/references/herdr-web-ui.md)
-covers the existing-session browser client and its terminal-access security.
 
 Memory and knowledge are distinct: OpenViking memories retain interaction-derived
 facts; a knowledge base holds approved reference sources such as manuals, policies
@@ -144,9 +137,9 @@ provider access and each baseline outcome require evidence. Owner choices and
 missing client access do not erase unfinished required checks.
 
 The [capability reference sheet](capabilities/REFERENCE.md) and
-[catalog](capabilities/catalog.json) contain 333 records: 198 included, 39 excluded
+[catalog](capabilities/catalog.json) contain 333 records: 197 included, 40 excluded
 and 96 native candidates whose activation was not established. Included selections
-cover 160 skills, 8 plugins, 13 MCP integrations and 17 native toolsets.
+cover 160 skills, 7 plugins, 13 MCP integrations and 17 native toolsets.
 
 Delivery uses pinned upstream sources, vendor connection guidance and
 [23 bundled generic procedures](reusable/procedures.md), not copies of a private
