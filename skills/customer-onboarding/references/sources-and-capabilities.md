@@ -15,8 +15,7 @@ that each service supports every platform, login type or subscription.
 | Ollama local models and embeddings | https://docs.ollama.com/ and https://ollama.com/library |
 | Slack applications and scopes | https://docs.slack.dev/ |
 | Tailscale and access policy | https://tailscale.com/kb/ |
-| Herdr persistent development sessions | https://herdr.dev and the installed native help |
-| Herdr browser/phone client | https://github.com/devswha/herdr-web-ui and its https://github.com/devswha/herdr-web-ui/blob/main/INSTALL.md agent guide; follow the [template Web UI boundary](herdr-web-ui.md) |
+| T3 Code persistent server, Local ACP providers and remote/mobile clients | https://github.com/pingdotgg/t3code and its user guides: https://github.com/pingdotgg/t3code/blob/main/docs/user/install.md, https://github.com/pingdotgg/t3code/blob/main/docs/user/background-service.md, https://github.com/pingdotgg/t3code/blob/main/docs/user/providers-acp.md and https://github.com/pingdotgg/t3code/blob/main/docs/user/remote-access.md; follow the [template T3 setup prompt](t3-setup-prompt.md) |
 | LEANN local semantic discovery | https://github.com/yichuan-w/LEANN and installed native help |
 | Obsidian vault/viewer | https://obsidian.md/download and https://help.obsidian.md/ |
 | Parsec remote debugging/troubleshooting; host/client support and license | https://parsec.app/ and its official support/download links |
@@ -58,7 +57,7 @@ source/procedure details for the owner's required role-specific set. Do not requ
 the owner to approve hundreds of entries individually; propose a coherent bounded
 set and carry its approved scope forward. Kanban and formal delivery-suite packages
 are outside onboarding, even when retained in the reference catalog for separate
-requests. Do not activate them as dependencies of the four-pane team.
+requests. Do not activate them as dependencies of the T3 development team.
 Do not preload or activate every upstream skill. Generic procedures are usable
 instructions, not byte-equivalent replacements for private custom packages. For
 source-acquired skills, obtain the complete pinned package with its supporting

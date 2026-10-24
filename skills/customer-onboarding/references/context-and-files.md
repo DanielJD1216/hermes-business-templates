@@ -32,16 +32,18 @@ installed harness and official documentation, not these example names:
 - A file/access map (for example `FILES.md`): where authoritative information lives.
 - A project catalog: actual project names, locations, owners, status and access.
 - A project-onboarding procedure: ask the project name, retrieve known location and
-  goal, create/reuse approved workspace/context, then prepare the required four-pane
-  Herdr development team. Reuse approved profiles; no automatic second writer.
+  goal, create/reuse approved workspace/context, then add that folder as a T3 Code
+  project for the required development team. Reuse approved profiles; no automatic
+  second writer.
 
-Install and verify the complete bundled
-[project-onboarding skill](../../project-onboarding/SKILL.md) in the approved
-coordinator's skill root. It adapts the existing assistant and selected role names,
-reuses profiles across projects, and records a per-project layout. Use its role
-preparation step for approved missing profiles, not the legacy installer. Confirm
-native skill discovery and helper files; a file link alone does not provide the
-owner a working reusable command. Preserve existing skills and approval policy.
+For a new project, agree an exact folder within an approved root. Reuse existing
+repositories, branches, instructions and owner edits; no implicit Git initialization,
+clone, relocation, worktree or replacement AGENTS.md. Record an unchosen goal or
+audience as undecided; that permits setup, not research or development assignments.
+Setup is not permission to build, publish, deploy, spend or send. Prepare approved
+missing role profiles with the [role preparation procedure](role-setup.md), not the
+legacy installer, and reuse them across projects. Record each project's T3 project
+path and coordinator in the project catalog. Preserve existing skills and approval policy.
 
 The map must govern work, not merely list directories. Define where incoming
 material, active work, research, assets/deliverables, archives and scratch belong;

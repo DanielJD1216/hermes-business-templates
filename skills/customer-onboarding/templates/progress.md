@@ -67,14 +67,14 @@ deferred choices remain completion blockers; optional declined choices do not.
 | Full-catalog review and required tested capability set per role/platform | not-offered | | | |
 | LEANN roots, recurring refresh cadence/timezone, costs and failure recipient | not-offered | | | |
 | Maintenance triggers, failure recipient and recovery | not-offered | | | |
-| Required Herdr development orchestration and separately scoped extensions | not-offered | | | |
+| Required T3 Code development team and separately scoped extensions | not-offered | | | |
 
-Herdr preset: [required EA top left, CTO top right, Engineer #1 bottom left,
-Engineer #2 bottom right; authority reference]. Record each pane's position, display
-label, actual profile/session, project root and idle/running state. Distinguish
-browser-access proof, preset verification and agent-task readiness. Do not infer
-specialist creation or launch approval from the existence of four slots. Shell-only
-slots are incomplete; authenticated sessions may wait idle for safe assignments.
+T3 team: [server host, T3 version and service owner; display name, profile ID and
+Hermes path for each provider; private client route; setup record path; authority
+reference]. Distinguish provider added, fresh conversation answered by the intended
+profile, persistence through client quit/reopen and delegation verified. Do not infer
+specialist creation or launch approval from provider entries. A provider without a
+verified answer is incomplete; verified roles may wait idle for safe assignments.
 
 ## Baseline evidence
 
@@ -106,7 +106,7 @@ reference alone. Keep cells on one line without pipe characters.
 | Slack | not-tested | none | | | |
 | Hermes Desktop | not-tested | none | | | |
 | Tailscale/private transport | not-tested | none | | | |
-| Herdr and Herdr Web UI | not-tested | none | | | |
+| T3 Code development team | not-tested | none | | | |
 | Parsec remote debugging | not-tested | none | | | |
 | Capability allocation | not-tested | none | | | |
 | Maintenance and recovery data | not-tested | none | | | |

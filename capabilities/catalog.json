@@ -4,19 +4,19 @@
   "checked_at": "2026-10-13T20:52:34.228539+00:00",
   "counts": {
     "total": 333,
-    "included": 198,
-    "excluded": 39,
+    "included": 197,
+    "excluded": 40,
     "unknown": 96
   },
   "included_by_kind": {
     "skill": 160,
-    "plugin": 8,
+    "plugin": 7,
     "mcp": 13,
     "core_toolset": 17
   },
   "delivery_counts": {
     "generic-procedure": 23,
-    "upstream-package": 137,
+    "upstream-package": 136,
     "rights-review-required": 2,
     "upstream-reference": 8,
 
@@ -4889,24 +4889,24 @@
     {
       "id": "plugin-0196",
       "kind": "plugin",
-      "catalog_partition": "included",
+      "catalog_partition": "excluded",
       "name": "Herdr Hermes session integration",
-      "purpose": "Report Hermes resumable session identity to Herdr; screen detection supplies lifecycle state.",
-      "delivery": "upstream-package",
-      "source_ref": "herdr",
-      "source_path": "src/integration/assets/hermes/__init__.py",
-      "source_url": "https://raw.githubusercontent.com/herdrdev/herdr/87e5c13c6028df72405f63388dde585212ad3019/src/integration/assets/hermes/__init__.py",
-      "source_sha256": "62884f3e0f714f78bfc42722cddef3dd32a0a184502864d79d113329563deed2",
+      "purpose": "Excluded reference entry; retired when T3 Code replaced Herdr for the development team. Retained for coverage, not offered for activation.",
+      "delivery": "not-selected",
+      "source_ref": null,
+      "source_path": null,
+      "source_url": null,
+      "source_sha256": null,
       "bundled_ref": null,
-      "acquisition": "Review https://herdr.dev/docs/integrations/ and the pinned package. Use the installed supported Herdr integration flow, herdr integration install hermes, only for the approved Hermes home. This edits plugin selection; coordinate fresh-session loading without interrupting active work. Do not confuse this integration with a similarly named status-pane plugin.",
-      "platform": "Use a supported native Herdr/Hermes host; target execution untested.",
-      "dependencies": "Herdr session integration version 5 assets, compatible Hermes plugin hooks, and an existing intended Hermes home. Preserve other plugins and profiles.",
-      "authentication": "Local Herdr pane/socket context; no new hosted login. Verify host and session ownership.",
-      "cost": "No adapter service fee; ordinary agent/model and host costs remain separate.",
-      "access": "Reports session identifiers to the local Herdr host; install only within approved profile scope. No transcript or credential copying.",
-      "license": "Apache-2.0",
-      "redistribution": "Source-acquired, not bundled. Preserve upstream Apache-2.0 terms and notices.",
-      "verification": "Pinned public adapter and manifest retrieved; source hashes verified. Customer execution not tested.",
+      "acquisition": "Not selected by this reference catalog. Do not install, enable or infer runtime availability.",
+      "platform": "Not assessed for customer use.",
+      "dependencies": "Not assessed; do not enable.",
+      "authentication": "Not assessed; do not authorize.",
+      "cost": "Not assessed; no free-use promise.",
+      "access": "No access granted by this catalog.",
+      "license": "Not assessed for delivery.",
+      "redistribution": "Not bundled; no redistribution permission asserted.",
+      "verification": "not-tested",
       "runtime_verified": false,
       "limitations": []
     },
@@ -8221,7 +8221,7 @@
   "bundled_files": [
     {
       "path": "reusable/procedures.md",
-      "sha256": "9af6e4f1ebc53fa773840b63e710c8c2784406328f8efb870818f5a03a3d8e11",
+      "sha256": "5c9d65931a7ea8aed8b5a4729935f868d9ee4673aec109f7f82ba032c55fbbc3",
       "license_path": "LICENSE",
       "capability_ids": [
         "skill-0001",

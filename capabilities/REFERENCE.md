@@ -7,7 +7,7 @@ Slack is mention-only. Memory-watchdog and LEANN refresh require approved target
 cadence and configuration. Preserve existing state and the sole working transport.
 
 The [machine-readable catalog](catalog.json) is the complete contract: **333
-records: 198 included, 39 excluded, 96 unknown**. Included means offered for a
+records: 197 included, 40 excluded, 96 unknown**. Included means offered for a
 customer decision, not installed, enabled, licensed for all uses, authenticated,
 or runtime-tested. Unknown native candidates are not activation recommendations.
 Review the full catalog and establish an installed/tested required set per role
@@ -1982,17 +1982,6 @@ Auto-track and clean up ephemeral files (test scripts, temp outputs, cron logs) 
 - **Access:** Destructive file cleanup: review retention/eligible paths before enabling; never include customer originals.
 - **License:** MIT
 
-<a id="plugin-0196"></a>
-#### plugin-0196 · Herdr Hermes session integration
-
-Report Hermes resumable session identity to Herdr; screen detection supplies lifecycle state.
-
-- **Acquire:** [upstream-package](https://raw.githubusercontent.com/herdrdev/herdr/87e5c13c6028df72405f63388dde585212ad3019/src/integration/assets/hermes/__init__.py). Review https://herdr.dev/docs/integrations/ and the pinned package. Use the installed supported Herdr integration flow, `herdr integration install hermes`, only for the approved Hermes home. This edits plugin selection; coordinate fresh-session loading without interrupting active work. Do not confuse this integration with a similarly named status-pane plugin.
-- **Host/dependencies:** Supported native Herdr/Hermes host; target execution untested. Version 5 integration assets, compatible Hermes hooks and the existing intended Hermes home. Preserve other plugins and profiles.
-- **Account/cost:** Local pane/socket context; no new hosted login or adapter fee. Ordinary agent/model and host costs remain separate.
-- **Access:** Reports session identifiers to the local host. Verify ownership; no transcript or credential copying.
-- **License:** Apache-2.0. Source-acquired, not bundled; preserve upstream terms and notices.
-
 <a id="plugin-0197"></a>
 #### plugin-0197 · hermes-ssh
 
@@ -2387,7 +2376,7 @@ Search public information and extract pages.
 ## Excluded and unknown coverage
 
 These entries remain in `catalog.json` with `catalog_partition` equal to
-`excluded` (39) or `unknown` (96). They are deliberately not assigned acquisition
+`excluded` (40) or `unknown` (96). They are deliberately not assigned acquisition
 or execution readiness. Retaining them avoids silently dropping candidates;
 it does not authorize an account check, dependency installation or activation.
 

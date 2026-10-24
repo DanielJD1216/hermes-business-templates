@@ -317,20 +317,6 @@
     "hash_scope": "Extracted text returned by web extractor, possibly a bounded head/tail window; not raw page bytes.",
     "checked_at": "2026-10-13T20:52:34.228539+00:00"
   },
-  "herdr": {
-    "repository": "https://github.com/herdrdev/herdr",
-    "revision": "87e5c13c6028df72405f63388dde585212ad3019",
-    "tree_url": "https://github.com/herdrdev/herdr/tree/87e5c13c6028df72405f63388dde585212ad3019",
-    "archive_url": "https://github.com/herdrdev/herdr/archive/87e5c13c6028df72405f63388dde585212ad3019.tar.gz",
-    "verification": "Pinned adapter and plugin manifest retrieved and hashed; official integration guide read. No install or session action.",
-    "manifest_path": "src/integration/assets/hermes/plugin.yaml",
-    "manifest_sha256": "e1c775a6d6ccad2f8e6e0566a0aa61aeef9b8141f59d8a742a77c6951a261170",
-    "license": "Apache-2.0",
-    "license_url": "https://raw.githubusercontent.com/herdrdev/herdr/87e5c13c6028df72405f63388dde585212ad3019/LICENSE",
-    "license_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
-    "license_scope": "Repository terms and notices apply; no third-party code bundled here.",
-    "checked_at": "2026-10-13T21:10:11Z"
-  },
   "generic": {
     "path": "reusable/procedures.md",
     "license": "MIT",

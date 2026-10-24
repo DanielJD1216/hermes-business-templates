@@ -134,7 +134,7 @@ For each affected approved profile:
 
 1. Map its ID, role, owner, effective home, active sessions and intended data/tool/
    channel access. Reuse profiles; a second session is not another profile. Keep
-   the required EA/CTO/two-Engineer layout and its shared-profile concurrency gate.
+   the required EA/CTO/two-Engineer team and its shared-profile concurrency gate.
    Extra roles need owner selection, not automatic creation.
 2. Apply the [identity and behavior procedure](context-and-files.md#identity-and-behavior-across-profiles):
    shared operating rules, role-specific SOUL and audience-scoped USER/context.
