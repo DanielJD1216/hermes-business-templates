@@ -33,6 +33,7 @@ This is a reusable setup procedure. Discover my installation and preferences; do
 - Determine whether T3 is currently SSH launcher-managed or independently managed.
 - Check the installed T3 version's documented support for persistent services and Local ACP command providers.
 - Check Hermes ACP support and run the profile-specific ACP dependency/import check.
+- Identify which ACP agent `hermes acp` runs in the installed Hermes version. From Hermes v0.22.5 it is the gateway-backed agent (`acp_adapter/gateway_server.py`): it attaches each T3 conversation to the profile's Hermes gateway runtime and starts that runtime if none is running. Changes made to the older in-process adapter (`acp_adapter/server.py`) do nothing there, even when their own tests pass.
 - Inspect existing Tailscale configuration without disrupting other services.
 
 2. Establish persistent hosting
@@ -54,14 +55,16 @@ This is a reusable setup procedure. Discover my installation and preferences; do
 - Verify the syntax against my installed Hermes version.
 - Use existing profile configuration and credentials; do not copy secrets into chat.
 - Do not silently substitute native Codex or Claude for Hermes, even when they use the same underlying model.
-- Keep active Hermes/Herdr sessions running. Adding providers starts new sessions; it does not migrate running conversations.
+- Keep active Hermes sessions, and any previous orchestration tool's sessions, running. Adding providers starts new sessions; it does not migrate running conversations.
+- On gateway-backed Hermes, a gateway restart interrupts running T3 Hermes turns. Restart it only when T3 work is idle.
 
 4. Verify reasoning controls
-- Check whether my installed Hermes ACP adapter exposes a per-conversation reasoning selector.
+- Check whether my installed Hermes ACP agent advertises a per-conversation reasoning option (a `reasoning_effort` session config option). The gateway-backed agent in stock Hermes v0.22.5 advertises none, so T3 shows no Reasoning selector for Hermes. Check the installed version, because upstream may add it.
+- Without the option, a conversation's effort can still be changed by typing `/reasoning <level>` in that Hermes thread. The gateway applies it to that conversation only, and `/reasoning reset` returns it to the profile default. `--global` changes the profile default and needs my approval. New conversations and delegated tasks use the profile default.
 - Distinguish model selection, reasoning effort, edit-approval mode, and profile defaults.
-- If reasoning is absent, inspect the actual adapter and T3 capability handling before proposing a fix.
+- If the option is absent, inspect the actual adapter and T3 capability handling before proposing a fix.
 - Never switch the thread to native Codex just to obtain its reasoning selector.
-- If a patch is necessary, prepare and test it in an isolated checkout. Preserve unrelated local changes.
+- If a patch is necessary, prepare and test it in an isolated checkout, on the ACP agent the installed version actually runs. Preserve unrelated local changes.
 - The patch must keep overrides conversation-local, preserve profile defaults, survive session reloads and model changes, reject invalid or unsafe mid-turn changes, and avoid changing providers.
 - Clearly distinguish requested reasoning effort from what the model/provider actually supports or sends.
 - Record the requested T3 option, advertised ACP capability, runtime override, safe native launch/request metadata, and persisted session settings separately. A model's self-description or a composer label is not runtime proof.
@@ -72,6 +75,7 @@ This is a reusable setup procedure. Discover my installation and preferences; do
 5. Handle discovery and UI caching
 - Confirm Settings is scoped to the server environment, not the client machine.
 - Inspect T3's live provider catalog to confirm which options it received.
+- T3 also keeps each provider's last discovery on disk. One inspected v0.1.2 build writes `caches/<provider-instance>.json` in its data directory (`~/.t3` by default). Each model's `capabilities.optionDescriptors` there lists the options T3 accepts when it launches a task.
 - Distinguish "Refresh provider status" from "Update all."
 - Check the installed version's caching behavior. One inspected T3 v0.1.1 build cached successful ACP discovery for 15 minutes, and older live-session options could override refreshed discovery; treat this as a diagnostic lead to verify locally, not a universal timeout.
 - A blank new-thread screen may not launch a new ACP process. If necessary, use a disposable new Hermes conversation with:
@@ -85,7 +89,7 @@ This is a reusable setup procedure. Discover my installation and preferences; do
 - Obtain user confirmation or independently observable evidence of the actual client quit/reopen interval. A heartbeat log alone proves worker continuity, not that the client was closed. Automatic reconnection after a server restart is a separate test with a new server PID; do not present it as quit/reopen persistence.
 - Test client network loss separately if authorized; do not infer it from the quit/reopen test.
 - Test that one conversation's reasoning changes do not alter other agents.
-- If I want orchestration, separately verify Hermes-to-Hermes delegation through T3. Do not assume multiple provider entries reproduce every Herdr feature.
+- If I want orchestration, separately verify Hermes-to-Hermes delegation through T3. Do not assume multiple provider entries reproduce every feature of a previous orchestration tool.
 
 7. Register all agents and establish orchestration
 
@@ -111,14 +115,14 @@ Validate each provider:
 - Verify a disposable conversation starts with the correct Hermes profile and model.
 - If new options are missing, inspect both discovery caching and older live-session configuration.
 - Explain exactly where "Refresh provider status" is: the circular arrows beside "Checked…" at the top-right of the Providers page.
-- A fresh conversation may need its first message before the patched ACP process starts and publishes its options.
+- A fresh conversation may need its first message before the ACP process starts and publishes its options.
 - Do not confuse "Default" approval mode with default reasoning effort.
 
 Explain the orchestration structure:
 - A provider entry selects a Hermes profile; it is not itself a running worker.
 - Separate conversations or delegated tasks can use the same profile. "Engineer #1" and "Engineer #2" do not require separate profiles unless they need different persistent configuration.
 - Sessions using the same profile can share profile-level memory, skills, credentials, and other state. Separate conversations do not guarantee full isolation.
-- Adding providers does not automatically reproduce Herdr's coordination behavior or terminal-pane layout.
+- Adding providers does not automatically reproduce a previous orchestration tool's coordination behavior or terminal layout.
 
 Ask which profile should coordinate the work; do not assume a permanent hierarchy. Allow different profiles to coordinate different projects.
 
@@ -127,7 +131,7 @@ Establish model choices before testing delegation:
 - Distinguish the Hermes profile from its underlying model provider. A different profile or provider does not necessarily mean a different model.
 - Verify each exact selection in the live catalog. Distinguish catalog availability, successful inference and actual large-context qualification; a [1m] label or a short reply does not prove a 1M-token request works.
 - Save the approved defaults and verify fresh sessions. Explain that explicit delegation arguments can override profile defaults on stock T3.
-- Track each configuration layer separately: saved Hermes defaults, ACP session overrides, T3 thread choices, typed-alias targets, optional guard rules, and temporary exceptions. Updating a profile default does not automatically update an alias, guard rule, or existing conversation override.
+- Track each configuration layer separately: saved Hermes defaults, ACP session overrides, T3 thread choices, typed-alias targets (if an alias patch is installed), optional guard rules, and temporary exceptions. Updating a profile default does not automatically update an alias, guard rule, or existing conversation override.
 - Before changing defaults, identify which layers should follow the new choice. Update only the authorized layers and preserve unrelated profiles. Verify saved values with the installed config loader/resolver, aliases with the installed expander, and guard behavior with its policy resolver before spending inference on a fresh-session check. Report configuration-only verification separately from an actual model response.
 - For independent adversarial review, use a fresh child with the brief and artifact to review. Give it criteria and evidence, not instructions to agree with the implementer. Different models help diversify review but do not guarantee independence; shared memory and supplied context can still bias it.
 - Create a new delegated task for each review round, with a distinct stable request ID and the brief, artifact, prior findings/responses and unresolved objections. Continuing the old review child's conversation does not provide a fresh review. Verify the review model differs from the actual implementation task's model, not just the coordinator's current selection.
@@ -135,18 +139,18 @@ Establish model choices before testing delegation:
 Then run a small, explicitly authorized orchestration test:
 - Start with a coordinator using Hermes.
 - Delegate harmless tasks through T3's app-owned delegation tools to two configured Hermes profiles.
-- Discover the exact provider-instance IDs, model IDs, and reasoning options from T3's live catalog.
+- Discover the exact provider-instance IDs, model IDs, and reasoning options from T3's live catalog. If a Hermes provider lists no reasoning option, omit `reasoning_effort` from its delegation options. T3 refuses an option the agent does not advertise ("Unknown option reasoning_effort; supported options: ..."), and the destination profile's default effort applies.
 - Explicitly select the intended Hermes provider for each worker. Never silently substitute native Codex or Claude.
 - Verify each worker receives the intended profile, model, and supported options.
 - Verify the coordinator receives the results and can track task status.
 - Keep test work isolated from active projects. Use separate worktrees when workers will edit overlapping code.
 - Verify persistence during client quit/reopen separately from delegation.
-- Leave existing Herdr sessions alone until their active work finishes.
+- Leave any previous orchestration tool's sessions alone until their active work finishes.
 
 Report separately:
 1. Profiles registered.
 2. Individual Hermes conversations verified.
-3. Reasoning controls verified.
+3. Reasoning controls verified (selector, typed /reasoning or profile defaults).
 4. Hermes-to-Hermes delegation verified.
 5. Client-disconnection persistence verified.
 6. Remaining differences from the previous orchestration tool.
@@ -164,6 +168,7 @@ Distinguish:
 - Any separate $ skill menu supported by this T3 version.
 
 Discover and validate:
+- On gateway-backed Hermes (v0.22.5 and later), T3's / menu lists only the adapter's built-in commands: /help, /model, /tools, /context, /reset, /compress, /steer, /queue, /usage, /status, /version, /title, /undo and /retry. Hermes skills are not listed. A typed `/<skill-name> <task>` still goes to the gateway, which runs the installed skill. Other Hermes commands, such as `/reasoning`, also run there or are refused with a reason. Unrecognized commands reach the model as ordinary text.
 - Inspect ACP available-command notifications and T3's handling of them.
 - Discover skills using Hermes' existing profile/project/platform-aware scanner, respecting disabled skills and built-in command collisions.
 - Do not copy one profile's skill list to every profile or execute skill bodies just to populate the menu.
@@ -171,6 +176,7 @@ Discover and validate:
 - Do not claim every Hermes terminal command works through ACP. Identify supported commands and remaining gaps.
 
 If a compatibility patch is needed:
+- Put it on the ACP agent the installed version runs. A skill-menu patch for the older in-process adapter does nothing on gateway-backed Hermes.
 - Prepare it in an isolated checkout, preserve unrelated changes, follow repository instructions and test it before installation.
 - Keep skill discovery profile-scoped. Preserve past conversation history and the original user invocation.
 - Queue skill requests correctly when a turn is running; do not redirect an unexpanded invocation into active work.
@@ -181,21 +187,21 @@ If a compatibility patch is needed:
 Guide me through verification:
 - Select the intended Hermes provider on the SERVER environment and start a fresh conversation.
 - Send the supported Provider /help command or another harmless initialization message so the ACP session publishes its commands.
-- Type a prefix for a skill actually installed in that profile. For example, /dia should suggest /diagram-design only if that skill exists and is enabled.
+- Without a skill-menu patch, expect no skill suggestions: type the full `/<skill-name> <harmless task>` for a skill actually installed and enabled in that profile, and verify that its instructions ran. With a menu patch, a prefix of that skill's name should suggest it, and only if the skill exists and is enabled.
 - Verify it appears in the correct menu and execute a harmless skill task.
 - If T3 says "No matching command," trace discovery, cached session state and UI handling before asking me to refresh repeatedly.
 - Document text-only or attachment limitations. Do not claim success based only on an import check or protocol advertisement.
 
-9. Set up typed @BotName routing and verify real delegation
+9. Route work to a role and verify real delegation
 
-Use typed aliases with the existing T3 app by default. Explain that this does not add a native bot autocomplete menu. Native autocomplete is a separate T3 client feature and may require a custom build; do not silently replace my client.
+Stock Hermes has no typed-alias parser. A typed @BotName reaches the coordinator model as ordinary text, and the model may then call T3's delegate_task tool, so routing is model-mediated. Default to plain-language requests, such as "Ask CTO to <task>", and verify the task receipt. An alias patch written for the older in-process adapter does nothing on gateway-backed Hermes (v0.22.5 and later). Implement exact alias parsing only if I want it, on the ACP agent the installed version runs, as a maintained local patch. Neither way adds a native bot autocomplete menu. Native autocomplete is a separate T3 client feature and may require a custom build; do not silently replace my client.
 
 Keep these behaviors distinct:
 - A T3 @thread reference attaches context; it does not automatically message that thread.
 - A typed @BotName alias requests a NEW delegated task using a configured Hermes profile.
 - Messaging an existing conversation is a separate, explicit action.
 
-Inspect existing support first. If implementing lightweight routing:
+Inspect existing support first. If I choose an alias patch:
 - Discover exact provider-instance IDs from the live T3 catalog and create aliases only for registered profiles. Do not copy another person's provider IDs or invent missing entries.
 - Install alias configuration for each intended Hermes coordinator profile, including the default profile when applicable.
 - Use one leading standalone alias followed by a task, such as @CTO <task>. Match case-insensitively, reject unknown aliases and empty tasks, and document supported aliases.
@@ -215,8 +221,9 @@ Require the coordinator to:
 
 Run a small, explicitly authorized end-to-end test:
 - Start a NEW conversation explicitly using a Hermes coordinator, such as my verified primary profile.
-- Send a self-contained request, replacing CTO with a configured alias:
-  @CTO Reply "hello from CTO." Coordinator: show the delegated task receipt and return the child's response.
+- Send a self-contained request, replacing CTO with a registered role:
+  Ask CTO to reply "hello from CTO." Coordinator: show the delegated task receipt and return the child's response.
+- With an alias patch, also test the alias form: @CTO Reply "hello from CTO."
 - Verify a new child-task card, real tool receipt, target provider-instance ID, model/options, completed child response and result delivery to the coordinator.
 - A response saying "I am CTO" does not prove routing happened. Verify durable task records when accessible.
 - Native Codex can also delegate to a Hermes child. Report that as cross-provider delegation, not proof that the Hermes alias parser ran.
@@ -224,7 +231,7 @@ Run a small, explicitly authorized end-to-end test:
 - Avoid "review this design" as a test unless an actual design is supplied. An empty workspace or missing artifact is not an alias-routing failure.
 - Do not ask me to repeat a test already supported by adequate evidence.
 
-Report / command discovery, / skill execution, typed @ parsing, actual delegation and client UI verification separately. List unsupported profiles, command types or attachment workflows explicitly.
+Report / command discovery, / skill execution, @ handling (plain text or alias patch), actual delegation and client UI verification separately. List unsupported profiles, command types or attachment workflows explicitly.
 
 10. Choose delegation enforcement explicitly
 
@@ -236,6 +243,7 @@ Do not describe a custom guard as a built-in T3 feature. Inspect the installed v
 
 If I choose enforced delegation:
 - Keep the policy operator-owned. Discover actual provider-instance IDs and model IDs; configure my approved selections rather than hardcoding another user's defaults.
+- A guard that adds a reasoning option to every launch needs each target Hermes provider to advertise that option. Otherwise T3 refuses every guarded launch before it starts ("Unknown option reasoning_effort; supported options: ..."). Check each target's discovered options after every Hermes update, and omit reasoning from targets whose installed version does not advertise it.
 - Choose the model-selection rule separately from the independent-review rule. If I want "use this setup when I request it," configure destination models/efforts as defaults: fill omitted fields, honor explicit per-task model and effort choices individually, and leave saved profile defaults unchanged. Keep provider-instance selection explicit and validate the selected model/options against the live catalog; never silently fall back. Use hard locks only when I explicitly want conflicting choices refused.
 - Where the compatible custom patch supports it, `targetSelection: "defaults"` enables per-task selections; `"locked"` or an omitted field retains strict behavior. Verify this in the actual installed resolver. A structured target is not proof of a fresh human approval: defaults mode authorizes coordinators to select per task, and their instructions must follow my request. Do not claim the guard understands natural-language approval. Do not relax independent-review checks or other task permissions when enabling overrides.
 - Require a declared review to identify the actual implementation task. Verify ownership, its recorded model, completed result and absence of pending child work. Do not compare only against the coordinator's current model.
@@ -260,10 +268,11 @@ Prepare and validate separately from activation:
 
 11. Preserve the setup through updates and document rollback
 
-- Save one setup record with installed versions, verified paths, service ownership, connection method, profile/provider mappings, alias syntax, patch application order and verification evidence. Keep secrets out of it.
+- Save one setup record with installed versions, verified paths, service ownership, connection method, profile/provider mappings, alias syntax (if any), patch application order and verification evidence. Keep secrets out of it.
 - Save that record as a file on the server, in the folder my main Hermes assistant uses for setup records. Ask me for that folder if you do not know it, and report the file's absolute path so my assistant can verify the result without me copying the report.
 - Distinguish user configuration, Hermes ACP patches and any custom T3 server patch. Explain what is expected to survive updates and what must be rechecked. Stock T3 updates may replace the custom runtime; verify policy enforcement after every update rather than assuming it survived.
 - Do not blindly reapply old patches to an updated Hermes or T3 build. Check compatibility, upstream support and test the current installation.
+- After every Hermes update, check which ACP agent the new version runs. Then re-verify the options T3 discovers for each Hermes provider, the / command list, typed skill execution and one real delegated task. A patch on an adapter path the new version no longer runs fails silently, and its own tests still pass.
 - Preserve original-file backups and hashes. When patches modify the same files, document the reverse order for rollback.
 - Explain how to disable optional typed routing without restarting services if the implementation supports it.
 - Do not restart existing agents merely to load a patch; verify using fresh disposable sessions and let active work finish.
