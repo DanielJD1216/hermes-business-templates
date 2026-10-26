@@ -288,6 +288,11 @@ for the distinction between release evidence, first save/recall and full accepta
 
 ## Safe update
 
+- Before any update of a git-installed Hermes, follow the
+  [Hermes update safety skill](../../hermes-update-safety/SKILL.md) from the same
+  repository revision. Every update path silently removes uncommitted local source
+  changes from the running code; the skill checks for them read-only, ports them in
+  a separate clone and verifies the result before and after the restart.
 - Inspect upstream release notes and the supported update route for the installed
   component. Pin the chosen release/revision; review dependency and data migrations.
   Do not install a random latest version merely because the updater offers it.

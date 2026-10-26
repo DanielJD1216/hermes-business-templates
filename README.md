@@ -100,6 +100,8 @@ See [onboarding](skills/customer-onboarding/SKILL.md),
 [context and file guidance](skills/customer-onboarding/references/context-and-files.md),
 [sources and capability limits](skills/customer-onboarding/references/sources-and-capabilities.md),
 and [Mac troubleshooting evidence](skills/customer-onboarding/references/mac-notes.md).
+Before any Hermes update, use the [Hermes update safety skill](skills/hermes-update-safety/SKILL.md):
+updates silently remove local source changes, and it ports them first.
 
 Memory and knowledge are distinct: OpenViking memories retain interaction-derived
 facts; a knowledge base holds approved reference sources such as manuals, policies
