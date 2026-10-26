@@ -16,10 +16,10 @@ credentials and operating history are not part of this public repository.
 Use your existing **private, tool-capable agent on the intended host**. Paste:
 
 ```text
-Help me set up or resume Hermes Business Templates from https://github.com/DanielJD1216/hermes-business-templates.
-Explicitly read README.md, AGENTS.md, skills/customer-onboarding/SKILL.md and its linked references from the same repository revision.
+Help me set up or resume Hermes Business Templates. Install its guide as a skill with: hermes skills install skills-sh/DanielJD1216/hermes-business-templates/skills/customer-onboarding
+If you cannot run that command here, read README.md, AGENTS.md, skills/customer-onboarding/SKILL.md and its linked references from https://github.com/DanielJD1216/hermes-business-templates at one repository revision.
 First verify that you can act on my intended host and inspect the existing setup. Preserve my current assistant, model/login, history, files and working access.
-Follow the agent-led baseline, not the legacy Creator installer. Retrieve known facts before asking, propose the missing work and get the applicable approvals. Then execute and verify authorized work yourself; ask me only for missing decisions, account sign-in, OS permissions or actions your tools cannot perform.
+Follow the agent-led baseline. Retrieve known facts before asking, propose the missing work and get the applicable approvals. Then execute and verify authorized work yourself; ask me only for missing decisions, account sign-in, OS permissions or actions your tools cannot perform.
 Keep a private resumable progress record. Do not reset or reinstall working components, create unwanted roles, copy credentials or invent successful checks. Report exact blockers and whether the required baseline is actually complete.
 Before each setup reply, reconcile that record against the selected guide and run its read-only progress checker. End the reply with its evidence-based fraction/percentage, current step, just-verified result, next action/actor and my exact action or none. Continue authorized work without asking me to say go on. Stop only for a real blocker, necessary owner action, a registered background continuation, my explicit pause or verified completion. Never promise an automatic return without a supported continuation route.
 ```
@@ -174,12 +174,18 @@ Repository checks use only Python's standard library and do not start Hermes:
 `python3 scripts/check_customer_guide.py` and
 `python3 scripts/check_capabilities.py --self-test`.
 
-## Legacy backend is separate
+## Updates
 
-The [historical Creator backend](legacy/README.md) is retained for separately
-requested support of existing installations. It is not a fallback onboarding path.
-Do not execute its installer or copy its role seeds to implement this guide.
-The runtime paths remain stable; this separation does not delete customer state.
+Ask your agent to run `hermes skills update customer-onboarding`. The guide's
+[upgrade notes](skills/customer-onboarding/references/upgrade-notes.md) tell it
+what changed and what to apply to your setup, so you do not need a separate note.
+
+## Retired legacy installer
+
+The old Creator installer was removed in customer-onboarding 0.24.0. It is archived
+at tag [legacy-creator-installer](https://github.com/DanielJD1216/hermes-business-templates/tree/legacy-creator-installer)
+and is not an onboarding path. Removing it from the repository does not change an
+existing installation.
 
 ## License
 

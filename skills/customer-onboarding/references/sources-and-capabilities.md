@@ -107,23 +107,24 @@ closed and names the variable. A rejection with the reference resolved is a
 credential problem, not a move failure; the owner decides on renewal. Treat a
 credential that has left the host as exposed.
 
-## Existing code and historical documentation
+## Existing legacy installations
 
-Historical instructions are separated in [legacy/README.md](https://github.com/DanielJD1216/hermes-business-templates/blob/main/legacy/README.md).
-The runtime paths remain stable for existing installations. They predate this baseline:
+The legacy Creator installer was retired in customer-onboarding 0.24.0 and is
+archived at tag [legacy-creator-installer](https://github.com/DanielJD1216/hermes-business-templates/tree/legacy-creator-installer).
+An existing installation predates this baseline:
 
 - Creator setup requires Ops and creates a Kanban board and dispatcher settings.
 - It includes business/content playbooks, memory-review and business routines.
 - Its Slack home-channel free-response defaults are not the new mention-only policy.
 - Some launcher/provisioning paths were written for Linux/WSL.
 
-Separating the documentation does not fix those behaviors or make that backend a Mac
-installer. **Do not run its mutating setup/install/update/uninstall commands or
+Retiring the installer does not change those behaviors on a host that already has
+it. **Do not run its mutating setup/install/update/uninstall commands or
 apply its legacy SOUL/rule seeds to satisfy the agent-led baseline.** Do not use a
 flag such as `--no-memory` as evidence that the full baseline is complete.
 
 Existing installations remain preserved. An explicitly requested legacy operation
-needs a separate impact review using its real code/help and the current host.
+needs a separate impact review using its real code at that tag and the current host.
 Do not migrate, uninstall, delete boards/jobs or reconcile tombstones merely because
 this guide describes a different desired setup.
 
