@@ -41,8 +41,8 @@ default destination for large history databases or full recovery archives.
 ### Back up configuration and instructions
 
 This method covers the configuration and instruction part of the recovery set.
-Session history, project records and memory stores still need their own
-supported backup and restore method.
+Session history, project records and memory stores use the
+[data method](#back-up-history-memory-and-work-data) below.
 
 1. For each approved profile, select instruction and built-in memory files,
    configuration, profile metadata, schedule definitions, scripts, plugins and skills.
@@ -66,6 +66,77 @@ supported backup and restore method.
 6. Name a reinstall source for each excluded skill, plugin and held file: bundled
    with Hermes, an official optional skill or a pinned upstream source. Back up
    an item that has no reinstall source, or record it as a recovery gap.
+
+### Back up history, memory and work data
+
+This method covers session history, project and task records, memory stores, T3
+Code state and canonical work/wiki files. It was tested with restic and rclone;
+any tool that encrypts before upload, deduplicates and verifies restores can
+replace them. Test the owner's own destination before relying on it.
+
+1. Copy every SQLite store consistently before the file backup: each profile's
+   session database, task boards, memory-service stores and T3 Code state. Use
+   SQLite's online backup API into a private staging folder, one store at a time,
+   while writers continue. Give each copy a deadline: Python's `sqlite3` backup
+   retries a locked source without limit. Leave out lock-only files; an inspected
+   T3 Code v0.1.2 install holds `server-owner.sqlite` locked while it runs.
+2. Back up the staging folder and the plain-file stores (session folders, memory
+   service data, T3 data, canonical work files) to an encrypted repository. Leave
+   out the live database files and their sidecars. Exclude credential files by
+   name across the whole selection, not only at profile roots: test folders and
+   exports hold copies of `.env` files, OAuth client secrets, private keys and
+   `rclone.conf`. Exclude `.git` folders by name: restic's
+   `--exclude-if-present .git` keeps the `.git` folder itself. Record each
+   exclusion, such as large media projects, with the owner's decision.
+3. Rehearse against a local repository first. List the snapshot and search it
+   for credential names, `.git` paths and excluded folders. Only then point the
+   job at the approved destination.
+4. Keep the repository password and the restore steps in the owner's password
+   manager or another place off the host. Without the password the backup cannot
+   be read. Never print it.
+5. Schedule the job at low CPU and disk priority. Set retention, for example 7
+   daily, 4 weekly and 12 monthly snapshots. Prune on a fixed day and read back a
+   sample of the stored data, for example `restic check --read-data-subset 5%`.
+6. Test restoration from the destination, not from the staging folder, into a
+   separate private location. Run `PRAGMA quick_check` on each restored database
+   and compare file hashes with the live files. Explain each difference, for
+   example files that changed after the snapshot. To check a database copy on
+   read-only media, such as a mounted snapshot or image, open it as
+   `file:<copy>?immutable=1`. SQLite then skips locking and change detection, so
+   never open a live database this way.
+7. Alert the approved recipient when a run fails or when no run has succeeded
+   within the expected interval, for example 30 hours for a nightly job.
+
+Destination notes:
+
+- **NAS on the owner's network**, for example a UGREEN DXP4800 Pro running UGOS
+  Pro. Create a backup shared folder and a NAS user who is not an administrator
+  and can reach only that folder. Connect through rclone's
+  [SMB backend](https://rclone.org/smb/), so the agent host needs no mount or
+  root access. UGREEN's guide describes SSH, and the SFTP option in its settings,
+  for [administrator accounts](https://support.ugnas.com/detail/article/en-US/481);
+  do not give the backup job an administrator login to use SFTP. On a Btrfs
+  volume, add a [snapshot plan](https://support.ugnas.com/detail/article/en-US/654)
+  with a retention policy for that folder, timed after the backup window. Only
+  NAS administrators manage snapshots, so a host that holds only the backup
+  user's login cannot delete them. Snapshots need a Btrfs volume, and changing a
+  volume's file system means formatting it. A
+  [restic REST server](https://github.com/restic/rest-server) container in
+  `--append-only` mode is a stronger alternative, but pruning then needs
+  separate access. A NAS at the same site does not survive fire, theft or flood
+  with the host: also copy snapshots off site, for example with `restic copy` to
+  a cloud repository, or record that gap with the owner's decision. The
+  publisher has not yet tested this NAS route end to end.
+- **Cloud drive through rclone**, for example Google Drive. Use the owner's own
+  OAuth desktop client, because rclone's shared client
+  [will stop working during 2026](https://rclone.org/drive/#making-your-own-client-id).
+  Enable the Drive API in that client's project and publish the app: logins for
+  an External app left in Testing expire after 7 days. The `drive.file` scope
+  reaches only files that the same app created, so choose the client before the
+  first upload.
+- **Encrypted external drive**: it works only while connected, so the failure
+  alert must cover a missing drive. It protects against site loss only when a
+  second drive rotates off site.
 
 ## Required LEANN refresh schedule
 

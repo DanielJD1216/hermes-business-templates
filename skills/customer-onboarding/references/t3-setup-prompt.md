@@ -169,10 +169,11 @@ Distinguish:
 
 Discover and validate:
 - On gateway-backed Hermes (v0.22.5 and later), T3's / menu lists only the adapter's built-in commands: /help, /model, /tools, /context, /reset, /compress, /steer, /queue, /usage, /status, /version, /title, /undo and /retry. Hermes skills are not listed. A typed `/<skill-name> <task>` still goes to the gateway, which runs the installed skill. Other Hermes commands, such as `/reasoning`, also run there or are refused with a reason. Unrecognized commands reach the model as ordinary text.
+- Check `skills.external_dirs` in each profile. In Hermes v0.22.5, when two or more entries each point directly at one skill's own folder, those skills all get the name `.`, none of their typed commands load, and the log shows `Skill name collision for '.'` ([issue #88064](https://github.com/NousResearch/hermes-agent/issues/88064)). A single such entry still loads; the failure starts with the second. Unless the installed version fixes this, point one entry at a folder that holds the skill folders, or give each profile its own folder of symbolic links to its selected skill folders. Both layouts load on stock v0.22.5 (tested on Linux).
 - Inspect ACP available-command notifications and T3's handling of them.
 - Discover skills using Hermes' existing profile/project/platform-aware scanner, respecting disabled skills and built-in command collisions.
 - Do not copy one profile's skill list to every profile or execute skill bodies just to populate the menu.
-- Check actual invocation as well as autocomplete. Selecting a skill must load its real instructions through the existing Hermes loader.
+- Check actual invocation as well as autocomplete. Selecting a skill must load its real instructions through the existing Hermes loader. Each load records a skill use, and the skill curator marks skills stale or archived by their last use. A script that loads every skill makes all of them look recently used, so verify through real invocations.
 - Do not claim every Hermes terminal command works through ACP. Identify supported commands and remaining gaps.
 
 If a compatibility patch is needed:
@@ -187,7 +188,7 @@ If a compatibility patch is needed:
 Guide me through verification:
 - Select the intended Hermes provider on the SERVER environment and start a fresh conversation.
 - Send the supported Provider /help command or another harmless initialization message so the ACP session publishes its commands.
-- Without a skill-menu patch, expect no skill suggestions: type the full `/<skill-name> <harmless task>` for a skill actually installed and enabled in that profile, and verify that its instructions ran. With a menu patch, a prefix of that skill's name should suggest it, and only if the skill exists and is enabled.
+- Without a skill-menu patch, expect no skill suggestions: type the full `/<skill-name> <harmless task>` for a skill actually installed and enabled in that profile, and verify that its instructions ran. With a menu patch, a prefix of that skill's name should suggest it, and only if the skill exists and is enabled. Repeat the check for one skill from each skill folder the profile uses, including every `skills.external_dirs` entry.
 - Verify it appears in the correct menu and execute a harmless skill task.
 - If T3 says "No matching command," trace discovery, cached session state and UI handling before asking me to refresh repeatedly.
 - Document text-only or attachment limitations. Do not claim success based only on an import check or protocol advertisement.
