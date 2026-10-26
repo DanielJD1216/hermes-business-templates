@@ -220,6 +220,15 @@ Require the coordinator to:
 - Show the actual provider, model/options and task receipt. Return the real child result when it completes. Never claim delivery from prose alone or create duplicate work while waiting.
 - Avoid recursive delegation unless requested. Use T3-supported worktree isolation for workers editing overlapping code.
 
+Require the coordinator to route each new request by dependencies and write ownership, not by which conversation is already open:
+- PARALLEL: give independent work, with its own inputs, outputs and a safe write scope, a separate child task when capacity allows. Do not interrupt or serialize unrelated work. Keep changes to a shared runtime, such as one server or VM, with one writer; another worker may inspect a pinned source snapshot and write its own report.
+- QUEUE: queue a follow-up explicitly when it needs the same worker's state or output, overlaps its write scope or lacks safe parallel capacity, and name the dependency. When sending to a thread that has a running turn, set the send mode to queue. T3's auto mode steers a steerable running turn, which can supersede the work in progress.
+- STEER: steer active work only for a correction, cancellation, changed authority, urgent safety issue or deliberate priority change. Writing "at the next safe boundary" in the message does not make a steer wait.
+- TRACK: "superseded" describes an attempt, never completion or cancellation. Every unfinished assignment keeps an owner until it is verified complete, explicitly blocked or cancelled by its owner. When collecting results, check both the original deliverable and any added request.
+- Before moving started work to another worker, check its progress, keep what is done and assign only the remaining scope, so two workers do not repeat it.
+
+These are coordinator instructions; stock T3 does not enforce them. Existing capacity, isolation, review and approval limits still apply.
+
 Run a small, explicitly authorized end-to-end test:
 - Start a NEW conversation explicitly using a Hermes coordinator, such as my verified primary profile.
 - Send a self-contained request, replacing CTO with a registered role:
