@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.23.3
+version: 0.24.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -26,6 +26,7 @@ a second installer merely because a native command or dependency needs diagnosis
 - [Role profile preparation and team coordination](references/role-setup.md).
 - [T3 Code setup prompt for the development team](references/t3-setup-prompt.md).
 - [Maintenance and recovery](references/maintenance.md).
+- [Upgrade notes](references/upgrade-notes.md) after `hermes skills update customer-onboarding`.
 - [Mac findings](references/mac-notes.md) when the host or client is a Mac.
 
 The capability catalog and other repository-wide references are not bundled inside

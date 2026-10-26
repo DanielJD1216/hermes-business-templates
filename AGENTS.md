@@ -40,15 +40,11 @@ and completion distinct. Do not replace evidence with reassurance or promise a
 return channel that has not been established. This applies to active onboarding,
 not every future business conversation; a pause or new owner direction takes priority.
 
-**Do not run the legacy Creator setup/install/update/uninstall commands or apply
-legacy role seeds to implement the agent-led baseline.** The runtime in this
-revision still creates a fixed Ops dependency, a board, business playbooks and
-scheduled routines, and has older Slack behavior. Those defaults conflict with
-the new baseline. Use current supported native operations and reviewed generic
-instruction merges instead. A separately requested legacy operation requires its
-own impact review; this guide does not modify or remove an existing installation.
-Historical instructions are separated in [legacy/README.md](legacy/README.md).
-Do not load them into a new customer's instruction pack as an alternative path.
+**The legacy Creator installer is retired.** It was removed from this repository
+in customer-onboarding 0.24.0 and is archived at tag `legacy-creator-installer`.
+Do not reinstall it or apply its role seeds. An existing installation stays as it
+is: change or remove it only after a separate impact review that uses its real code
+at that tag and the current host.
 
 Never clone credentials/history to provision new roles. Authorized backup and
 isolated restoration are separate recovery operations, not role provisioning.
@@ -61,8 +57,10 @@ boundary. Verify actual access and actual results before claiming completion.
 ## Repository engineering
 
 Read the requested files and current Git status. Preserve unrelated changes.
-Keep product behavior, tests, and factual documentation consistent. Do not promote
-the new agent-led requirements into claims about unchanged legacy code.
+Keep product behavior, tests, and factual documentation consistent.
+Each customer-onboarding version bump adds an entry to its
+[upgrade notes](skills/customer-onboarding/references/upgrade-notes.md): what
+changed, what a setup applies and whether the baseline fingerprint changed.
 
 For documentation-only changes: check relative links, instruction consistency,
 privacy, source references and `git diff --check`. Native host and live-service

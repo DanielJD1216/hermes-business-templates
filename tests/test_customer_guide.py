@@ -16,9 +16,7 @@ class CustomerGuideLinks(unittest.TestCase):
     def test_real_files_headings_and_escape_boundary(self):
         with tempfile.TemporaryDirectory(dir=os.environ.get("TMPDIR")) as folder:
             root = Path(folder)
-            (root / "legacy").mkdir()
             (root / "AGENTS.md").write_text('# Instructions\n<a id="named"></a>\n')
-            (root / "legacy/README.md").write_text("# Legacy\n")
             readme = root / "README.md"
             readme.write_text("[good](AGENTS.md#instructions)\n[named](AGENTS.md#named)\n")
             self.assertEqual(guide.check(root)[2], [])

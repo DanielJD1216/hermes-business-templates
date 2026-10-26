@@ -1,9 +1,0 @@
-name: desk-editor
-version: 0.4.0
-description: "Creator template: Editor desk for one outside editor"
-hermes_requires: ">=0.21.0"
-author: "DOO MADE"
-license: "MIT"
-distribution_owned:
-  - SOUL.md
-  - distribution.yaml
