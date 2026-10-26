@@ -78,6 +78,14 @@ rights. Explain each extension before owner approval; connect through native sec
 flows. Preserve mention-only Slack behavior and owner administration. Broaden access
 only for the exact approved accounts, profiles, roots and audiences.
 
+Enable a local MCP server, one served by a desktop app, only in the profiles that
+use it and only on a host that can reach that app while it runs. Hermes keeps
+reconnecting an enabled server it cannot reach, separately for each profile, with
+a backoff from 30 seconds to 10 minutes, and logs every failure. In each other
+profile, set `mcp_servers.<name>.enabled` to `false` with
+`hermes -p <profile> config set`, then read the state back with
+`hermes -p <profile> mcp list`.
+
 ## Keep credentials out of configuration
 
 Prefer a native login, such as `auth: oauth` for a remote MCP server that supports
