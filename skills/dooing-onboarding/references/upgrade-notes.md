@@ -20,6 +20,19 @@ to the new version:
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.30.0
+
+- **Changed:** "Read first" in the guide now lists the files to read before the
+  first reply separately from the files to read before the step that uses them.
+  The source and capability notes add
+  [a check that each chat can use its MCP servers](sources-and-capabilities.md#check-that-each-chat-can-use-its-mcp-servers).
+  Step 1 adds signing in from the daily computer over SSH, and the Mac findings add
+  Remote Login for a Mac host. The checkpoint section says where to find the full
+  source commit for the progress record.
+- **Apply:** in each profile, run that MCP check for every enabled server that its
+  roles need. Nothing else changes.
+- **Re-check:** none. The baseline fingerprint stays `9fba33a8`.
+
 ## 0.29.0
 
 - **Changed:** the guide no longer checks a Parsec license or plan. The baseline
