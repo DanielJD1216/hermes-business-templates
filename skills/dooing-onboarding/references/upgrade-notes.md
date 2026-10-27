@@ -1,13 +1,14 @@
 # Upgrade notes
 
 A skill update changes this guide, not the owner's setup. After
-`hermes skills update customer-onboarding`, use these notes to bring the setup up
+`hermes skills update dooing-onboarding`, use these notes to bring the setup up
 to the new version:
 
 1. Find the version the setup was last reconciled with. Read `Template revision`
    in the private progress record, then the `version:` line of
-   `skills/customer-onboarding/SKILL.md` at that commit, for example from
-   `https://raw.githubusercontent.com/DanielJD1216/hermes-business-templates/<commit>/skills/customer-onboarding/SKILL.md`.
+   `skills/dooing-onboarding/SKILL.md` at that commit, for example from
+   `https://raw.githubusercontent.com/DanielJD1216/hermes-business-templates/<commit>/skills/dooing-onboarding/SKILL.md`.
+   For a commit before 0.27.0, the path is `skills/customer-onboarding/SKILL.md`.
    If the record or that commit is unavailable, treat every entry as unchecked.
 2. Work through each newer entry, oldest first. Check whether the setup already does
    what **Apply** says. Propose only the missing changes, get the applicable
@@ -18,6 +19,18 @@ to the new version:
    the reason.
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
+
+## 0.27.0
+
+- **Changed:** the guide is renamed from `customer-onboarding` to
+  `dooing-onboarding`, so its skill command is `/dooing-onboarding`. Content,
+  baseline and progress checker are unchanged. The old path now holds a short
+  pointer skill for setups installed under the old name.
+- **Apply:** install `skills-sh/DanielJD1216/hermes-business-templates/skills/dooing-onboarding`,
+  check that `hermes skills list` shows it, then run
+  `hermes skills uninstall customer-onboarding`. Run the progress checker from
+  `skills/dooing-onboarding/scripts/check_progress.py` from now on.
+- **Re-check:** none. The baseline fingerprint stays `d523e008`.
 
 ## 0.26.0
 

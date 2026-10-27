@@ -109,7 +109,7 @@ credential that has left the host as exposed.
 
 ## Existing legacy installations
 
-The legacy Creator installer was retired in customer-onboarding 0.24.0 and is
+The legacy Creator installer was retired in version 0.24.0 of this guide and is
 archived at tag [legacy-creator-installer](https://github.com/DanielJD1216/hermes-business-templates/tree/legacy-creator-installer).
 An existing installation predates this baseline:
 

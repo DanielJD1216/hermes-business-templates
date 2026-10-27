@@ -9,7 +9,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / "skills/customer-onboarding"
+SKILL = ROOT / "skills/dooing-onboarding"
 CHECKER = SKILL / "scripts/check_progress.py"
 BASELINE = SKILL / "references/baseline.md"
 

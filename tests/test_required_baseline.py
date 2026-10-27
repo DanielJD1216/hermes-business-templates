@@ -26,8 +26,8 @@ class RequiredBaseline(unittest.TestCase):
             invalid["safety"].update(mutation)
             with self.assertRaises(ValueError):
                 checker.check(invalid, sources)
-        baseline = (ROOT / "skills/customer-onboarding/references/baseline.md").read_text()
-        progress = (ROOT / "skills/customer-onboarding/templates/progress.md").read_text()
+        baseline = (ROOT / "skills/dooing-onboarding/references/baseline.md").read_text()
+        progress = (ROOT / "skills/dooing-onboarding/templates/progress.md").read_text()
         # Read the contiguous rendered table, not unrelated rows below a blank line.
         required = [line.split("|")[1].strip() for line in
                     baseline.split("| Component |", 1)[1].split("\n\n", 1)[0].splitlines()[2:]]

@@ -27,7 +27,7 @@ class CustomerGuideLinks(unittest.TestCase):
 
 class RoleTemplates(unittest.TestCase):
     def test_every_role_soul_ends_with_the_same_shared_rules(self):
-        souls = sorted((SCRIPT.parents[1] / "skills/customer-onboarding/templates/souls").glob("*.md"))
+        souls = sorted((SCRIPT.parents[1] / "skills/dooing-onboarding/templates/souls").glob("*.md"))
         self.assertGreaterEqual(len(souls), 3)
         blocks = {p.name: p.read_text().partition("\n## Shared rules\n")[2] for p in souls}
         self.assertTrue(all(blocks.values()), "every role template needs a Shared rules section")
@@ -36,7 +36,7 @@ class RoleTemplates(unittest.TestCase):
 
 class SetupMilestones(unittest.TestCase):
     def test_milestones_group_every_baseline_row_once(self):
-        ref = SCRIPT.parents[1] / "skills/customer-onboarding/references"
+        ref = SCRIPT.parents[1] / "skills/dooing-onboarding/references"
         cells = lambda text: [line.split("|")[1:-1] for line in text.splitlines() if line.startswith("| ")]
         rows = [c[0].strip() for c in cells((ref / "baseline.md").read_text())[1:]]
         table = (ref / "how-it-works.md").read_text().partition("## Setup milestones")[2]

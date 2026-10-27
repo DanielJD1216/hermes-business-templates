@@ -8,7 +8,7 @@ A pasted URL does not automatically load instructions in any model or harness.
 
 When the owner requests onboarding, explicitly read:
 1. [README](README.md), the customer-only entrypoint.
-2. [Customer onboarding](skills/customer-onboarding/SKILL.md).
+2. [DOOing-onboarding](skills/dooing-onboarding/SKILL.md), the setup guide.
 3. Its baseline and relevant reference files before taking action.
 
 Work in the owner's private, tool-capable agent on the intended host. Any suitable
@@ -42,7 +42,7 @@ return channel that has not been established. This applies to active onboarding,
 not every future business conversation; a pause or new owner direction takes priority.
 
 **The legacy Creator installer is retired.** It was removed from this repository
-in customer-onboarding 0.24.0 and is archived at tag `legacy-creator-installer`.
+in version 0.24.0 of the onboarding guide and is archived at tag `legacy-creator-installer`.
 Do not reinstall it or apply its role seeds. An existing installation stays as it
 is: change or remove it only after a separate impact review that uses its real code
 at that tag and the current host.
@@ -59,9 +59,12 @@ boundary. Verify actual access and actual results before claiming completion.
 
 Read the requested files and current Git status. Preserve unrelated changes.
 Keep product behavior, tests, and factual documentation consistent.
-Each customer-onboarding version bump adds an entry to its
-[upgrade notes](skills/customer-onboarding/references/upgrade-notes.md): what
+Each dooing-onboarding version bump adds an entry to its
+[upgrade notes](skills/dooing-onboarding/references/upgrade-notes.md): what
 changed, what a setup applies and whether the baseline fingerprint changed.
+The guide was named `customer-onboarding` before 0.27.0. Keep the pointer skill in
+`skills/customer-onboarding/` while setups may still use the old name, so they
+learn about the rename through `hermes skills update`.
 
 For documentation-only changes: check relative links, instruction consistency,
 privacy, source references and `git diff --check`. Native host and live-service
