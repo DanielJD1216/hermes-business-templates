@@ -233,6 +233,33 @@
     "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
     "checked_at": "2026-10-13T20:52:34.228539+00:00"
   },
+  "cua": {
+    "repository": "https://github.com/trycua/cua",
+    "revision": "cdf971573ef1343fcdeb29bdb814ed8d75c86993",
+    "release_tag": "cua-sdk-v0.9.0",
+    "tree_url": "https://github.com/trycua/cua/tree/cdf971573ef1343fcdeb29bdb814ed8d75c86993",
+    "archive_url": "https://github.com/trycua/cua/archive/cdf971573ef1343fcdeb29bdb814ed8d75c86993.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "94b175fadcaa2fbc3763d081f582382e9d4bdf1d307a6045d4fbbf270fca9249",
+    "license": "MIT",
+    "license_url": "https://raw.githubusercontent.com/trycua/cua/cdf971573ef1343fcdeb29bdb814ed8d75c86993/LICENSE.md",
+    "license_sha256": "c0779290c1d4783169aa3dbfb55feb505e563ef8a004bbf55298ceffcfbda8d9",
+    "license_scope": "Repository license; libs/cua (the cua CLI, its MCP server and the skills folder) declares MIT in Cargo.toml and python/pyproject.toml. The Spaces daemon (libs/cua-spacesd) and apps/cua-spaces are FSL-1.1-MIT. Dependencies/services/assets are separate.",
+    "checked_at": "2026-10-27T21:16:35.791366+00:00"
+  },
+  "cua-spaces": {
+    "repository": "https://github.com/trycua/hermes-cua-spaces",
+    "revision": "82bb8d31517d2d1b8f1ef7f64701558dcac8aea9",
+    "tree_url": "https://github.com/trycua/hermes-cua-spaces/tree/82bb8d31517d2d1b8f1ef7f64701558dcac8aea9",
+    "archive_url": "https://github.com/trycua/hermes-cua-spaces/archive/82bb8d31517d2d1b8f1ef7f64701558dcac8aea9.tar.gz",
+    "tree_verification": "GitHub recursive tree API HTTP 200; not truncated; exact entrypoint paths checked",
+    "tree_response_sha256": "3c3e5588aeeebc58bf05106e03ddf06dcffee2271c3619667372a9f6dd7fa7cf",
+    "license": "MIT",
+    "license_url": "https://raw.githubusercontent.com/trycua/hermes-cua-spaces/82bb8d31517d2d1b8f1ef7f64701558dcac8aea9/LICENSE",
+    "license_sha256": "dd76b3937123fe5c5381e6ad8dd4163378e5a4b2001645a0131f5240c26e3564",
+    "license_scope": "Repository license unless a package or file declares different terms; dependencies/services/assets are separate.",
+    "checked_at": "2026-10-27T21:16:35.791366+00:00"
+  },
   "service-aside": {
     "url": "https://docs.aside.com/help/developers",
     "verification": "Public documentation content retrieved; no login, endpoint handshake or tool execution.",

@@ -10,8 +10,8 @@ import re
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED = {"total": 333, "included": 197, "excluded": 40, "unknown": 96}
-KINDS = {"skill": 160, "plugin": 7, "mcp": 13, "core_toolset": 17}
+EXPECTED = {"total": 340, "included": 204, "excluded": 40, "unknown": 96}
+KINDS = {"skill": 165, "plugin": 8, "mcp": 14, "core_toolset": 17}
 ROUTES = {"generic-procedure", "upstream-package", "upstream-reference",
           "blocked", "vendor-service", "native-runtime", "rights-review-required"}
 SHA256 = re.compile(r"[a-f0-9]{64}")

@@ -149,9 +149,9 @@ provider access and each baseline outcome require evidence. Owner choices and
 missing client access do not erase unfinished required checks.
 
 The [capability reference sheet](capabilities/REFERENCE.md) and
-[catalog](capabilities/catalog.json) contain 333 records: 197 included, 40 excluded
+[catalog](capabilities/catalog.json) contain 340 records: 204 included, 40 excluded
 and 96 native candidates whose activation was not established. Included selections
-cover 160 skills, 7 plugins, 13 MCP integrations and 17 native toolsets.
+cover 165 skills, 8 plugins, 14 MCP integrations and 17 native toolsets.
 
 Delivery uses pinned upstream sources, vendor connection guidance and
 [23 bundled generic procedures](reusable/procedures.md), not copies of a private

@@ -6,8 +6,8 @@ CTO/two-Engineer development team, LEANN with scheduled refresh, and Obsidian.
 Slack is mention-only. Memory-watchdog and LEANN refresh require approved targets,
 cadence and configuration. Preserve existing state and the sole working transport.
 
-The [machine-readable catalog](catalog.json) is the complete contract: **333
-records: 197 included, 40 excluded, 96 unknown**. Included means offered for a
+The [machine-readable catalog](catalog.json) is the complete contract: **340
+records: 204 included, 40 excluded, 96 unknown**. Included means offered for a
 customer decision, not installed, enabled, licensed for all uses, authenticated,
 or runtime-tested. Unknown native candidates are not activation recommendations.
 Review the full catalog and establish an installed/tested required set per role
@@ -66,7 +66,7 @@ plugin installation and activation. This is a static source finding, not a runti
 
 ## Delivery and rights
 
-23 generic-procedure; 137 upstream-package; 2 rights-review-required; 8 upstream-reference; 11 vendor-service; 17 native-runtime.
+23 generic-procedure; 143 upstream-package; 2 rights-review-required; 8 upstream-reference; 11 vendor-service; 17 native-runtime.
 These categories describe routes, not equivalent amounts of delivered software.
 A shared upstream reference is intentionally reused rather than duplicated.
 
@@ -88,7 +88,8 @@ pages were read, not authenticated or executed. Full dependency trees and all
 linked scripts were **not** security-reviewed. Generic procedures and local
 references pass the offline validator. No package was installed or executed;
 no Mac/remote host, login, paid API call, send, browser session, memory write or
-index build was tested. The 96 unknown native candidates remain unassessed.
+index build was tested. The 96 unknown native candidates remain unassessed. The 7 cua entries (mcp-0334, plugin-0335
+and skill-0336 to skill-0340) were added on 2026-10-27 with the same public source checks.
 
 Run locally: `python3 scripts/check_capabilities.py --self-test`.
 
@@ -1958,6 +1959,63 @@ YouTube transcripts to summaries, threads, blogs.
 - **Access:** Do not invent missing captions or upload private videos; distinguish transcript summary from video observation.
 - **License:** MIT
 
+<a id="skill-0336"></a>
+#### skill-0336 · cua-driver
+
+Drive a native GUI app on the host through the cua-driver CLI or MCP server, then verify the result from fresh state.
+
+- **Acquire:** [upstream-package](https://raw.githubusercontent.com/trycua/cua/cdf971573ef1343fcdeb29bdb814ed8d75c86993/libs/cua/skills/cua-driver/SKILL.md). Pinned package/revision in `sources.json` under `cua`.
+- **Host/dependencies:** macOS, Windows and Linux per the skill; the target's desktop session and OS permissions must be checked. cua-driver CLI or MCP server plus the complete upstream skill and references.
+- **Account/cost:** No Cua account for local driving; OS screen and input permissions need the owner's approval. Local process and model resources.
+- **Access:** Acts in real apps on the host inside the owner's signed-in sessions, with no isolation. Approve the target apps and actions.
+- **License:** MIT
+- **Limits:** For work on an isolated machine, use the cua-sandboxes or cua-spaces skill instead.
+
+<a id="skill-0337"></a>
+#### skill-0337 · cua-sandboxes
+
+Create, use and clean up disposable Linux or macOS sandboxes on the host with the cua CLI or SDK, including web browsing inside one.
+
+- **Acquire:** [upstream-package](https://raw.githubusercontent.com/trycua/cua/cdf971573ef1343fcdeb29bdb814ed8d75c86993/libs/cua/skills/cua-sandboxes/SKILL.md). Pinned package/revision in `sources.json` under `cua`.
+- **Host/dependencies:** Needs a local container or VM runtime on the host (`cua runtime doctor` lists them); target host untested. cua CLI or SDK, a supported local runtime and the complete upstream skill.
+- **Account/cost:** No Cua account needed to start; hosted features use the owner's Cua login. Host resources.
+- **Access:** A sandbox is disposable and starts without the owner's files; copy in only approved data and clean up after use.
+- **License:** MIT
+
+<a id="skill-0338"></a>
+#### skill-0338 · cua-spaces
+
+Work inside Cua Spaces through the cua MCP server: run commands, move files, show a Space's desktop and start coding agents inside it.
+
+- **Acquire:** [upstream-package](https://raw.githubusercontent.com/trycua/cua/cdf971573ef1343fcdeb29bdb814ed8d75c86993/libs/cua/skills/cua-spaces/SKILL.md). Pinned package/revision in `sources.json` under `cua`.
+- **Host/dependencies:** Spaces run on the owner's connected computers or in the owner's own cloud account; target host untested. Cua MCP server (`cua mcp`) plus the complete upstream skill.
+- **Account/cost:** Owner's Cua login. Local Spaces use host resources; cloud Spaces bill the owner's cloud account; the Cua plan's relay limits apply.
+- **Access:** Can create, share and delete Spaces, teleport a signed-in app session into a Space and share the host's network with it; approve each.
+- **License:** MIT
+
+<a id="skill-0339"></a>
+#### skill-0339 · cua-volume
+
+Use Cua Volume, one versioned volume that every Space and agent of the owner shares, for files that must outlive a Space.
+
+- **Acquire:** [upstream-package](https://raw.githubusercontent.com/trycua/cua/cdf971573ef1343fcdeb29bdb814ed8d75c86993/libs/cua/skills/cua-volume/SKILL.md). Pinned package/revision in `sources.json` under `cua`.
+- **Host/dependencies:** Mounted at /volume in a Linux Space and at ~/Cua Volume on macOS; elsewhere the volume tools apply. Cua MCP server volume tools plus the complete upstream skill.
+- **Account/cost:** Owner's Cua login. Confirm storage terms on the current Cua plan.
+- **Access:** Files appear in every Space and on the owner's other Cua devices within seconds; keep private data out unless approved.
+- **License:** MIT
+
+<a id="skill-0340"></a>
+#### skill-0340 · gui-automation
+
+Visually interact with a GUI through the cua CLI: test buttons, fill forms, take screenshots and run end-to-end QA.
+
+- **Acquire:** [upstream-package](https://raw.githubusercontent.com/trycua/cua/cdf971573ef1343fcdeb29bdb814ed8d75c86993/libs/cua/skills/gui-automation/SKILL.md). Pinned package/revision in `sources.json` under `cua`.
+- **Host/dependencies:** Cloud VMs, Docker containers, local machines and sandboxes per the skill; target untested. cua CLI plus the complete upstream skill.
+- **Account/cost:** Depends on the target; hosted targets use the owner's Cua login. Resources of the target machine.
+- **Access:** Clicks and types in the target machine's apps; prefer a sandbox or Space over the owner's own desktop.
+- **License:** MIT
+- **Limits:** The upstream skill suggests a piped shell installer; review the install route before running it.
+
 ### Plugin
 
 <a id="plugin-0193"></a>
@@ -2037,6 +2095,18 @@ Lazy senior dev mode for Hermes Agent, always-on context, bundled skills, and sl
 - **Account/cost:** No separate account; model provider is unchanged. Ordinary model/runtime cost.
 - **Access:** Changes injected instructions; preserve owner authority and audit hooks before enabling.
 - **License:** MIT
+
+<a id="plugin-0335"></a>
+#### plugin-0335 · cua-spaces
+
+Run Hermes terminal, file and code tools inside a Cua Space, an isolated Linux, macOS or Windows machine the owner can watch.
+
+- **Acquire:** [upstream-package](https://raw.githubusercontent.com/trycua/hermes-cua-spaces/82bb8d31517d2d1b8f1ef7f64701558dcac8aea9/plugin.yaml). Pinned package/revision in `sources.json` under `cua-spaces`.
+- **Host/dependencies:** Hermes plugin; the Hermes plugin catalog requires Hermes 0.21.6 or later. Spaces can be Linux, macOS or Windows; browser tools, computer_use and Bot Desktop do not run in a Windows Space. Python package `cua>=0.5.0,<0.8`, the cua CLI and a Space that the plugin creates or the owner names.
+- **Account/cost:** Owner's Cua account through the cua CLI login. The Cua plan and the Space's computer or cloud account; see the Cua MCP server entry.
+- **Access:** With `terminal.backend` set to `cua`, every terminal, file and code tool call of that profile runs in the Space, without the host's files, skills or credentials. A Space that the plugin creates is deleted when Hermes finishes unless `delete_on_exit` is false; a named Space is never deleted.
+- **License:** MIT
+- **Limits:** At this revision the dependency `cua>=0.5.0,<0.8` has no Android exclusion and cua publishes no Android wheel; in an observed Hermes v0.22.5 install, `hermes plugins install` refused the plugin while solving its all-platform lock. Enabling the plugin does not change `terminal.backend`; switching the backend moves all terminal work of that profile into the Space.
 
 ### Mcp
 
@@ -2183,6 +2253,18 @@ Research channels/videos and use owner-authorized creative and channel-managemen
 - **Account/cost:** vidIQ API key or supported OAuth; separate channel consent where required. Every plan including Free shares its credit pool; calls may consume credits.
 - **Access:** Distinguish public research from channel changes, bookmarks, generation and publication; approve each effect.
 - **License:** Vendor service terms and content licenses; no open-source redistribution grant asserted for the hosted service.
+
+<a id="mcp-0334"></a>
+#### mcp-0334 · Cua MCP server
+
+Give an agent Cua Spaces, sandbox, computer and skills tools over MCP with the cua CLI's stdio server, `cua mcp`.
+
+- **Acquire:** [upstream-package](https://raw.githubusercontent.com/trycua/cua/cdf971573ef1343fcdeb29bdb814ed8d75c86993/docs/content/docs/cua-cli/guides/mcp-server.mdx). Pinned package/revision in `sources.json` under `cua`.
+- **Host/dependencies:** cua CLI release builds for macOS (arm64, x64), Linux (glibc arm64, x64) and Windows (x64, arm64); local Spaces need a container or VM runtime on the host. Target host untested. cua CLI; stdio command `cua mcp`, or `cua daemon mcp` so several agents share Spaces; a container or VM runtime for local Spaces.
+- **Account/cost:** Owner's Cua account through `cua auth login`; `cua auth login --remote` gives a device code for an SSH session. One login on a host serves every profile that runs `cua mcp` there. Free plan: Spaces on connected computers and the hosted relay up to 2 live sessions and 20 remote hours a month; Pro and Teams raise the relay allowance. The computers and any cloud VMs are the owner's own and billed by their provider. Confirm the current plan.
+- **Access:** The tools can create, run commands in, share and delete Spaces, move files and control computers. Grant the minimum with `--permissions`, for example `spaces:readonly`. Devices on the same Cua account reach connected computers through the relay; review each computer's sharing settings.
+- **License:** MIT for the cua CLI and its MCP server (libs/cua manifests). The Cua Spaces daemon and apps are FSL-1.1-MIT: source-available, not for a competing product, and each release becomes MIT two years after it ships.
+- **Limits:** `hermes mcp add` and `cua agents setup` write `mcp_servers` but not `platform_toolsets`; follow the onboarding guide's check that each chat can use its MCP servers. The source says to start a new Hermes session or run `/reload-mcp`; Hermes Desktop hides `/reload-mcp`, so open a new chat.
 
 ### Core Toolset
 

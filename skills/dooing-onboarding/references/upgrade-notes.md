@@ -20,6 +20,14 @@ to the new version:
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.31.0
+
+- **Changed:** the capability catalog adds 7 cua entries: the Cua MCP server (`mcp-0334`), the `cua-spaces`
+  plugin (`plugin-0335`) and the cua-driver, cua-sandboxes, cua-spaces, cua-volume and gui-automation skills
+  (`skill-0336` to `skill-0340`). Cua gives agents isolated computers that the owner can watch.
+- **Apply:** nothing. A role that needs isolated or watched computers can review those entries.
+- **Re-check:** none. The baseline fingerprint stays `9fba33a8`.
+
 ## 0.30.0
 
 - **Changed:** "Read first" in the guide now lists the files to read before the
