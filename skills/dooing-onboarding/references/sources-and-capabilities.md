@@ -18,7 +18,7 @@ that each service supports every platform, login type or subscription.
 | T3 Code persistent server, Local ACP providers and remote/mobile clients | https://github.com/pingdotgg/t3code and its user guides: https://github.com/pingdotgg/t3code/blob/main/docs/user/install.md, https://github.com/pingdotgg/t3code/blob/main/docs/user/background-service.md, https://github.com/pingdotgg/t3code/blob/main/docs/user/providers-acp.md and https://github.com/pingdotgg/t3code/blob/main/docs/user/remote-access.md; follow the [template T3 setup prompt](t3-setup-prompt.md) |
 | LEANN local semantic discovery | https://github.com/yichuan-w/LEANN and installed native help |
 | Obsidian vault/viewer | https://obsidian.md/download and https://help.obsidian.md/ |
-| Parsec remote debugging/troubleshooting; host/client support and license | https://parsec.app/ and its official support/download links |
+| Parsec remote debugging/troubleshooting; host/client support | https://parsec.app/ and its official support/download links |
 
 For other providers, index backends, plugins or MCP servers, verify their actual
 authoritative source, version, supported authentication and license. Do not guess

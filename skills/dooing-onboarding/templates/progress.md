@@ -63,7 +63,7 @@ deferred choices remain completion blockers; optional declined choices do not.
 | Obsidian vault and owner viewing device | not-offered | | | |
 | Sync route or no-replica rationale | not-offered | | | |
 | Interfaces, account purposes and access | not-offered | | | |
-| Parsec debugging host/client, support permissions and applicable license | not-offered | | | |
+| Parsec debugging host/client and support permissions | not-offered | | | |
 | Full-catalog review and required tested capability set per role/platform | not-offered | | | |
 | LEANN roots, recurring refresh cadence/timezone, costs and failure recipient | not-offered | | | |
 | Maintenance triggers, failure recipient and recovery | not-offered | | | |

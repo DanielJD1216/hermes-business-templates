@@ -20,6 +20,20 @@ to the new version:
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.29.0
+
+- **Changed:** the guide no longer checks a Parsec license or plan. The baseline
+  Parsec row, step 3 of the guide, the source list and the progress template's
+  Parsec decision drop the license wording.
+- **Apply:** in the private progress record, rename one owner decision
+  from `Parsec debugging host/client, support permissions and applicable license`
+  to `Parsec debugging host/client and support permissions`. The progress checker
+  reads the decision names from the template, so until then it reports that
+  required owner decisions are missing.
+- **Re-check:** the "Parsec remote debugging" row. It only lost a requirement, so
+  its passing evidence stays valid. The baseline fingerprint changes from
+  `d523e008` to `9fba33a8`.
+
 ## 0.28.0
 
 - **Changed:** connecting Hermes Desktop on the owner's daily computer is now the

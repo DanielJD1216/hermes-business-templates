@@ -1,7 +1,7 @@
 ---
 name: dooing-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.28.0
+version: 0.29.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -301,9 +301,9 @@ Do not stop at an inventory, create Kanban boards or invoke formal delivery
 pipelines to complete onboarding. Reuse or install Parsec as the last-resort route
 for approved remote debugging/troubleshooting. Verify one actual connection to the
 intended desktop, then leave Parsec unused until Desktop cannot help.
-Check host/client support, applicable license and owner permissions without assuming
-a purchase or granting permanent support access. Preserve existing access and verify
-backups separately; a Parsec session does not prove data restoration.
+Check host/client support and owner permissions without granting permanent support
+access. Preserve existing access and verify backups separately; a Parsec session
+does not prove data restoration.
 
 For each missing component: inspect current docs, select the smallest supported
 method, explain any material assumption, execute authorized work, and read back
