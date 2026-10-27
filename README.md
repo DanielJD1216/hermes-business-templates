@@ -19,6 +19,7 @@ Use your existing **private, tool-capable agent on the intended host**. Paste:
 Help me set up or resume Hermes Business Templates. Install its guide as a skill with: hermes skills install skills-sh/DanielJD1216/hermes-business-templates/skills/dooing-onboarding
 If you cannot run that command here, read README.md, AGENTS.md, skills/dooing-onboarding/SKILL.md and its linked references from https://github.com/DanielJD1216/hermes-business-templates at one repository revision.
 First verify that you can act on my intended host and inspect the existing setup. Preserve my current assistant, model/login, history, files and working access.
+Next, if my daily computer is not the host, connect Hermes Desktop on my daily computer to the host, so I can follow every later step there. Use the host's own screen, for example through Parsec, only as a last resort.
 Follow the agent-led baseline. Retrieve known facts before asking, propose the missing work and get the applicable approvals. Then execute and verify authorized work yourself; ask me only for missing decisions, account sign-in, OS permissions or actions your tools cannot perform.
 Keep a private resumable progress record. Do not reset or reinstall working components, create unwanted roles, copy credentials or invent successful checks. Report exact blockers and whether the required baseline is actually complete.
 Before each setup reply, reconcile that record against the selected guide and run its read-only progress checker. End the reply with its evidence-based fraction/percentage, current step, just-verified result, next action/actor and my exact action or none. Continue authorized work without asking me to say go on. Stop only for a real blocker, necessary owner action, a registered background continuation, my explicit pause or verified completion. Never promise an automatic return without a supported continuation route.
@@ -74,7 +75,7 @@ on every agent or waive account, license, cost or access approval.
 The memory watchdog and LEANN index-refresh schedule are required. Choose their
 scope, cadence, timezone, costs and failure recipient with the owner. Other schedules
 remain opt-in. Kanban, formal delivery pipelines and old-conversation reconstruction
-are outside onboarding. Parsec is mandatory for owner-approved remote debugging
+are outside onboarding. Parsec is mandatory, as a last resort, for owner-approved remote debugging
 and hands-on troubleshooting, not as a backup or data-restoration mechanism.
 Existing tools and data are preserved; backups and restore verification remain mandatory.
 

@@ -20,6 +20,22 @@ to the new version:
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.28.0
+
+- **Changed:** connecting Hermes Desktop on the owner's daily computer is now the
+  first setup priority. It ends step 1, before the identity interview, so the owner
+  follows every later step on their own computer. Parsec stays required, but only
+  as the last resort: when Desktop or its backend is down, when an OS permission
+  prompt or a browser sign-in appears only on the host, or when the host waits at
+  its login screen after a restart. The Mac notes add what Parsec needs for that
+  last case. The setup milestones are reordered: "Your daily computer connects" is
+  milestone 1 and Parsec moves to milestone 7. The README's first message has one
+  new line about Desktop.
+- **Apply:** if the owner still follows setup steps on the host's own screen,
+  connect Hermes Desktop on their daily computer now and continue from there.
+  Otherwise nothing.
+- **Re-check:** none. The baseline fingerprint stays `d523e008`.
+
 ## 0.27.1
 
 - **Changed:** one sentence about conversation history in delegation briefs

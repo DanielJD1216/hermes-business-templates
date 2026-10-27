@@ -28,7 +28,7 @@ work yourself. Ask one material missing question at a time. The owner handles
 account consent, necessary OS permission prompts, and choices, not a terminal
 checklist. Keep progress and customer evidence outside this public repository.
 LEANN, its approved recurring refresh, Obsidian and tested role-specific capability
-sets are mandatory. Parsec is also mandatory for remote debugging/troubleshooting,
+sets are mandatory. Parsec is also mandatory, as a last resort, for remote debugging/troubleshooting,
 not data restoration. Kanban, formal delivery pipelines and old-conversation
 context reconstruction are outside onboarding. Preserve existing deployments;
 data backups and verified restoration are separate requirements.

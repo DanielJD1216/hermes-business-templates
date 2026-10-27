@@ -1,7 +1,7 @@
 ---
 name: dooing-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.27.1
+version: 0.28.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -160,7 +160,7 @@ this guide. Instruction compliance remains distinct from runtime enforcement.
 
 ## Procedure
 
-### 1. Discover and preserve
+### 1. Discover, preserve and connect the daily computer
 
 Identify OS/architecture, actual host versus client, available tools, current
 Hermes runtime/profile and native provider/model settings without displaying
@@ -186,6 +186,30 @@ Before choosing installation targets, follow the
 Distinguish the agent host, selected Obsidian viewing/editing devices and knowledge
 storage. Retrieve existing choices first; ask only unresolved device choices.
 Never infer these roles from hardware model or the machine this agent controls.
+
+Then connect the owner's daily computer, before the identity interview. When the
+daily computer is not the agent host, this is the first setup priority: from then
+on the owner reads every step, link and prompt on their own computer.
+
+1. On the host, check that Hermes and its model access work. Set up the private
+   network (the Tailscale/private transport row) and prepare the Desktop connection
+   to use only that network, following
+   [connecting to a remote backend](https://hermes-agent.nousresearch.com/docs/user-guide/desktop#connecting-to-a-remote-backend)
+   for the installed version. A **Remote gateway** connection needs `hermes serve`
+   kept running as a service on the host; an **SSH** connection starts it when needed.
+2. On the daily computer, the owner installs Hermes Desktop and joins the private
+   network. In **Settings > Gateways**, the owner adds the host with
+   **Add connection**, signs in as the connection asks, clicks **Test** and checks
+   that it shows **Reachable**.
+3. Continue the setup in Desktop on the daily computer. The private progress
+   record carries the work over, so the owner does not repeat earlier answers.
+
+Use the host's own screen, through Parsec or in person, only as a last resort: when
+Desktop or its backend is down, when an OS permission prompt or a browser sign-in
+appears only on the host, or when the host waits at its login screen after a
+restart (for a Mac host, see the [Mac findings](references/mac-notes.md#limits-that-still-require-a-real-decision-or-test)).
+Relaying text through a remote screen is slow, and short-lived links, such as T3
+pairing links, can expire on the way.
 
 ### 2. Understand the owner and propose the setup
 
@@ -227,11 +251,6 @@ never downgrade or replace the owner's working Hermes merely to fit a dependency
 Use private staging and backups for risky changes. Prefer stdlib, installed tools
 and native platform features. Choose launchd on macOS, not systemd instructions.
 No blanket install of the legacy Creator runtime or its role seed instructions.
-
-Connect Hermes Desktop on the owner's daily computer early, once Hermes works on
-the host. The owner then reads steps and copies links on their own computer.
-Relaying text through a remote-desktop session is slow and can outlast short-lived
-links, such as T3 pairing links. Parsec stays the route to the host's own screen.
 
 Establish the useful operating layer before expanding experimental infrastructure:
 file placement, project onboarding, an approved source collection, curation and
@@ -279,8 +298,9 @@ Obsidian on each selected viewing/editing device. Host-only installation does no
 complete a separate device's requirement. Review the full capability catalog and
 install/authenticate/test the required set through each assigned agent surface.
 Do not stop at an inventory, create Kanban boards or invoke formal delivery
-pipelines to complete onboarding. Reuse or install Parsec for approved remote
-debugging/troubleshooting and verify an actual connection to the intended desktop.
+pipelines to complete onboarding. Reuse or install Parsec as the last-resort route
+for approved remote debugging/troubleshooting. Verify one actual connection to the
+intended desktop, then leave Parsec unused until Desktop cannot help.
 Check host/client support, applicable license and owner permissions without assuming
 a purchase or granting permanent support access. Preserve existing access and verify
 backups separately; a Parsec session does not prove data restoration.
