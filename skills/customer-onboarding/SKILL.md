@@ -1,7 +1,7 @@
 ---
 name: customer-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.25.0
+version: 0.26.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -17,6 +17,8 @@ a second installer merely because a native command or dependency needs diagnosis
 ## Read first
 
 - [Required finished state and proof](references/baseline.md).
+- [How your setup works](references/how-it-works.md): the plain-language map, work flow
+  and milestones to explain to the owner.
 - [Required memory reliability, compatibility and evidence reuse](references/memory-reliability.md).
 - [Context, instruction files and private progress](references/context-and-files.md).
 - [Knowledge, viewer/sync and lifecycle acceptance](references/knowledge-lifecycle.md).
@@ -59,6 +61,11 @@ to invent it. This guide does not install a skill merely because it is read.
 - Retrieve authorized host/context facts before asking. Ask one missing decision
   or give one unavailable-to-your-tools owner action at a time. Batch independent
   checks yourself. Do not require the owner to edit JSON or relay routine logs.
+- Talk to the owner in plain words. Explain each part the first time it comes up,
+  in one sentence, with the [setup map](references/how-it-works.md). For each owner
+  step, name the device and app, what to click, type or paste, and what they should
+  see next. Show progress as a short status board of the
+  [setup milestones](references/how-it-works.md#setup-milestones) when it helps.
 - Explain provider processing before submitting private context. A private chat
   is not necessarily local processing. Keep personal and business information
   separate by audience/access even when the main assistant serves both.
@@ -202,7 +209,8 @@ available control/return routes. Reuse known decisions and record the mapping in
 the existing private progress/project record. Do not copy the publisher's worker
 limits, private identity or orchestration stack, or add a new coordinator service.
 
-Before implementation, show a compact system map covering every baseline domain.
+Before implementation, explain the parts with the [setup map](references/how-it-works.md),
+then show a compact system map covering every baseline domain.
 Retrieve the owner's intended work and first useful outcome; setup activity itself
 does not establish their business needs. Explicitly resolve responsibilities,
 roster, viewer/device access, sync, capabilities and maintenance ownership using
@@ -219,6 +227,11 @@ never downgrade or replace the owner's working Hermes merely to fit a dependency
 Use private staging and backups for risky changes. Prefer stdlib, installed tools
 and native platform features. Choose launchd on macOS, not systemd instructions.
 No blanket install of the legacy Creator runtime or its role seed instructions.
+
+Connect Hermes Desktop on the owner's daily computer early, once Hermes works on
+the host. The owner then reads steps and copies links on their own computer.
+Relaying text through a remote-desktop session is slow and can outlast short-lived
+links, such as T3 pairing links. Parsec stays the route to the host's own screen.
 
 Establish the useful operating layer before expanding experimental infrastructure:
 file placement, project onboarding, an approved source collection, curation and
@@ -245,10 +258,16 @@ After the EA identity is approved, prepare approved missing role profiles with t
 [role preparation procedure](references/role-setup.md), then set up the development
 team in T3 Code. The owner installs T3 Code on the agent
 host, signs in one built-in T3 agent and pastes the [T3 setup prompt](references/t3-setup-prompt.md)
-into a new T3 thread. Before that, tell the owner which private folder to give when
+into a new T3 thread. When the owner works from another computer, follow the
+[steps for that case](references/t3-setup-prompt.md#when-the-owner-works-from-another-computer).
+Before the owner pastes the prompt, tell them which private folder to give when
 the T3 agent asks where to save its setup record. That agent connects each approved
 profile as a Local ACP provider; verify its saved record and matrix, not its summary.
 Prove one fresh Hermes conversation before running both Engineer threads at once.
+When T3 replaces an earlier orchestration tool, retire that tool after the T3 row
+passes and its active work has finished, with the
+[retirement procedure](references/maintenance.md#retire-a-component-or-agent). A retired
+service left on automatic restart can fail in a loop for days.
 Preserve separate provider, answer, persistence and delegation outcomes; provider
 entries or a later successful command cannot stand in for them. Do not repeatedly
 retry a blocked step or make public maintainer posting a setup requirement. Continue
@@ -316,6 +335,8 @@ recovery route. Use the optional [private progress template](templates/progress.
 when no suitable record already exists; never fill unknown evidence with examples.
 Owner deferral is valid, but leaves the required baseline incomplete. Keep the
 private progress record so another authorized agent can continue safely.
+Walk the owner through [how work flows after setup](references/how-it-works.md#how-work-flows-after-setup)
+with their first project.
 
 ## Trial success
 

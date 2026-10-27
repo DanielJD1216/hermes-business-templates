@@ -19,6 +19,23 @@ to the new version:
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.26.0
+
+- **Changed:** a plain-language [setup map](how-it-works.md) with the parts, the
+  work flow after setup and setup milestones; owner steps name the device, the app
+  and what the owner should see next; T3 steps for an owner who works from another
+  computer (pairing links work once and expire after 5 minutes by default; connect
+  the built-in agent for the host's environment); Hermes Desktop connects early on
+  the daily computer; an approved clone for a project that exists only in a remote
+  repository; retiring an orchestration tool that T3 replaces; restarting the
+  Desktop backend after a Hermes update; an export the owner offers can be a draft
+  source for USER.md.
+- **Apply:** nothing required. If an orchestration tool that T3 replaced still runs
+  and its work has finished, propose retiring it. If Hermes Desktop shows "This
+  backend is running old code after an update", restart the host's Hermes services
+  while no T3 turn is running.
+- **Re-check:** none. The baseline fingerprint stays `d523e008`.
+
 ## 0.25.0
 
 - **Changed:** role templates for each SOUL (EA, CTO, Engineer and an optional

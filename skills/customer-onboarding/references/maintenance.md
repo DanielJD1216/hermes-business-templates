@@ -311,6 +311,12 @@ for the distinction between release evidence, first save/recall and full accepta
   process/resume when required; do not rewrite working source to fix mixed imports.
   If checks fail, retain diagnostics and return to the known build only after checking
   data compatibility. A code downgrade cannot reverse an incompatible data migration.
+- After a Hermes update on the host, restart the Hermes gateway, and the Desktop
+  backend (`hermes serve`) when Desktop connects remotely, so neither keeps the old
+  code. Restart only while no T3 turn is running: a gateway restart interrupts
+  running T3 Hermes turns. Then update Hermes Desktop on each client when it offers
+  the update. The Desktop message "This backend is running old code after an
+  update" means a Hermes process on the host still runs the old code.
 - Revalidate affected [memory reliability evidence](memory-reliability.md#updates-and-resumed-onboarding)
   after service, adapter, model or patch changes. Preserve historical failures and
   never refresh expected hashes blindly. Fence writers and client auto-start paths;
@@ -380,7 +386,8 @@ errors separately from valid empty retrieval and preserve unexplained failures.
   dependants. Separate shared resources and customer data from disposable software.
 - Present the concrete stop/revoke/archive/delete scope. Require explicit approval
   for deletion and access revocation; retain required records and recovery archives.
-- Stop only the approved owned activity, then verify it is inactive. Revoke obsolete
+- Stop only the approved owned activity, then verify it is inactive and stays
+  inactive: disable automatic start and check that it does not restart. Revoke obsolete
   provider/app/device access through the native owner interface and verify status.
   Removing a local directory does not revoke a remote token or stop a remote job.
 - Verify remaining assistants and access still work. Mark the component retired,
