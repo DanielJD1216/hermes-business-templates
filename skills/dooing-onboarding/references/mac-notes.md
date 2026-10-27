@@ -73,6 +73,14 @@ before selecting a historical repair. Preserve third-party license/source duties
   ([Parsec support](https://support.parsec.app/hc/en-us/articles/32381618319124-Access-Login-Screen-on-macOS)).
   Turning off FileVault removes disk encryption, so that is the owner's security
   decision. Otherwise, plan for someone to sign in at the host after a restart.
+- A Mac host can serve Tailscale SSH only with the open-source `tailscale` and
+  `tailscaled` command-line build, not the Tailscale app
+  ([Tailscale SSH](https://tailscale.com/kb/1193/tailscale-ssh)). With the app, the
+  owner can turn on **Remote Login** in **System Settings > General > Sharing** and
+  set **Allow access for** to **Only these users** with their own account
+  ([Apple](https://support.apple.com/guide/mac-help/allow-a-remote-computer-to-access-your-mac-mchlp1066/mac)),
+  then connect with ordinary SSH to the Mac's private-network address. Remote Login
+  makes the Mac reachable by SSH, so turning it on is the owner's security decision.
 - Imports, authentication, service startup, memory write/recall, Slack delivery,
   private client access and recovery are separate checks. Complete only the gates
   observed on the intended host and approved scope; never claim all-Mac readiness.

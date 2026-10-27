@@ -1,7 +1,7 @@
 ---
 name: dooing-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.29.0
+version: 0.30.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -16,21 +16,32 @@ a second installer merely because a native command or dependency needs diagnosis
 
 ## Read first
 
+Read these before the first reply:
+
 - [Required finished state and proof](references/baseline.md).
 - [How your setup works](references/how-it-works.md): the plain-language map, work flow
   and milestones to explain to the owner.
-- [Required memory reliability, compatibility and evidence reuse](references/memory-reliability.md).
 - [Context, instruction files and private progress](references/context-and-files.md).
-- [Knowledge, viewer/sync and lifecycle acceptance](references/knowledge-lifecycle.md).
-- [Sources, capabilities and legacy boundary](references/sources-and-capabilities.md).
-- [Capability reference sheet](https://github.com/DanielJD1216/hermes-business-templates/blob/main/capabilities/REFERENCE.md): review the whole
-  catalog's metadata, then load the sources/procedures for the required role-specific set.
-- [Role profile preparation, role templates and team coordination](references/role-setup.md).
-- [T3 Code setup prompt for the development team](references/t3-setup-prompt.md).
-- [Slack setup and channel layout](references/slack-setup.md).
-- [Maintenance and recovery](references/maintenance.md).
-- [Upgrade notes](references/upgrade-notes.md) after `hermes skills update dooing-onboarding`.
 - [Mac findings](references/mac-notes.md) when the host or client is a Mac.
+- [Upgrade notes](references/upgrade-notes.md) after `hermes skills update dooing-onboarding`.
+
+Read each of these before the step that uses it:
+
+- [Knowledge, viewer/sync and lifecycle acceptance](references/knowledge-lifecycle.md),
+  before choosing installation targets in step 1.
+- [Required memory reliability, compatibility and evidence reuse](references/memory-reliability.md),
+  before changing memory services.
+- [Role profile preparation, role templates and team coordination](references/role-setup.md),
+  before settling the EA's identity in step 2.
+- [Sources, capabilities and legacy boundary](references/sources-and-capabilities.md) and the
+  [capability reference sheet](https://github.com/DanielJD1216/hermes-business-templates/blob/main/capabilities/REFERENCE.md),
+  before mapping capabilities in step 2: review the whole catalog's metadata, then
+  load the sources/procedures for the required role-specific set.
+- [T3 Code setup prompt for the development team](references/t3-setup-prompt.md),
+  before setting up T3 Code.
+- [Slack setup and channel layout](references/slack-setup.md), before setting up Slack.
+- [Maintenance and recovery](references/maintenance.md), before scheduling the LEANN
+  refresh and before any maintenance, recovery or failure diagnosis.
 
 The capability catalog and other repository-wide references are not bundled inside
 this skill directory. Their GitHub `main` links are navigation links: retrieve them
@@ -140,7 +151,10 @@ python3 "<guide-root>/skills/dooing-onboarding/scripts/check_progress.py" "<priv
 ```
 
 `--describe` supplies the local baseline SHA256 and required row names. Record
-the full source commit separately. A changed fingerprint requires evidence
+the full source commit separately. For an installed skill, Hermes keeps it as
+`metadata.source_revision` in the skill's entry in `skills/.hub/lock.json` under
+the active Hermes home. For a Git checkout, use `git rev-parse HEAD` after
+`git status --porcelain` prints nothing. A changed fingerprint requires evidence
 reconciliation, not blind replacement. Exit zero means structurally valid, not
 finished: inspect `complete`. A full baseline percentage can still have unresolved
 owner decisions or additional outcomes. The checker is stdlib-only, reads local
@@ -210,6 +224,15 @@ appears only on the host, or when the host waits at its login screen after a
 restart (for a Mac host, see the [Mac findings](references/mac-notes.md#limits-that-still-require-a-real-decision-or-test)).
 Relaying text through a remote screen is slow, and short-lived links, such as T3
 pairing links, can expire on the way.
+
+When a command-line tool on the host asks for a browser sign-in, first check its
+`--help` for a device-code or remote sign-in option. Run that sign-in in an SSH
+session from the daily computer over the private network and approve it in the
+daily computer's browser; the login stays on the host. With the owner's approval,
+`tailscale set --ssh` turns on Tailscale SSH on a Linux host; the default tailnet
+policy permits Tailscale SSH. Use `tailscale set`, because `tailscale up --ssh`
+refuses when the host already has other non-default settings. For a Mac host, see
+the [Mac findings](references/mac-notes.md#limits-that-still-require-a-real-decision-or-test).
 
 ### 2. Understand the owner and propose the setup
 

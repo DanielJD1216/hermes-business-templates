@@ -86,6 +86,29 @@ profile, set `mcp_servers.<name>.enabled` to `false` with
 `hermes -p <profile> config set`, then read the state back with
 `hermes -p <profile> mcp list`.
 
+## Check that each chat can use its MCP servers
+
+A passing `hermes mcp test` does not show that a chat can use the server. Each
+interface reads its own tool list, `platform_toolsets.<interface>` in the profile:
+`cli` for terminal and Hermes Desktop chats, `slack` for Slack and `acp` for T3 Code
+sessions when that list exists. A list that names any MCP server is an allowlist:
+every enabled server it omits stays hidden on that interface. `hermes mcp add` does
+not add a server to these lists, `hermes mcp test` does not check them, and
+`hermes tools enable` rejects a server name.
+
+After adding or enabling a server, read each list that its roles use with
+`hermes -p <profile> config get platform_toolsets.<interface>`. When a list names
+other MCP servers but not the new one, back up `config.yaml`, then write the whole
+list, every existing entry plus the server, with
+`hermes -p <profile> config set platform_toolsets.<interface> "[<entries>, <server>]"`.
+Read the list back and compare it with the backup.
+
+An open chat keeps the tool list it started with, and Hermes Desktop does not offer
+`/reload-mcp`. Update the private progress record first, then ask the owner to open
+a new chat and continue there from the record. Confirm the server's tools by tool
+search in the new chat. If they are still missing, the owner restarts the Hermes
+services and opens another new chat.
+
 ## Keep credentials out of configuration
 
 Prefer a native login, such as `auth: oauth` for a remote MCP server that supports
