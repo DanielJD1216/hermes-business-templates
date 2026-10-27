@@ -20,6 +20,15 @@ to the new version:
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.27.1
+
+- **Changed:** one sentence about conversation history in delegation briefs
+  (section 9 of the T3 setup prompt) is reworded. Hermes's skill scanner read it
+  as an exfiltration instruction, which blocked a fresh install from a community
+  source. The rule itself is unchanged.
+- **Apply:** nothing.
+- **Re-check:** none. The baseline fingerprint stays `d523e008`.
+
 ## 0.27.0
 
 - **Changed:** the guide is renamed from `customer-onboarding` to

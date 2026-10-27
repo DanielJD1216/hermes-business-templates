@@ -242,7 +242,7 @@ Require the coordinator to:
 - Use T3's app-owned delegate_task tool with the exact Hermes provider instance. Retain taskId and use a stable idempotency key for retries of the same dispatch where supported.
 - Use injected T3 MCP tools, or the documented ACP MCP transport fallback when available. Do not substitute a shell-launched Hermes process.
 - Create a child task, not an ordinary top-level conversation, unless I explicitly request a new top-level conversation.
-- Pass the concrete task brief and relevant references. Do not assume a child inherits the full parent conversation. Do not send unrelated conversation history.
+- Pass the concrete task brief and relevant references. Do not assume a child inherits the full parent conversation. Keep unrelated conversation history out of the brief.
 - Show the actual provider, model/options and task receipt. Return the real child result when it completes. Never claim delivery from prose alone or create duplicate work while waiting.
 - Avoid recursive delegation unless requested. Use T3-supported worktree isolation for workers editing overlapping code.
 
