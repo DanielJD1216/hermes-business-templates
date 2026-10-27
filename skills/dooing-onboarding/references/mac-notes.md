@@ -67,6 +67,12 @@ before selecting a historical repair. Preserve third-party license/source duties
 - Alternative embedding models need compatibility and retrieval tests plus a
   separate rebuilt index. A larger multimodal model does not add image/audio
   support to an adapter that extracts and sends only text.
+- After a restart, a Mac host without automatic login waits at its login window.
+  The standard Parsec app cannot show that screen. Parsec's separate login-screen
+  installer can, but it needs a wired network connection and FileVault turned off
+  ([Parsec support](https://support.parsec.app/hc/en-us/articles/32381618319124-Access-Login-Screen-on-macOS)).
+  Turning off FileVault removes disk encryption, so that is the owner's security
+  decision. Otherwise, plan for someone to sign in at the host after a restart.
 - Imports, authentication, service startup, memory write/recall, Slack delivery,
   private client access and recovery are separate checks. Complete only the gates
   observed on the intended host and approved scope; never claim all-Mac readiness.

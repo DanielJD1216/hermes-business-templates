@@ -11,8 +11,8 @@ host and the agents.
 | Agent host | The power room | The always-on computer that runs the agents, their memory, files and tools. Keep it on, awake and online. |
 | Slack | The boardroom | Daily work: the owner gives direction, raises ideas and gets results. |
 | T3 Code | The IT department | The development team (CTO and Engineer) builds and tests projects and new workflows. Works from a laptop or phone. |
-| Hermes Desktop | The door to the power room | The owner's way into the agent host from their daily computer: setup, settings and errors. |
-| Parsec | The back door | The agent host's own screen, for hands-on fixes when Desktop cannot help. |
+| Hermes Desktop | The door to the power room | The owner's way into the agent host from their daily computer: setup, settings and errors. Setup connects it first. |
+| Parsec | The back door | The last resort: the agent host's own screen, for hands-on fixes when Desktop cannot help. |
 | Tailscale | The private hallway | The private network between the owner's devices and the agent host. |
 
 The EA, the owner's main assistant, coordinates. It works in Slack and Hermes
@@ -42,20 +42,20 @@ verified.
 
 | Milestone | Baseline rows |
 |---|---|
-| 1. The main assistant works | Hermes and model access, Main assistant, Responsibilities and roster |
-| 2. Your devices connect | Tailscale/private transport, Hermes Desktop, Parsec remote debugging |
+| 1. Your daily computer connects | Tailscale/private transport, Hermes Desktop |
+| 2. The main assistant works | Hermes and model access, Main assistant, Responsibilities and roster |
 | 3. The development team works | T3 Code development team |
 | 4. Slack works | Slack |
 | 5. Files, memory and knowledge work | Canonical context and projects, OpenViking memory, Memory watchdog, Local file discovery, Scheduled index refresh, Curated knowledge and scoped currentness, Knowledge viewing and device workflow |
 | 6. Each role has its tools | Capability allocation |
-| 7. Safe to run every day | Maintenance and recovery data, Complete operating cycle |
+| 7. Safe to run every day | Maintenance and recovery data, Parsec remote debugging, Complete operating cycle |
 
 A status board for the owner can look like this example:
 
 ```text
 SETUP STATUS
-1 Main assistant     done
-2 Devices            done
+1 Daily computer     done
+2 Main assistant     done
 3 Development team   doing
 4 Slack              next
 5 Files and memory   to do
