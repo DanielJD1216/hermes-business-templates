@@ -1,7 +1,7 @@
 ---
 name: dooing-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.27.0
+version: 0.27.1
 license: MIT
 platforms: [linux, macos]
 ---
