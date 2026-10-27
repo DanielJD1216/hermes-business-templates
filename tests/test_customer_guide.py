@@ -25,5 +25,14 @@ class CustomerGuideLinks(unittest.TestCase):
         self.assertEqual(guide.check(SCRIPT.parents[1])[2], [])
 
 
+class RoleTemplates(unittest.TestCase):
+    def test_every_role_soul_ends_with_the_same_shared_rules(self):
+        souls = sorted((SCRIPT.parents[1] / "skills/customer-onboarding/templates/souls").glob("*.md"))
+        self.assertGreaterEqual(len(souls), 3)
+        blocks = {p.name: p.read_text().partition("\n## Shared rules\n")[2] for p in souls}
+        self.assertTrue(all(blocks.values()), "every role template needs a Shared rules section")
+        self.assertEqual(len(set(blocks.values())), 1, "Shared rules drifted between role templates")
+
+
 if __name__ == "__main__":
     unittest.main()

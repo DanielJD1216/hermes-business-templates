@@ -16,8 +16,9 @@ model may conduct setup; this is not a requirement to use a particular model,
 subscription or new main assistant. The baseline requires the EA/CTO/two-Engineer
 development team in T3 Code with owner-specific names and approved profiles: three
 profiles by default, with two distinct sessions of one Engineer profile. New role profiles
-reuse the EA's model-provider account through supported native credential sharing,
-not separate providers or cloned credential files. Preserve owner-selected exceptions.
+reuse the owner's existing model-provider accounts through supported native credential
+sharing, not new subscriptions or cloned credential files; with more than one
+subscription, each role gets an owner-approved model. Preserve owner-selected exceptions.
 If you cannot
 execute there,
 disclose that limit and help open a capable private session. Do not simulate work.

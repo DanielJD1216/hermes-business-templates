@@ -50,9 +50,15 @@ before concurrent use; do not create another profile as an automatic workaround.
 Names adapt; the required roles do not disappear. Extra non-development roles
 are not mandatory.
 
-All new role profiles start with the EA's existing model provider and owner account,
-reusing its model-provider credentials through a supported native sharing mechanism.
-Do not require separate providers, subscriptions or repeated sign-ins by default.
+Each role's SOUL starts from a role template that the owner adapts. A main
+assistant whose SOUL is still Hermes's stock text gets an identity interview
+first. USER.md stays personal to each owner.
+
+All new role profiles reuse the owner's existing model-provider accounts through a
+supported native sharing mechanism, with no new subscriptions or repeated sign-ins.
+When the owner has more than one model subscription, each role gets an approved
+model suited to its work: the strongest reasoning model for the CTO, a strong
+general model for the EA and a faster, lower-cost coding model for the Engineer.
 Verify effective access per profile; a matching model name is not authentication.
 Preserve existing owner-selected exceptions. This default does not share Slack/bot
 tokens, copy credential files or grant specialists the EA's private context.

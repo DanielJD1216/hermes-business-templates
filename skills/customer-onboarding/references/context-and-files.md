@@ -27,6 +27,7 @@ installed harness and official documentation, not these example names:
 
 - `SOUL.md`: approved identity and communication behavior.
 - `AGENTS.md` or the harness's explicit entrypoint: execution and approval rules.
+  A [workspace AGENTS.md template](../templates/workspace-agents.md) is supplied.
 - `USER.md` and context files: reviewed durable owner facts, separated by audience.
 - `tools.md`: selected tools, purposes, scope and non-secret setup status.
 - A file/access map (for example `FILES.md`): where authoritative information lives.
@@ -74,10 +75,12 @@ Keep three layers distinct when preparing or changing a profile:
   access to the owner's entire private history or business context.
 
 Retrieve existing choices first. Ask only missing material questions about the
-agent's purpose, name, tone, initiative and escalation boundaries. Preserve an
-existing suitable personality; do not impose the publisher's identity, preferences,
-company or personal facts. Keep project-local rules in project context and reusable
-procedures in skills, rather than expanding every SOUL or USER file.
+agent's purpose, name, tone, initiative and escalation boundaries, using the
+[identity interview](#identity-interview). Preserve an existing suitable personality;
+a stock SOUL is not one (see [role setup](role-setup.md#check-for-a-stock-soul)).
+Do not impose the publisher's identity, preferences, company or personal facts.
+Keep project-local rules in project context and reusable procedures in skills,
+rather than expanding every SOUL or USER file.
 
 For an approved addition or revision, show the narrow diff or explicit no-change,
 back up affected files durably, and use the host's approval mechanism. Discover the
@@ -105,6 +108,19 @@ just to test an instruction change. Instructions guide behavior, not OS access.
 
 Apply this procedure through the [profile lifecycle](maintenance.md#profile-lifecycle)
 for later additions and changes, not only the first onboarding.
+
+### Identity interview
+
+Ask only what retrieval cannot answer, one question at a time:
+
+- **Identity (SOUL):** the agent's name; what it does for the owner and what it
+  never does; tone and reply length; whether the owner wants visual text boards;
+  how much it may do before asking; what always needs approval.
+- **Owner facts (USER.md):** how to address the owner; the business and the
+  owner's role; timezone and working hours; key people and their roles, with the
+  owner's approval; current priorities; tools and accounts in use, without secrets.
+
+USER.md stays individual. Never copy another owner's or the publisher's USER.md.
 
 ## Decisions before implementation
 
