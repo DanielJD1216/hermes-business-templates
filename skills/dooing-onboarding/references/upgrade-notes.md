@@ -20,6 +20,18 @@ to the new version:
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.32.0
+
+- **Changed:** five clarifications found in a test on an empty host. The guide now
+  says when to use `owner-action` instead of `continue` or `blocked`, including on a
+  host with no Hermes. Step 1 gives read-only commands to check Hermes and model
+  access, and points to the official Hermes installer. The checkpoint section covers
+  a skill with no recorded source commit and says to keep the private record
+  owner-only.
+- **Apply:** on an existing private progress record, set owner-only access
+  (`chmod 600 "<private-progress.md>"` on Linux and macOS). Nothing else changes.
+- **Re-check:** none. The baseline fingerprint stays `9fba33a8`.
+
 ## 0.31.0
 
 - **Changed:** the capability catalog adds 7 cua entries: the Cua MCP server (`mcp-0334`), the `cua-spaces`

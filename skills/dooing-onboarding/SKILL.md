@@ -1,7 +1,7 @@
 ---
 name: dooing-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.31.0
+version: 0.32.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -133,9 +133,17 @@ Before each setup reply, including resumption and handoff:
    genuine `blocked` dependency after independent work is exhausted, `waiting`
    on a registered background continuation, an explicit owner `paused` request,
    or verified `complete`. Preserve all existing approval and cost boundaries.
+   Use `owner-action` when the only way forward is a step that only the owner can
+   do: approve an install, choose a provider or account, sign in, or answer an OS
+   permission prompt. Use `blocked` for a dependency that one owner step cannot
+   clear, such as missing access or a failed external service. On a host with no
+   Hermes or no model access, finish the read-only discovery first. The first
+   checkpoint is then normally `owner-action` with the owner as next actor.
 
 Keep one authoritative private record. The [template](templates/progress.md) is
-optional, but the checker expects its named fields and inline tables. Back up an
+optional, but the checker expects its named fields and inline tables. Create the
+record with owner-only access (`chmod 600 "<private-progress.md>"` on Linux and
+macOS). Back up an
 existing record before normalizing its layout; retain history and authority. If
 an existing tracker must remain authoritative, validate a current read-only
 projection with its source/version recorded, not a competing editable tracker.
@@ -154,7 +162,13 @@ python3 "<guide-root>/skills/dooing-onboarding/scripts/check_progress.py" "<priv
 the full source commit separately. For an installed skill, Hermes keeps it as
 `metadata.source_revision` in the skill's entry in `skills/.hub/lock.json` under
 the active Hermes home. For a Git checkout, use `git rev-parse HEAD` after
-`git status --porcelain` prints nothing. A changed fingerprint requires evidence
+`git status --porcelain` prints nothing. An installed skill's files do not prove
+that nobody edited them: compare each file you read with the same file at that
+commit, or record its SHA256 under `Source integrity` and mark it unverified. If
+neither source is available, do not guess a commit. `Template revision` accepts
+only a full 40-character commit, so the checker rejects the record: write
+`unknown`, report progress as unvalidated as rule 3 says, and ask the owner for the
+repository link or the installed version. A changed fingerprint requires evidence
 reconciliation, not blind replacement. Exit zero means structurally valid, not
 finished: inspect `complete`. A full baseline percentage can still have unresolved
 owner decisions or additional outcomes. The checker is stdlib-only, reads local
@@ -205,7 +219,16 @@ Then connect the owner's daily computer, before the identity interview. When the
 daily computer is not the agent host, this is the first setup priority: from then
 on the owner reads every step, link and prompt on their own computer.
 
-1. On the host, check that Hermes and its model access work. Set up the private
+1. On the host, check that Hermes and its model access work. `hermes --version`
+   and `hermes auth list` are read-only. A model call uses the owner's model quota,
+   so run one tiny call, such as `hermes chat -Q -q "Reply with exactly the one word: OK"`,
+   only with the owner's approval; an agent already answering through that Hermes
+   install and provider has shown access for its own session, so record that as the
+   evidence. If Hermes is not installed, the owner approves the install first. Then
+   download the [official installer](https://hermes-agent.nousresearch.com/install.sh),
+   read it, and run it with `--non-interactive`, as the
+   [installation page](https://hermes-agent.nousresearch.com/docs/getting-started/installation)
+   describes. Set up the private
    network (the Tailscale/private transport row) and prepare the Desktop connection
    to use only that network, following
    [connecting to a remote backend](https://hermes-agent.nousresearch.com/docs/user-guide/desktop#connecting-to-a-remote-backend)
