@@ -14,7 +14,7 @@ def local_links(document):
 
 def check(root):
     files = [root / "README.md", root / "AGENTS.md"]
-    for folder in ("skills/customer-onboarding", "skills/hermes-update-safety", "capabilities", "reusable"):
+    for folder in ("skills/dooing-onboarding", "skills/customer-onboarding", "skills/hermes-update-safety", "capabilities", "reusable"):
         files.extend(sorted((root / folder).rglob("*.md")))
     checked = 0
     errors = []

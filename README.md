@@ -16,8 +16,8 @@ credentials and operating history are not part of this public repository.
 Use your existing **private, tool-capable agent on the intended host**. Paste:
 
 ```text
-Help me set up or resume Hermes Business Templates. Install its guide as a skill with: hermes skills install skills-sh/DanielJD1216/hermes-business-templates/skills/customer-onboarding
-If you cannot run that command here, read README.md, AGENTS.md, skills/customer-onboarding/SKILL.md and its linked references from https://github.com/DanielJD1216/hermes-business-templates at one repository revision.
+Help me set up or resume Hermes Business Templates. Install its guide as a skill with: hermes skills install skills-sh/DanielJD1216/hermes-business-templates/skills/dooing-onboarding
+If you cannot run that command here, read README.md, AGENTS.md, skills/dooing-onboarding/SKILL.md and its linked references from https://github.com/DanielJD1216/hermes-business-templates at one repository revision.
 First verify that you can act on my intended host and inspect the existing setup. Preserve my current assistant, model/login, history, files and working access.
 Follow the agent-led baseline. Retrieve known facts before asking, propose the missing work and get the applicable approvals. Then execute and verify authorized work yourself; ask me only for missing decisions, account sign-in, OS permissions or actions your tools cannot perform.
 Keep a private resumable progress record. Do not reset or reinstall working components, create unwanted roles, copy credentials or invent successful checks. Report exact blockers and whether the required baseline is actually complete.
@@ -31,7 +31,7 @@ third-party service support the same authentication method.
 
 ## What the finished setup includes
 
-The [required baseline](skills/customer-onboarding/references/baseline.md) covers
+The [required baseline](skills/dooing-onboarding/references/baseline.md) covers
 the whole operating workflow: preserved identity and model access; an explicit
 EA/CTO/Engineer responsibility map; file placement and project onboarding;
 persistent memory and a script-only watchdog; LEANN with scheduled index refresh,
@@ -40,7 +40,7 @@ private Slack/Desktop/Tailscale access; a T3 Code development team on a persiste
 server; installed/tested role-specific capabilities; maintenance ownership;
 Parsec for remote debugging/troubleshooting; and verified data backup/restoration.
 
-New to these parts? [How your setup works](skills/customer-onboarding/references/how-it-works.md)
+New to these parts? [How your setup works](skills/dooing-onboarding/references/how-it-works.md)
 explains each one in plain words, how work flows after setup and the setup milestones.
 
 The required development team is EA, CTO, Engineer #1 and Engineer #2, used through
@@ -82,12 +82,12 @@ LEANN refresh must share its exclusion rules with its precheck: excluded caches
 must not stop approved sources from updating. Unknown roots stay excluded pending
 approval, while genuine safety/build failures preserve the last working index and
 raise attention. Require bounded search, helper-binding and failure/recovery checks
-through the [existing maintenance path](skills/customer-onboarding/references/maintenance.md#required-leann-refresh-schedule),
+through the [existing maintenance path](skills/dooing-onboarding/references/maintenance.md#required-leann-refresh-schedule),
 including when no rebuild is needed. These requirements do not install a runtime repair.
 
 Memory acceptance must also prove growth/tail recall, distinct-source retrieval,
 owner scope, source preservation and truthful failure handling. Follow the required
-[memory reliability checks](skills/customer-onboarding/references/memory-reliability.md):
+[memory reliability checks](skills/dooing-onboarding/references/memory-reliability.md):
 reuse version-bound release evidence and run bounded checks on the actual host.
 The watchdog must expose failed/stalled saves and version/patch drift, not just
 healthy search. This guide ships no memory repair or acceptance runner and does
@@ -97,7 +97,7 @@ Linux/WSL evidence does not establish native Mac support.
 
 After the agent prepares the approved role profiles, you install T3 Code on the
 agent host, sign in one of its built-in agents and paste the
-[T3 setup prompt](skills/customer-onboarding/references/t3-setup-prompt.md) into a
+[T3 setup prompt](skills/dooing-onboarding/references/t3-setup-prompt.md) into a
 new T3 thread. That agent sets up the persistent server and private Tailscale access,
 connects each Hermes profile, tests it and saves a setup record your main agent can
 read. Your main agent then verifies the result from that record. A provider entry
@@ -105,10 +105,10 @@ in T3 is not proof that the team works. Phone access is a separate choice covere
 by the same prompt. Herdr is no longer part of the baseline; an existing Herdr setup
 keeps running until its active work moves to T3.
 
-See [onboarding](skills/customer-onboarding/SKILL.md),
-[context and file guidance](skills/customer-onboarding/references/context-and-files.md),
-[sources and capability limits](skills/customer-onboarding/references/sources-and-capabilities.md),
-and [Mac troubleshooting evidence](skills/customer-onboarding/references/mac-notes.md).
+See [onboarding](skills/dooing-onboarding/SKILL.md),
+[context and file guidance](skills/dooing-onboarding/references/context-and-files.md),
+[sources and capability limits](skills/dooing-onboarding/references/sources-and-capabilities.md),
+and [Mac troubleshooting evidence](skills/dooing-onboarding/references/mac-notes.md).
 Before any Hermes update, use the [Hermes update safety skill](skills/hermes-update-safety/SKILL.md):
 updates silently remove local source changes, and it ports them first.
 
@@ -118,25 +118,25 @@ and project documentation. Canonical files plus scoped retrieval can already ser
 that purpose. OpenViking resources can index selected reference material when
 needed, but do not replace required LEANN. No additional database or whole-workspace
 duplicate ingestion is required.
-See the [knowledge/retrieval boundary](skills/customer-onboarding/references/baseline.md#memory-knowledge-and-file-discovery).
+See the [knowledge/retrieval boundary](skills/dooing-onboarding/references/baseline.md#memory-knowledge-and-file-discovery).
 Baseline acceptance demonstrates a small useful collection and a complete work
 and retrieval cycle. Comprehensive memory-engine enforcement and customer-specific
 business automation are separately scoped extensions, not hidden installation work.
 
 ## Profiles and behavior after initial setup
 
-Follow the [profile lifecycle](skills/customer-onboarding/references/maintenance.md#profile-lifecycle)
+Follow the [profile lifecycle](skills/dooing-onboarding/references/maintenance.md#profile-lifecycle)
 when approved profiles are added, changed or retired, and after relevant updates.
 Discover the actual roster; preserve owner-specific roles and existing exceptions.
 Reconcile each affected profile's instructions, capabilities, memory binding,
 monitoring and recovery coverage without copying secrets or histories.
 
-The [identity guidance](skills/customer-onboarding/references/context-and-files.md#identity-and-behavior-across-profiles)
+The [identity guidance](skills/dooing-onboarding/references/context-and-files.md#identity-and-behavior-across-profiles)
 separates shared operating rules, role-specific SOUL and audience-scoped USER/context.
 Preserve personality and owner choices; verify active loading in the intended
 fresh session, not only files on disk. Missing required evidence stays incomplete.
 This is an agent-led procedure, not an automatic new-profile detector or installer.
-[Historical memory repair](skills/customer-onboarding/references/maintenance.md#keep-historical-memory-repair-separate)
+[Historical memory repair](skills/dooing-onboarding/references/maintenance.md#keep-historical-memory-repair-separate)
 remains separate from independent template/onboarding work; required memory checks
 and unresolved failure alerts are not waived.
 
@@ -164,15 +164,15 @@ project state and an unsent draft. It found and fixed a guide-version recording
 gap. This was a Linux/WSL discovery exercise, not native Mac or service acceptance;
 all full customer baseline checks remain untested by that exercise.
 
-Use the [short maintenance/recovery procedures](skills/customer-onboarding/references/maintenance.md)
-and optional [private progress template](skills/customer-onboarding/templates/progress.md).
+Use the [short maintenance/recovery procedures](skills/dooing-onboarding/references/maintenance.md)
+and optional [private progress template](skills/dooing-onboarding/templates/progress.md).
 The guide requires LEANN refresh and Obsidian acceptance, but does not itself install
 services or schedules. Report verified rows / all required rows and the calculated
 checklist percentage, not estimated effort. Reconcile older progress against this
 revision without erasing historical evidence.
 
 Every setup reply requires the onboarding skill's progress checkpoint. Its
-[read-only checker](skills/customer-onboarding/scripts/check_progress.py) calculates
+[read-only checker](skills/dooing-onboarding/scripts/check_progress.py) calculates
 coverage and supplies the footer; owner-confirmed evidence remains labelled.
 It checks record consistency, not whether receipts are genuine or host tests passed.
 This guide installs no response hook, extra checker bot or notification service.
@@ -185,13 +185,17 @@ Repository checks use only Python's standard library and do not start Hermes:
 
 ## Updates
 
-Ask your agent to run `hermes skills update customer-onboarding`. The guide's
-[upgrade notes](skills/customer-onboarding/references/upgrade-notes.md) tell it
+Ask your agent to run `hermes skills update dooing-onboarding`. The guide's
+[upgrade notes](skills/dooing-onboarding/references/upgrade-notes.md) tell it
 what changed and what to apply to your setup, so you do not need a separate note.
+
+Before version 0.27.0 the guide was installed as `customer-onboarding`. On such a
+setup, run `hermes skills update customer-onboarding` once: it installs a short
+pointer that tells your agent how to switch to `dooing-onboarding`.
 
 ## Retired legacy installer
 
-The old Creator installer was removed in customer-onboarding 0.24.0. It is archived
+The old Creator installer was removed in version 0.24.0 of the onboarding guide. It is archived
 at tag [legacy-creator-installer](https://github.com/DanielJD1216/hermes-business-templates/tree/legacy-creator-installer)
 and is not an onboarding path. Removing it from the repository does not change an
 existing installation.
