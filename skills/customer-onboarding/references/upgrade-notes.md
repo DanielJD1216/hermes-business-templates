@@ -19,6 +19,20 @@ to the new version:
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.25.0
+
+- **Changed:** role templates for each SOUL (EA, CTO, Engineer and an optional
+  department lead) and a workspace AGENTS.md template; a stock or empty SOUL now
+  counts as no identity; a [Slack setup and channel layout](slack-setup.md) guide;
+  with more than one model subscription, each role gets an owner-approved model.
+- **Apply:** if the EA's SOUL is Hermes's stock text or empty, run the identity
+  interview and draft it from the EA template, with approval and a backup.
+  Compare existing role SOULs with the templates and propose only missing parts.
+  If Slack has no channel layout yet, propose one. If the owner has more than one
+  model subscription, propose one model per role.
+- **Re-check:** yes. The baseline fingerprint changes from `b40cb8a8` to
+  `d523e008`: reconcile the "Main assistant" and "Hermes and model access" rows.
+
 ## 0.24.0
 
 - **Changed:** the legacy Creator installer is removed from this repository and

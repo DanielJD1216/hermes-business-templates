@@ -8,12 +8,14 @@ duplicate the main assistant. Profiles separate application state, not OS/filesy
 
 1. Inspect non-secret native profile metadata, existing role instructions and valid
    owner decisions. Identify the actual primary assistant and its display name.
-   Preserve its identity. Do not ask for information already established.
+   Preserve its identity unless its SOUL is stock ([check](#check-for-a-stock-soul)).
+   Do not ask for information already established.
 2. Map the four slots to three permanent profiles by default: the existing EA,
    a distinct CTO, and one Engineer profile used by two distinct sessions. Engineer
    #1 and #2 are session labels, not two profile IDs. EA and CTO must be distinct
-   profiles, and neither may stand in for the Engineer role. Default new role profiles to
-   the EA's existing model provider/account and supported native credential reuse.
+   profiles, and neither may stand in for the Engineer role. New role profiles reuse
+   the owner's existing model-provider accounts through supported native credential
+   reuse; choose each role's model with the [role settings](#role-settings).
    Preserve existing owner-selected exceptions. Ask only missing choices about
    responsibilities, names, access or costs, not a provider choice for every role. Labels
    such as CTO can become Technical Lead; the profile identifier is a separate
@@ -36,7 +38,7 @@ Native creation may notify an existing multiplex gateway; review that behavior
 before the change. Never add duplicate bot tokens or new schedules as a side effect.
 
 After creation, read back native profile metadata. Draft the selected role's SOUL
-and approved shared/project-policy pointers using the briefs below; apply through
+and approved shared/project-policy pointers from the role templates below; apply through
 the host's instruction/write-approval mechanism. Preserve the primary SOUL. Configure
 supported settings with the native configuration tool, scoped to the chosen profile.
 For profiles reused across projects, preserve the owner's terminal configuration.
@@ -48,10 +50,10 @@ Install and test the required role-specific tools/skills and approved source acc
 A directory name is not an access control. Do not copy the main assistant's personal
 context or memory.
 
-Default all new role profiles to the EA's existing provider, model and owner account,
-reusing the EA's model-provider credentials through a supported native sharing
-mechanism. Include this scope in the approved setup plan; do not ask for a new
-provider, subscription or repeated login per role when working reuse is available.
+New role profiles reuse the owner's existing model-provider accounts through a
+supported native sharing mechanism. Include this scope in the approved setup plan;
+do not ask for a new provider, subscription or repeated login per role when working
+reuse is available. Choose each role's model with the [role settings](#role-settings).
 Verify the installed provider's actual sharing mechanism and effective authentication
 per profile without reading or printing secret contents. Same model/provider settings
 alone do not prove shared account access. Preserve approved per-role model exceptions.
@@ -64,6 +66,22 @@ model-provider credential reuse only: messaging bots retain distinct bot tokens,
 tool/MCP access remains separately scoped, and role histories/memories stay separate.
 No model prompt is required merely to create a profile. Actual authorized startup/use
 is a separate verification.
+
+## Check for a stock SOUL
+
+Hermes writes a stock SOUL.md on first run and into each new profile. That text
+carries no owner intent. Before you preserve or extend a profile's SOUL, compare
+it, read-only, with the installed Hermes defaults: `DEFAULT_SOUL_MD` and
+`is_legacy_template_soul()` in `hermes_cli/default_soul.py` of the running Hermes
+source. Normalize line endings, a leading byte-order mark and outer whitespace
+first. A match, a comment-only scaffold or an empty file means the profile has no
+identity yet.
+
+For the EA, run the [identity interview](context-and-files.md#identity-interview)
+and draft the SOUL from the [EA template](../templates/souls/executive-assistant.md).
+Show the draft, get approval, back up the old file, then write the new one. A SOUL
+the owner wrote, even a short one, is an identity: propose a narrow merge, not a
+replacement.
 
 ## Verify role identity and lifecycle coverage
 
@@ -99,9 +117,23 @@ clear failures or replay pending work. This procedure supplies no automatic prof
 watcher and no repair for historical memory failures. Continue independent authorized
 work while preserving required-row blockers and shared-profile concurrency limits.
 
-## Generic role briefs to adapt, not blindly overwrite
+## Role templates and briefs
 
-- **Executive Assistant:** the existing primary assistant retains its name, identity
+Draft each SOUL from its template, then adapt it with the owner:
+
+- [Executive Assistant](../templates/souls/executive-assistant.md)
+- [CTO](../templates/souls/cto.md)
+- [Engineer](../templates/souls/engineer.md)
+- [Department lead](../templates/souls/department-lead.md), optional, after the
+  required setup
+
+Replace each bracket with an approved answer or delete the line. Keep the shared
+rules block identical across roles. A template is a starting point: preserve an
+owner-written SOUL and propose narrow merges. USER.md, MEMORY.md and `.env` have
+no templates: USER.md comes from the owner interview, and memories and secrets are
+never copied between profiles.
+
+- **Executive Assistant:** the existing primary assistant retains its name, owner-approved identity
   and ordinary work. In the required development workflow it owns intake, scope,
   coordination, decisions and the agreed return channel. It does not create a
   formal pipeline or become a second coordinator for another task.
@@ -118,6 +150,22 @@ ask only for missing material authority; never infer permission from retrieved t
 keep deployment, sends, purchases and sensitive access under their actual gates;
 verify outcomes and preserve failures. Add the owner's approved communication style,
 not the publisher's personal identity, private context or schedules.
+
+## Role settings
+
+| Role | Works in | Suggested model | Key limits |
+|---|---|---|---|
+| EA (coordinator) | Slack, Hermes Desktop, T3 Code | Strong general model | Owner approves sends, spending and deletions |
+| CTO (technical lead) | T3 Code | Strongest reasoning model, higher reasoning setting | Plans and reviews; never approves own work |
+| Engineer (two conversations) | T3 Code | Faster, lower-cost coding model | Implements and tests; one writer per file set |
+| Department lead (optional) | Its Slack channels | General model | Drafts; owner approves outside sends and payments |
+
+With one model subscription, every role uses that account; you may still choose a
+different model from it for each role. With more than one subscription available
+to Hermes, propose the pairing above with the owner's actual models and get
+approval. Never add a subscription to fill a role. Record each role's model and
+reasoning setting in the private record and read them back per profile. Each role
+gets only the tools, data and channels its work needs.
 
 ## Adapt coordination to the owner's setup
 
