@@ -40,6 +40,9 @@ private Slack/Desktop/Tailscale access; a T3 Code development team on a persiste
 server; installed/tested role-specific capabilities; maintenance ownership;
 Parsec for remote debugging/troubleshooting; and verified data backup/restoration.
 
+New to these parts? [How your setup works](skills/customer-onboarding/references/how-it-works.md)
+explains each one in plain words, how work flows after setup and the setup milestones.
+
 The required development team is EA, CTO, Engineer #1 and Engineer #2, used through
 [T3 Code](https://github.com/pingdotgg/t3code) with each Hermes profile connected as
 its own Local ACP provider. Reuse the owner's main assistant as EA and approved

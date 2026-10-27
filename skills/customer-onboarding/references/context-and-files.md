@@ -20,6 +20,12 @@ context for the main assistant does not authorize copying it to specialists.
 Explain provider processing before submitting private material. Existing exports
 and memories are preserved; removing this stage is not permission to delete them.
 
+When the owner offers an export they already made, for example memories exported
+from another AI app, use it only as a draft source. Propose the facts to keep and
+where each belongs, usually the EA's USER.md; a specialist gets a fact only when
+its work needs it. Save only what the owner approves. The export stays optional;
+it never becomes a setup stage.
+
 ## Canonical documents and projects
 
 Map existing equivalents before proposing new files. Native paths come from the
@@ -45,6 +51,16 @@ Setup is not permission to build, publish, deploy, spend or send. Prepare approv
 missing role profiles with the [role preparation procedure](role-setup.md), not the
 legacy installer, and reuse them across projects. Record each project's T3 project
 path and coordinator in the project catalog. Preserve existing skills and approval policy.
+
+When a project's code exists only in a remote repository, for example on GitHub,
+include the clone in the project approval: the repository, the destination folder
+in an approved root and the branch. If the owner is unsure which branch, list the
+most recently updated branches and let them choose. Use the owner's existing Git
+access on the host; the owner completes any sign-in natively. After cloning, read
+the repository's own instructions and recent history, record it in the project
+catalog and add that exact host folder as the T3 project. Before the team changes
+anything, it reports what it found and proposes the next step for the owner's
+approval.
 
 The map must govern work, not merely list directories. Define where incoming
 material, active work, research, assets/deliverables, archives and scratch belong;

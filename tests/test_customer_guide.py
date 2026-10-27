@@ -34,5 +34,15 @@ class RoleTemplates(unittest.TestCase):
         self.assertEqual(len(set(blocks.values())), 1, "Shared rules drifted between role templates")
 
 
+class SetupMilestones(unittest.TestCase):
+    def test_milestones_group_every_baseline_row_once(self):
+        ref = SCRIPT.parents[1] / "skills/customer-onboarding/references"
+        cells = lambda text: [line.split("|")[1:-1] for line in text.splitlines() if line.startswith("| ")]
+        rows = [c[0].strip() for c in cells((ref / "baseline.md").read_text())[1:]]
+        table = (ref / "how-it-works.md").read_text().partition("## Setup milestones")[2]
+        grouped = [name.strip() for c in cells(table)[1:] for name in c[1].split(",")]
+        self.assertEqual(sorted(grouped), sorted(rows))
+
+
 if __name__ == "__main__":
     unittest.main()

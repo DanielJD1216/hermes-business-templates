@@ -16,6 +16,32 @@ The prompt carries its own working rules and approval gates. Pasting it does not
 grant authority beyond what the owner approves in that thread. Keep pairing codes,
 tokens and other credentials out of the setup record.
 
+## When the owner works from another computer
+
+The T3 server runs on the agent host. When the owner uses T3 Code from a separate
+daily computer instead of the host's own screen:
+
+1. Install T3 Code on the agent host and run it as a background service
+   (`t3 service install` on macOS or Linux), following the installed version's
+   install guide. With owner approval, you can do this step yourself.
+2. The owner installs the T3 Code app on the daily computer.
+3. Make the pairing link on the host just before the owner uses it:
+   `t3 pair --tailscale`, or `t3 pair` when the server is already reachable on
+   the private network. A link works once and expires after 5 minutes by default
+   (`--ttl` sets a longer time). Send it where the owner can copy it directly,
+   for example in Hermes Desktop on the daily computer.
+4. In the app, the owner chooses **Add a computer** (or **Add environment**) and
+   pastes the whole link, including the part after `#token=`. If T3 says the link
+   is invalid, unknown, expired or already used, make a fresh one.
+5. The owner selects the host's environment, then connects one built-in agent for
+   it in **Settings > Providers**, for example **Connect with ChatGPT** for Codex.
+   T3 Code installs Codex on the host for that environment. A Codex app or login
+   on the daily computer does not count.
+6. The owner starts a new thread in the host's environment, picks that agent and
+   pastes the prompt below.
+
+## Prompt
+
 ```text
 Help me connect my existing Hermes agents to T3 Code using a persistent server and Tailscale.
 
@@ -148,7 +174,7 @@ Then run a small, explicitly authorized orchestration test:
 - Leave any previous orchestration tool's sessions alone until their active work finishes.
 
 Report separately:
-1. Profiles registered.
+1. Profiles registered. If one Engineer profile serves Engineer #1 and #2, tell me that T3 lists it once.
 2. Individual Hermes conversations verified.
 3. Reasoning controls verified (selector, typed /reasoning or profile defaults).
 4. Hermes-to-Hermes delegation verified.
