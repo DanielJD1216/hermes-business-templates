@@ -20,6 +20,19 @@ to the new version:
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.33.0
+
+- **Changed:** four clarifications from a second test on an empty host. Step 1
+  says not to read or print credential files such as `auth.json` or `.env` during
+  discovery; `hermes auth list` shows which logins exist. When the agent's own
+  session is the model-access evidence, the record names the model and provider
+  that session runs on, which can differ from the profile default. Step 1 links
+  Tailscale's install instructions. The guide says that its version numbers the
+  guide, not Hermes, and that its most recent checks used Hermes v0.22.5.
+- **Apply:** if the "Hermes and model access" row names a model, confirm that it
+  is the model the evidence session ran on, and correct the row if not.
+- **Re-check:** none. The baseline fingerprint stays `9fba33a8`.
+
 ## 0.32.0
 
 - **Changed:** five clarifications found in a test on an empty host. The guide now

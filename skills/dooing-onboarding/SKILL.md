@@ -1,7 +1,7 @@
 ---
 name: dooing-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.32.0
+version: 0.33.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -13,6 +13,10 @@ a claim that every host is supported. The owner chooses the model. You inspect,
 research, adapt, execute, debug and verify using tools on the actual host. Reuse
 working components. Use small existing helpers only when they fit; do not build
 a second installer merely because a native command or dependency needs diagnosis.
+
+The `version` in this file's header numbers this guide, not Hermes. Its most
+recent checks used Hermes v0.22.5. With another Hermes release, verify the
+behavior a step relies on in the installed version before you depend on it.
 
 ## Read first
 
@@ -192,7 +196,9 @@ this guide. Instruction compliance remains distinct from runtime enforcement.
 
 Identify OS/architecture, actual host versus client, available tools, current
 Hermes runtime/profile and native provider/model settings without displaying
-secrets. A missing PATH command is not proof a GUI app or bundled tool is absent.
+secrets. During discovery, do not read or print credential files such as
+`auth.json` or `.env`; `hermes auth list` shows which logins exist without their
+values. A missing PATH command is not proof a GUI app or bundled tool is absent.
 Inspect the relevant existing installation and ownership records before writes.
 Inventory only necessary paths and metadata. Preserve unknown/partial state.
 If a required client device is unavailable, continue independent host work and
@@ -224,12 +230,17 @@ on the owner reads every step, link and prompt on their own computer.
    so run one tiny call, such as `hermes chat -Q -q "Reply with exactly the one word: OK"`,
    only with the owner's approval; an agent already answering through that Hermes
    install and provider has shown access for its own session, so record that as the
-   evidence. If Hermes is not installed, the owner approves the install first. Then
-   download the [official installer](https://hermes-agent.nousresearch.com/install.sh),
+   evidence. Name the model and provider that session runs on: the `Model:` and
+   `Provider:` lines Hermes writes into your own system prompt. They can differ
+   from the profile default when a command-line option or a per-chat model picker
+   chose another model. If Hermes is not installed, the owner approves the install
+   first. Then download the
+   [official installer](https://hermes-agent.nousresearch.com/install.sh),
    read it, and run it with `--non-interactive`, as the
    [installation page](https://hermes-agent.nousresearch.com/docs/getting-started/installation)
-   describes. Set up the private
-   network (the Tailscale/private transport row) and prepare the Desktop connection
+   describes. Set up the private network (the Tailscale/private transport row;
+   Tailscale's [install instructions](https://tailscale.com/kb/1347/installation)
+   cover each platform) and prepare the Desktop connection
    to use only that network, following
    [connecting to a remote backend](https://hermes-agent.nousresearch.com/docs/user-guide/desktop#connecting-to-a-remote-backend)
    for the installed version. A **Remote gateway** connection needs `hermes serve`
