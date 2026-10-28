@@ -1,7 +1,7 @@
 ---
 name: dooing-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.34.1
+version: 0.35.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -197,8 +197,9 @@ this guide. Instruction compliance remains distinct from runtime enforcement.
 Identify OS/architecture, actual host versus client, available tools, current
 Hermes runtime/profile and native provider/model settings without displaying
 secrets. During discovery, do not read or print credential files such as
-`auth.json` or `.env`; `hermes auth list` shows which logins exist without their
-values. A missing PATH command is not proof a GUI app or bundled tool is absent.
+`auth.json` or `.env`. `hermes auth list` shows which logins exist without their
+values, but it can rewrite stored logins; see item 1 below before running it.
+A missing PATH command is not proof a GUI app or bundled tool is absent.
 Inspect the relevant existing installation and ownership records before writes.
 Inventory only necessary paths and metadata. Preserve unknown/partial state.
 If a required client device is unavailable, continue independent host work and
@@ -226,8 +227,12 @@ daily computer is not the agent host, this is the first setup priority: from the
 on the owner reads every step, link and prompt on their own computer.
 
 1. On the host, check that Hermes and its model access work. `hermes --version`
-   and `hermes auth list` are read-only. A model call uses the owner's model quota,
-   so run one tiny call, such as `hermes chat -Q -q "Reply with exactly the one word: OK"`,
+   is read-only. `hermes auth list` is not: it loads every provider's stored
+   logins, and on Hermes v0.22.5 that can merge a login shared across profiles
+   and save the change. Use it only when your own session cannot show access,
+   run it once, and not while another Hermes process is signing in. A model
+   call uses the owner's model quota, so run one tiny call, such as
+   `hermes chat -Q -q "Reply with exactly the one word: OK"`,
    only with the owner's approval; an agent already answering through that Hermes
    install and provider has shown access for its own session, so record that as the
    evidence. Name the model and provider that session runs on: the `Model:` and
