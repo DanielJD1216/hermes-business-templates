@@ -72,3 +72,7 @@ acceptance cannot be inferred from these checks. For runtime changes, also read
 and run the relevant existing tests under isolated HOME and HERMES_HOME, with
 lazy installs and dotenv loading disabled. Never test against live customer state.
 Publishing and external actions need authority; verify the exact destination.
+
+[CI](.github/workflows/checks.yml) runs the link, capability and unit-test checks
+on every pull request and push to `main`. The stock skill scanner, the privacy
+review and live-host checks are not part of CI; run them before merging.

@@ -1,0 +1,26 @@
+name: checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Guide links
+        run: python3 scripts/check_customer_guide.py
+      - name: Capability catalog
+        run: |
+          python3 scripts/check_capabilities.py
+          python3 scripts/check_capabilities.py --self-test
+      - name: Tests
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
