@@ -141,15 +141,12 @@ def check(text):
                 raise ValueError("No remaining owner decisions or outcomes justify this checkpoint")
         elif current not in states or states[current] == "verified":
             raise ValueError("Current component must be unfinished; invalidate affected evidence before reworking a verified row")
-    footer = (f"Baseline verified: {verified}/{len(required)} ({percent:.1f}%; {owner} owner-confirmed)\n"
-              f"Setup: {values['Checkpoint state']} | Current: {values['Current component']}\n"
-              f"Just verified: {values['Just verified']}\n"
-              f"Next ({values['Next actor']}): {values['Next incomplete action and prerequisite']}\n"
-              f"Your action: {values['Owner action needed']}")
+    who = {"owner": "you", "job": "background job"}.get(actor, actor)
+    action = values["Owner action needed"] if actor == "owner" else values["Next incomplete action and prerequisite"]
+    footer = (f"Progress: {100 * verified // len(required)}%\n"
+              + ("Next: none, setup complete" if complete else f"Next ({who}): {action}"))
     if values["Blocker"] != "none":
-        footer += "\nBlocker: " + values["Blocker"]
-    if state == "waiting":
-        footer += "\nContinuation: " + values["Continuation evidence"]
+        footer += "\nBlocked: " + values["Blocker"]
     return {"status": "valid", "verified": verified, "total": len(required), "percent": percent,
             "owner_confirmed": owner, "unresolved_decisions": unresolved,
             "complete": complete, "footer": footer}
