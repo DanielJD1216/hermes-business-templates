@@ -20,6 +20,16 @@ to the new version:
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.35.0
+
+- **Changed:** step 1 no longer calls `hermes auth list` read-only. On Hermes
+  v0.22.5 it loads every provider's stored logins, which can merge a login shared
+  across profiles and save the change. The guide now prefers the agent's own
+  session as model-access evidence and runs `hermes auth list` at most once, when
+  no other Hermes process is signing in.
+- **Apply:** nothing.
+- **Re-check:** none. The baseline fingerprint stays `9fba33a8`.
+
 ## 0.34.1
 
 - **Changed:** the footer's `Blocked:` line now appears only when the checkpoint
