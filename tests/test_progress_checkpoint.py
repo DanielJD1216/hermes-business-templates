@@ -75,9 +75,15 @@ class ProgressCheckpoint(unittest.TestCase):
         self.assertEqual((report["verified"], report["total"], report["percent"]), (7, 18, 38.9))
         self.assertEqual(report["owner_confirmed"], 2)
         self.assertFalse(report["complete"])
-        self.assertIn("7/18", report["footer"])
-        self.assertIn("Verify the approved refresh schedule", report["footer"])
-        self.assertIn("Your action: none", report["footer"])
+        self.assertEqual(report["footer"], "Progress: 38%\nNext (agent): Verify the approved refresh schedule")
+
+    def test_footer_names_the_owner_step(self):
+        text = (record().replace("Checkpoint state: continue", "Checkpoint state: owner-action")
+                .replace("Next actor: agent", "Next actor: owner")
+                .replace("Owner action needed: none", "Owner action needed: Approve the refresh schedule"))
+        result, report = self.run_check(text)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(report["footer"], "Progress: 38%\nNext (you): Approve the refresh schedule")
 
     def test_rejects_false_progress_and_vague_continuation(self):
         valid = record()

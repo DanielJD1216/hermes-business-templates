@@ -1,7 +1,7 @@
 ---
 name: dooing-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.33.0
+version: 0.34.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -126,9 +126,9 @@ Before each setup reply, including resumption and handoff:
    result instead of inventing partial credit. Repeated failure needs diagnosis,
    not unchanged retries or reassuring claims.
 3. Run the bundled [read-only checker](scripts/check_progress.py) against the
-   private record using the instructions below. End the reply with its `footer`,
-   retaining the numbers, evidence qualification, state, next actor/action and
-   exact owner action. Include a real blocker or continuation reference when present.
+   private record using the instructions below. End the reply with its `footer`
+   unchanged: the progress percentage, the next action and who takes it, and the
+   blocker when one exists.
    If the checker cannot run or rejects the record, withhold the percentage,
    report progress as unvalidated, and repair the record within scope or identify
    the exact access/authority blocker. Never invent a passing result.

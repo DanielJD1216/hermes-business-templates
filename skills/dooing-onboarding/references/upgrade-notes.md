@@ -20,6 +20,16 @@ to the new version:
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.34.0
+
+- **Changed:** the progress footer is shorter. It shows the progress percentage,
+  rounded down, and the next action with who takes it: `you` for the owner, the
+  agent, or a background job. A third line names the blocker only when setup is
+  blocked. Row counts, owner-confirmed labels, the checkpoint state and the last
+  verified result stay in the private record and in the checker's JSON output.
+- **Apply:** nothing.
+- **Re-check:** none. The baseline fingerprint stays `9fba33a8`.
+
 ## 0.33.0
 
 - **Changed:** four clarifications from a second test on an empty host. Step 1

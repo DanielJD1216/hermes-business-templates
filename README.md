@@ -168,13 +168,14 @@ all full customer baseline checks remain untested by that exercise.
 Use the [short maintenance/recovery procedures](skills/dooing-onboarding/references/maintenance.md)
 and optional [private progress template](skills/dooing-onboarding/templates/progress.md).
 The guide requires LEANN refresh and Obsidian acceptance, but does not itself install
-services or schedules. Report verified rows / all required rows and the calculated
-checklist percentage, not estimated effort. Reconcile older progress against this
+services or schedules. Report the checklist percentage (verified rows / all
+required rows), not estimated effort. Reconcile older progress against this
 revision without erasing historical evidence.
 
 Every setup reply requires the onboarding skill's progress checkpoint. Its
 [read-only checker](skills/dooing-onboarding/scripts/check_progress.py) calculates
-coverage and supplies the footer; owner-confirmed evidence remains labelled.
+coverage and supplies the footer: the progress percentage and the next action.
+Owner-confirmed evidence stays labelled in the private record.
 It checks record consistency, not whether receipts are genuine or host tests passed.
 This guide installs no response hook, extra checker bot or notification service.
 The agent must invoke the checker and use the result; text instructions alone do
