@@ -145,7 +145,7 @@ def check(text):
     action = values["Owner action needed"] if actor == "owner" else values["Next incomplete action and prerequisite"]
     footer = (f"Progress: {100 * verified // len(required)}%\n"
               + ("Next: none, setup complete" if complete else f"Next ({who}): {action}"))
-    if values["Blocker"] != "none":
+    if state == "blocked":
         footer += "\nBlocked: " + values["Blocker"]
     return {"status": "valid", "verified": verified, "total": len(required), "percent": percent,
             "owner_confirmed": owner, "unresolved_decisions": unresolved,

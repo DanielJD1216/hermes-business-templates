@@ -20,6 +20,14 @@ to the new version:
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.34.1
+
+- **Changed:** the footer's `Blocked:` line now appears only when the checkpoint
+  state is `blocked`, as the 0.34.0 note describes. In 0.34.0 it also appeared
+  when the record's `Blocker` field named a remaining failure in another state.
+- **Apply:** nothing.
+- **Re-check:** none. The baseline fingerprint stays `9fba33a8`.
+
 ## 0.34.0
 
 - **Changed:** the progress footer is shorter. It shows the progress percentage,

@@ -85,6 +85,16 @@ class ProgressCheckpoint(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(report["footer"], "Progress: 38%\nNext (you): Approve the refresh schedule")
 
+    def test_footer_names_the_blocker_only_when_blocked(self):
+        failing = record().replace("Blocker: none", "Blocker: The nightly refresh job failed")
+        result, report = self.run_check(failing)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(report["footer"], "Progress: 38%\nNext (agent): Verify the approved refresh schedule")
+        result, report = self.run_check(failing.replace("Checkpoint state: continue", "Checkpoint state: blocked"))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(report["footer"], "Progress: 38%\nNext (agent): Verify the approved refresh schedule\n"
+                                           "Blocked: The nightly refresh job failed")
+
     def test_rejects_false_progress_and_vague_continuation(self):
         valid = record()
         row = next(line for line in valid.splitlines() if line.startswith("| Hermes and model access |"))
