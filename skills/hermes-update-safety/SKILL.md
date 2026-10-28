@@ -1,7 +1,7 @@
 ---
 name: hermes-update-safety
 description: "Use when updating Hermes Agent or checking update safety."
-version: 1.0.0
+version: 1.1.0
 license: MIT
 platforms: [linux, macos]
 metadata:
@@ -63,6 +63,7 @@ Report unsafe while any local change would be parked, a run is active, or no bac
 6. Verify: fleet version in `hermes update --plan`; gateway log; Desktop reconnect; every profile's `state.db` `schema_version` and counts against the step 4 copies (the Desktop backend can log "behind SCHEMA_SQL" for a few seconds until the gateway migrates each store; that is expected); every enabled MCP server connects (`hermes mcp list` and the gateway log); a new T3 session; T3's view of each Hermes agent (after T3's next probe, minutes after the restart, it rewrites `~/.t3/caches/acpRegistry_<provider>.json`; every model's `capabilities.optionDescriptors` there must list `reasoning_effort`); one T3 delegated launch (a new session alone does not exercise launch-option validation); normal chat use. Record the evidence in the owner's private setup record.
    - T3 starts each agent on its profile default model unless T3's picker overrides it per thread; the T3 run payload records the pick as `modelSelection`.
    - Reasoning effort is not logged. It resolves session `/reasoning`, then `agent.reasoning_overrides`, then `agent.reasoning_effort`.
+   - Scheduled jobs: an update can refuse a job's saved command line, for example a toolset name the new version no longer accepts, and the job then fails only at its next run. For each profile with jobs (`hermes -p <profile> cron list`), after each enabled job's first run on the new version, `hermes -p <profile> cron doctor` must report no issue and `hermes -p <profile> cron incidents` must show no new incident. Do not trigger extra runs only to check: a manual run repeats the job's side effects, cost and messages.
 7. Keep the update's autostash until verification passes. Rollback: stash the applied port, check out the old commit, apply the autostash, `hermes pm repair`, restore config from the quick snapshot if the old code refuses the new config version, restore the step 4 `state.db` copies (old code against a migrated schema is untested), then restart.
 
 ## Pitfalls
