@@ -17,6 +17,9 @@ Neither the user's device name nor another customer's success proves compatibili
   main assistant's Python, model or login to fit the memory service.
 - Use native macOS service management and preserve the current recovery route.
   Do not paste Linux systemd, `/proc` or firewall commands into a Mac setup.
+- If a link with `localhost` does not open on the daily computer, try the same
+  link with `127.0.0.1`. A Mac can resolve `localhost` to the IPv6 address `::1`
+  while a service listens only on IPv4 `127.0.0.1`.
 - Keep owner-run commands to one physical line when remote clipboard transport
   corrupts line breaks. U+2028 is not a shell newline. Prefer direct execution of
   a verified script to nested `runpy` launchers that can lose `__main__` underscores.
