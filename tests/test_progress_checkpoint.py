@@ -75,7 +75,7 @@ class ProgressCheckpoint(unittest.TestCase):
         self.assertEqual((report["verified"], report["total"], report["percent"]), (7, 18, 38.9))
         self.assertEqual(report["owner_confirmed"], 2)
         self.assertFalse(report["complete"])
-        self.assertEqual(report["footer"], "Progress: 38%\nNext (agent): Verify the approved refresh schedule")
+        self.assertEqual(report["footer"], "Progress: 38%\nNext (me): Verify the approved refresh schedule")
 
     def test_footer_names_the_owner_step(self):
         text = (record().replace("Checkpoint state: continue", "Checkpoint state: owner-action")
@@ -89,11 +89,36 @@ class ProgressCheckpoint(unittest.TestCase):
         failing = record().replace("Blocker: none", "Blocker: The nightly refresh job failed")
         result, report = self.run_check(failing)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(report["footer"], "Progress: 38%\nNext (agent): Verify the approved refresh schedule")
+        self.assertEqual(report["footer"], "Progress: 38%\nNext (me): Verify the approved refresh schedule")
         result, report = self.run_check(failing.replace("Checkpoint state: continue", "Checkpoint state: blocked"))
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(report["footer"], "Progress: 38%\nNext (agent): Verify the approved refresh schedule\n"
+        self.assertEqual(report["footer"], "Progress: 38%\nNext (me): Verify the approved refresh schedule\n"
                                            "Blocked: The nightly refresh job failed")
+
+    def test_footer_text_is_plain_words_for_the_owner(self):
+        owner = (record().replace("Checkpoint state: continue", "Checkpoint state: owner-action")
+                 .replace("Next actor: agent", "Next actor: owner"))
+        blocked = (record().replace("Checkpoint state: continue", "Checkpoint state: blocked")
+                   .replace("Next actor: agent", "Next actor: external"))
+        long = " ".join(["word"] * 26)
+        for label, text in {
+            "code marks": owner.replace("Owner action needed: none", "Owner action needed: Run `hermes update`"),
+            "command flag": owner.replace("Owner action needed: none", "Owner action needed: Run the update with --force"),
+            "file path": owner.replace("Owner action needed: none", "Owner action needed: Open ~/notes and approve"),
+            "too long": owner.replace("Owner action needed: none", "Owner action needed: " + long),
+            "technical next action": record().replace("Verify the approved refresh schedule", "Check /etc/hosts"),
+            "technical blocker": blocked.replace("Blocker: none", "Blocker: Set `root_api_key` first"),
+        }.items():
+            with self.subTest(label=label):
+                result, report = self.run_check(text)
+                self.assertNotEqual(result.returncode, 0, label)
+                self.assertIn("Footer text is for the owner", report["error"])
+        result, report = self.run_check(blocked.replace("Blocker: none", "Blocker: The memory service is down"))
+        self.assertEqual(result.returncode, 0, report)
+        self.assertEqual(report["footer"], "Progress: 38%\nNext (someone else): Verify the approved refresh schedule\n"
+                                           "Blocked: The memory service is down")
+        hidden = record().replace("Blocker: none", "Blocker: `refresh.timer` failed with exit 1")
+        self.assertEqual(self.run_check(hidden)[0].returncode, 0, "A blocker outside the footer may stay technical")
 
     def test_rejects_false_progress_and_vague_continuation(self):
         valid = record()

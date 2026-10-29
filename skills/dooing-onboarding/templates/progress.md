@@ -164,6 +164,10 @@ unknown only where permitted; unknown owner outcomes block completion.
 Checkpoint states and next actors: `continue`/`agent`, `owner-action`/`owner`,
 `waiting`/`job`, `blocked`/`agent` or `owner` or `external`, `paused`/`owner`,
 `complete`/`none`. An owner step names the device/app, action and success signal.
+The footer shows the next action (the owner action when the owner acts next) and,
+when blocked, the blocker. Write those as one short plain sentence for the owner,
+at most 25 words, with no commands, code or file paths; the checker rejects them
+otherwise. Technical detail belongs in the baseline row's next action cell.
 Waiting requires a real job and registered callback/delivery evidence, not a promise.
 Paused means an explicit owner pause; do not automatically resume it.
 

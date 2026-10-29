@@ -58,6 +58,13 @@ def meaningful(value):
     return bool(value) and value.casefold() not in {"none", "unknown", "pending", "todo", "n/a"} and not value.startswith("[")
 
 
+def plain_words(text):
+    # shortcut: catches length, code marks, flags and paths, not jargon; the guide's wording rule covers the rest.
+    if len(text.split()) > 25 or "`" in text or re.search(r"(?:^|\s)(?:-{1,2}[A-Za-z]|~/|\.{0,2}/\w)", text):
+        raise ValueError("Footer text is for the owner: one short plain sentence, at most 25 words, "
+                         "no code marks, command flags or file paths: " + text)
+
+
 def check(text):
     values = fields(text)
     required = [row[0] for row in table(BASELINE.read_text(encoding="utf-8"), "Component")]
@@ -141,8 +148,10 @@ def check(text):
                 raise ValueError("No remaining owner decisions or outcomes justify this checkpoint")
         elif current not in states or states[current] == "verified":
             raise ValueError("Current component must be unfinished; invalidate affected evidence before reworking a verified row")
-    who = {"owner": "you", "job": "background job"}.get(actor, actor)
+    who = {"owner": "you", "job": "background job", "agent": "me", "external": "someone else"}.get(actor, actor)
     action = values["Owner action needed"] if actor == "owner" else values["Next incomplete action and prerequisite"]
+    for text in ([action] if not complete else []) + ([values["Blocker"]] if state == "blocked" else []):
+        plain_words(text)
     footer = (f"Progress: {100 * verified // len(required)}%\n"
               + ("Next: none, setup complete" if complete else f"Next ({who}): {action}"))
     if state == "blocked":

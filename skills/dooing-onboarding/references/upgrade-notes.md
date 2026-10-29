@@ -20,6 +20,19 @@ to the new version:
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.36.0
+
+- **Changed:** the footer is written for the owner. The record fields it shows (the
+  next action, the owner action when the owner acts next, and the blocker when setup
+  is blocked) must be one short plain sentence of at most 25 words, with no
+  commands, code or file paths. The checker rejects a record whose footer text
+  breaks this. The footer names the agent as `me` and an outside party as
+  `someone else`.
+- **Apply:** rewrite those fields in the private record in plain words for the
+  owner, even if the checker accepts them, and move technical detail to the
+  affected baseline row's next action cell. Then run the checker.
+- **Re-check:** none. The baseline fingerprint stays `9fba33a8`.
+
 ## 0.35.1
 
 - **Changed:** the memory scope check in `memory-reliability.md` now starts with the
