@@ -114,6 +114,23 @@ retrieval paths, not a helper-only simulation:
   a naming convention and the denied cross-owner check fails. Include one request
   that names another owner's account. Real separation needs a root key and one user
   key per owner.
+  To check separation on the host, first ask the owner to approve this sentence:
+  "Each assistant uses its own memory key, without showing it, to try to open
+  another assistant's memories, and the memory service should refuse. Nothing is
+  created, changed or deleted." Then:
+  1. Check that every profile has its own `OPENVIKING_API_KEY` and that no two
+     profiles share one. Compare SHA-256 hashes and never print a value. A
+     missing key, a shared key or the server's root key fails the check for those
+     profiles.
+  2. When an account has more than one user, use one user's key to list another
+     user's memories (`GET /api/v1/fs/ls?uri=viking://user/<other user>/memories`).
+     Expect 403.
+  3. With the same key, send another profile's account and user in the
+     `X-OpenViking-Account` and `X-OpenViking-User` headers and list memories
+     again. Expect the same result as without the headers: the server takes the
+     identity from the key.
+  Record status codes and entry counts, not memory text. Any other owner's entry
+  in a result fails the check; stop and tell the owner in plain words.
 - **Interruption and failure:** exercise native lock contention, interrupted indexing
   and process restart in isolation. Track the same durable work identifiers through
   recovery, preserve source bytes, and detect stale/orphaned work. Failed or unfinished

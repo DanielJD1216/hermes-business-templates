@@ -33,6 +33,21 @@ so T3 Code and Hermes Desktop show one Engineer, not two.
    Results come back to the same channel.
 6. A change or a new idea starts again at step 2.
 
+## Start a project in T3 Code
+
+A T3 Code project is a folder on the agent host. To start one:
+
+1. On the host, create a folder for the project, for example inside the
+   workspace folder the setup uses.
+2. Copy the folder's path. On a Mac, select the folder in Finder and press
+   Option-Command-C.
+3. In T3 Code, add a project and paste that path.
+
+Start exploratory work in a project folder too, because it may grow. T3 Code
+0.1.1 cannot move an existing thread into another project. To carry a thread's
+work into a new project, start a new thread there and paste a short summary of
+the old one.
+
 ## Setup milestones
 
 The milestones group the baseline rows so the owner can see where setup stands.

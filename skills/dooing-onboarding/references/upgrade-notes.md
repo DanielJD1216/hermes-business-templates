@@ -18,7 +18,29 @@ to the new version:
 4. Record the new `Template revision` and each entry you applied or skipped, with
    the reason.
 
+If the update skips the guide because it has local edits, copy those edits into a
+separate local skill first. Then uninstall the guide and install it again without
+`--force`, and continue with step 1.
+
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
+
+## 0.38.0
+
+- **Changed:** five clarifications from setups in use. Slack setup names the two
+  settings that make a bot answer only when mentioned. The guide says not to edit
+  the installed guide and to keep local lessons in a separate skill. The MCP chat
+  check covers tool search and a known Hermes v0.22.5 issue in T3 Code sessions.
+  The memory scope check has plain steps and the sentence the owner approves. The
+  setup map shows how to start a project folder in T3 Code, and the Mac notes add
+  a `localhost` tip.
+- **Apply:** on each Slack bot profile that should answer only when mentioned, set
+  `slack.strict_mention` and `slack.ignore_other_user_mentions` with the owner's
+  approval, have the owner restart the gateway while no T3 work runs, then run the
+  thread test. If the installed guide was edited, move the edits into a separate
+  local skill. If the OpenViking memory row's scope check is still open, run the
+  new steps after the owner approves the sentence.
+- **Re-check:** the Slack row (mention behavior) and the OpenViking memory row
+  (scope evidence). The baseline fingerprint stays `9fba33a8`.
 
 ## 0.37.0
 

@@ -61,7 +61,15 @@ SYSTEM      system-alerts
 - The EA joins HQ and the channels the owner chooses. A department lead joins
   the channels of its function. Scheduled jobs post to the system channel.
 - In shared channels, a bot answers only when mentioned, including follow-ups
-  in threads.
+  in threads. Stock Hermes does not do this by default: after one mention, a bot
+  keeps following that thread, and it answers messages that open by addressing
+  someone else. On each bot's profile, run
+  `hermes -p <profile> config set slack.strict_mention true` and
+  `hermes -p <profile> config set slack.ignore_other_user_mentions true`.
+  A channel where the bot should answer without a mention, such as its home
+  channel, goes in `slack.free_response_channels` as channel IDs. The settings
+  apply after the gateway restarts while no T3 work runs. Test in a thread where
+  the bot was mentioned once: a reply without a mention gets no answer from it.
 - Shared channels are group spaces. Private owner facts stay in direct messages
   or private conversations.
 

@@ -1,7 +1,7 @@
 ---
 name: dooing-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.37.0
+version: 0.38.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -100,6 +100,9 @@ to invent it. This guide does not install a skill merely because it is read.
   changes to the only recovery route when existing authority does not cover them.
 - Keep a private progress record with observed evidence and next actions. Resume
   from that evidence, not from a remembered success claim. Never erase failures.
+- Do not edit this installed guide. `hermes skills update` skips an edited guide
+  ("you have local edits"), and `--force` replaces the whole folder, edits
+  included. Keep owner-specific lessons in a separate local skill.
 
 ## Later profiles and changes
 

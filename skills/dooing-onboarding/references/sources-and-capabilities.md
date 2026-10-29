@@ -109,6 +109,19 @@ a new chat and continue there from the record. Confirm the server's tools by too
 search in the new chat. If they are still missing, the owner restarts the Hermes
 services and opens another new chat.
 
+Hermes v0.22.5 reaches MCP tools through tool search: the assistant finds a tool,
+reads its description, then calls it. A test message that says "use no other
+tool" blocks that path, so a working server looks missing. Ask instead: "Use tool
+search to find <tool>, call it once, and reply with the result."
+
+Known issue on Hermes v0.22.5: in a T3 Code session, the profile's MCP tools are
+listed, but a call returns `MCP server <name> is not connected`, while the same
+server works in Desktop and Slack (upstream issue
+[#143502](https://github.com/NousResearch/hermes-agent/issues/143502)). Record it
+in the affected row as a known limit of that Hermes release and do not patch
+Hermes. A tool reached through the terminal, such as a command-line search route,
+is not affected. Check again after each Hermes update.
+
 ## Keep credentials out of configuration
 
 Prefer a native login, such as `auth: oauth` for a remote MCP server that supports
