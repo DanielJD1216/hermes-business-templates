@@ -108,6 +108,12 @@ retrieval paths, not a helper-only simulation:
   at a result limit of two. Hidden sections must not crowd out a source or leak as
   user-facing results. Verify intended-owner access and denied cross-owner access
   through the supported agent routes. Names and URI prefixes are not access controls.
+  Check the service's authentication mode first. An OpenViking server without a root
+  key runs in development mode: every caller that can reach it is an administrator
+  and names its own account and user in request headers, so owner separation is only
+  a naming convention and the denied cross-owner check fails. Include one request
+  that names another owner's account. Real separation needs a root key and one user
+  key per owner.
 - **Interruption and failure:** exercise native lock contention, interrupted indexing
   and process restart in isolation. Track the same durable work identifiers through
   recovery, preserve source bytes, and detect stale/orphaned work. Failed or unfinished
