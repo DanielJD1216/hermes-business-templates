@@ -20,6 +20,19 @@ to the new version:
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.35.1
+
+- **Changed:** the memory scope check in `memory-reliability.md` now starts with the
+  service's authentication mode. An OpenViking server without a root key treats
+  every caller as an administrator that names its own owner in request headers, so
+  profile separation is only a naming convention. The check now includes one
+  request that names another owner's account.
+- **Apply:** check whether the OpenViking server has a root key. If it has none,
+  record the OpenViking memory row's scope check as failed and propose per-owner
+  keys (a root key and one user key per profile) for owner approval.
+- **Re-check:** the OpenViking memory row's scope evidence. The baseline
+  fingerprint stays `9fba33a8`.
+
 ## 0.35.0
 
 - **Changed:** step 1 no longer calls `hermes auth list` read-only. On Hermes
