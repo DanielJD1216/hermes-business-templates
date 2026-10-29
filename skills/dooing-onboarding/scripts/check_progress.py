@@ -13,7 +13,7 @@ FOLLOWUP = "Owner decisions and additional outcomes"
 FIELDS = (
     "Template revision", "Baseline SHA256", "Checkpoint state", "Current component",
     "Just verified", "Next incomplete action and prerequisite", "Next actor",
-    "Owner action needed", "Blocker", "Continuation evidence",
+    "Owner action needed", "Why the next step", "Blocker", "Continuation evidence",
     "Additional owner-required outcomes", "Setup complete",
 )
 
@@ -136,11 +136,14 @@ def check(text):
     if complete:
         if verified != len(required) or unresolved or extras != "none outstanding":
             raise ValueError("Completion requires all baseline evidence, resolved decisions and no outstanding owner outcomes")
-        if any(values[name] != "none" for name in ("Current component", "Next incomplete action and prerequisite", "Blocker")):
+        if any(values[name] != "none" for name in ("Current component", "Next incomplete action and prerequisite",
+                                                   "Why the next step", "Blocker")):
             raise ValueError("A completed setup cannot retain an active component, next action or blocker")
     else:
         if not meaningful(values["Next incomplete action and prerequisite"]):
             raise ValueError("An unfinished setup needs a concrete next action and prerequisite")
+        if not meaningful(values["Why the next step"]):
+            raise ValueError("An unfinished setup needs to say why the next step matters to the owner")
         current = values["Current component"]
         states = {row[0]: row[1] for row in rows}
         if current == FOLLOWUP:
@@ -150,10 +153,10 @@ def check(text):
             raise ValueError("Current component must be unfinished; invalidate affected evidence before reworking a verified row")
     who = {"owner": "you", "job": "background job", "agent": "me", "external": "someone else"}.get(actor, actor)
     action = values["Owner action needed"] if actor == "owner" else values["Next incomplete action and prerequisite"]
-    for text in ([action] if not complete else []) + ([values["Blocker"]] if state == "blocked" else []):
+    for text in ([action, values["Why the next step"]] if not complete else []) + ([values["Blocker"]] if state == "blocked" else []):
         plain_words(text)
     footer = (f"Progress: {100 * verified // len(required)}%\n"
-              + ("Next: none, setup complete" if complete else f"Next ({who}): {action}"))
+              + ("Next: none, setup complete" if complete else f"Next ({who}): {action}\nWhy: {values['Why the next step']}"))
     if state == "blocked":
         footer += "\nBlocked: " + values["Blocker"]
     return {"status": "valid", "verified": verified, "total": len(required), "percent": percent,

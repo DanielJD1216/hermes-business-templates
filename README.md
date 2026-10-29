@@ -174,7 +174,8 @@ revision without erasing historical evidence.
 
 Every setup reply requires the onboarding skill's progress checkpoint. Its
 [read-only checker](skills/dooing-onboarding/scripts/check_progress.py) calculates
-coverage and supplies the footer: the progress percentage and the next action.
+coverage and supplies the footer: the progress percentage, the next action and
+why it matters.
 Owner-confirmed evidence stays labelled in the private record.
 It checks record consistency, not whether receipts are genuine or host tests passed.
 This guide installs no response hook, extra checker bot or notification service.
