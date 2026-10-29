@@ -20,6 +20,17 @@ to the new version:
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.37.0
+
+- **Changed:** the footer adds a `Why:` line under the next step: one plain sentence
+  on what the step is for, so the owner can decide without asking. The private
+  record has a new field, `Why the next step`, with the same plain-words rule. The
+  checker rejects an unfinished record without it, and a complete record must set it
+  to `none`.
+- **Apply:** add `- Why the next step: <one plain sentence>` to the checkpoint
+  section of the private record, after `Owner action needed`. Then run the checker.
+- **Re-check:** none. The baseline fingerprint stays `9fba33a8`.
+
 ## 0.36.0
 
 - **Changed:** the footer is written for the owner. The record fields it shows (the

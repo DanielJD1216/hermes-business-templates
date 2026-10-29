@@ -49,6 +49,7 @@ def record():
 - Next incomplete action and prerequisite: Verify the approved refresh schedule
 - Next actor: agent
 - Owner action needed: none
+- Why the next step: Keeps your search results current without you checking by hand
 - Blocker: none
 - Continuation evidence: none
 - Additional owner-required outcomes: unknown
@@ -75,7 +76,7 @@ class ProgressCheckpoint(unittest.TestCase):
         self.assertEqual((report["verified"], report["total"], report["percent"]), (7, 18, 38.9))
         self.assertEqual(report["owner_confirmed"], 2)
         self.assertFalse(report["complete"])
-        self.assertEqual(report["footer"], "Progress: 38%\nNext (me): Verify the approved refresh schedule")
+        self.assertEqual(report["footer"], "Progress: 38%\nNext (me): Verify the approved refresh schedule\nWhy: Keeps your search results current without you checking by hand")
 
     def test_footer_names_the_owner_step(self):
         text = (record().replace("Checkpoint state: continue", "Checkpoint state: owner-action")
@@ -83,16 +84,16 @@ class ProgressCheckpoint(unittest.TestCase):
                 .replace("Owner action needed: none", "Owner action needed: Approve the refresh schedule"))
         result, report = self.run_check(text)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(report["footer"], "Progress: 38%\nNext (you): Approve the refresh schedule")
+        self.assertEqual(report["footer"], "Progress: 38%\nNext (you): Approve the refresh schedule\nWhy: Keeps your search results current without you checking by hand")
 
     def test_footer_names_the_blocker_only_when_blocked(self):
         failing = record().replace("Blocker: none", "Blocker: The nightly refresh job failed")
         result, report = self.run_check(failing)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(report["footer"], "Progress: 38%\nNext (me): Verify the approved refresh schedule")
+        self.assertEqual(report["footer"], "Progress: 38%\nNext (me): Verify the approved refresh schedule\nWhy: Keeps your search results current without you checking by hand")
         result, report = self.run_check(failing.replace("Checkpoint state: continue", "Checkpoint state: blocked"))
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(report["footer"], "Progress: 38%\nNext (me): Verify the approved refresh schedule\n"
+        self.assertEqual(report["footer"], "Progress: 38%\nNext (me): Verify the approved refresh schedule\nWhy: Keeps your search results current without you checking by hand\n"
                                            "Blocked: The nightly refresh job failed")
 
     def test_footer_text_is_plain_words_for_the_owner(self):
@@ -107,6 +108,7 @@ class ProgressCheckpoint(unittest.TestCase):
             "file path": owner.replace("Owner action needed: none", "Owner action needed: Open ~/notes and approve"),
             "too long": owner.replace("Owner action needed: none", "Owner action needed: " + long),
             "technical next action": record().replace("Verify the approved refresh schedule", "Check /etc/hosts"),
+            "technical why": record().replace("Keeps your search results current without you checking by hand", "Rebuilds the `leann` index"),
             "technical blocker": blocked.replace("Blocker: none", "Blocker: Set `root_api_key` first"),
         }.items():
             with self.subTest(label=label):
@@ -115,7 +117,7 @@ class ProgressCheckpoint(unittest.TestCase):
                 self.assertIn("Footer text is for the owner", report["error"])
         result, report = self.run_check(blocked.replace("Blocker: none", "Blocker: The memory service is down"))
         self.assertEqual(result.returncode, 0, report)
-        self.assertEqual(report["footer"], "Progress: 38%\nNext (someone else): Verify the approved refresh schedule\n"
+        self.assertEqual(report["footer"], "Progress: 38%\nNext (someone else): Verify the approved refresh schedule\nWhy: Keeps your search results current without you checking by hand\n"
                                            "Blocked: The memory service is down")
         hidden = record().replace("Blocker: none", "Blocker: `refresh.timer` failed with exit 1")
         self.assertEqual(self.run_check(hidden)[0].returncode, 0, "A blocker outside the footer may stay technical")
@@ -136,6 +138,8 @@ class ProgressCheckpoint(unittest.TestCase):
             "missing decision": valid.replace(decision + "\n", ""),
             "empty next action": valid.replace("Verify the approved refresh schedule", ""),
             "placeholder next action": valid.replace("Verify the approved refresh schedule", "[next step]"),
+            "missing why": valid.replace("- Why the next step: Keeps your search results current without you checking by hand\n", ""),
+            "placeholder why": valid.replace("Keeps your search results current without you checking by hand", "[why]"),
             "duplicate field": valid + "\n- Next actor: owner\n",
             "repeat verified component": valid.replace("Current component: Scheduled index refresh", "Current component: Main assistant"),
             "premature completion": valid.replace("Checkpoint state: continue", "Checkpoint state: complete"),
@@ -165,6 +169,7 @@ class ProgressCheckpoint(unittest.TestCase):
         done = done.replace("Current component: Owner decisions and additional outcomes", "Current component: none")
         done = done.replace("Next actor: agent", "Next actor: none")
         done = done.replace("Verify the approved refresh schedule", "none")
+        done = done.replace("Keeps your search results current without you checking by hand", "none")
         done = done.replace("Additional owner-required outcomes: unknown", "Additional owner-required outcomes: none outstanding")
         done = done.replace("Setup complete: no", "Setup complete: yes")
         result, report = self.run_check(done)
