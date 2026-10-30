@@ -140,7 +140,10 @@ Destination notes:
   Enable the Drive API in that client's project and publish the app: logins for
   an External app left in Testing expire after 7 days. The `drive.file` scope
   reaches only files that the same app created, so choose the client before the
-  first upload.
+  first upload. The Drive folder then holds restic's own layout (`config`,
+  `data/`, `index/`, `keys/`, `locks/`, `snapshots/`): encrypted, deduplicated
+  chunks, not readable copies of files. Restore through restic. Do not move,
+  rename or edit the folder, because the backup command finds it by its path.
 - **Encrypted external drive**: it works only while connected, so the failure
   alert must cover a missing drive. It protects against site loss only when a
   second drive rotates off site.
@@ -194,7 +197,11 @@ without breaking the live index or sending an unapproved message. One safe test,
 when the builder checks for its index tool first: run a single refresh with that
 tool missing from `PATH`. Check that search still answers from the old index and
 that the alert reached the approved destination, then run a normal refresh. Label
-fixture, manual-service and observed automatic-run evidence distinctly. No new monitoring
+fixture, manual-service and observed automatic-run evidence distinctly. On Hermes
+v0.22.5, `hermes cron run <id>` can run a script job at once in the command's own
+process (`source=direct` in `hermes cron runs`), not in the scheduler's isolated
+worker. It restores a missed run, but it does not reproduce a scheduled run's
+limits or timing. No new monitoring
 platform or chat model is required. Missing support/authority remains a required-row
 blocker, not grounds to substitute manual-only refresh or claim readiness from this guide.
 

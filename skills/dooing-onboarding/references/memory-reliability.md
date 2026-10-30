@@ -139,7 +139,9 @@ retrieval paths, not a helper-only simulation:
      Hermes services.
   6. Run the separation check below.
   A server that already holds plain-text keys converts them to hashes at its next
-  start once hashing is on, and the keys keep working.
+  start once hashing is on, and the keys keep working. Each request then runs one
+  Argon2id check: OpenViking 0.4.21 keeps no cache of checked keys, and one check
+  took about 70 ms on a desktop processor. At normal assistant volume this is small.
   To check separation on the host, first ask the owner to approve this sentence:
   "Each assistant uses its own memory key, without showing it, to try to open
   another assistant's memories, and the memory service should refuse. Nothing is

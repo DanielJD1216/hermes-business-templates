@@ -24,6 +24,16 @@ separate local skill first. Then uninstall the guide and install it again withou
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.39.1
+
+- **Changed:** three clarifications. The [backup steps](maintenance.md) explain
+  what the backup folder on a cloud drive contains and that it must not be moved,
+  renamed or edited, and that a manual `hermes cron run` does not reproduce a
+  scheduled run's limits or timing. The [memory key steps](memory-reliability.md)
+  give the cost of key hashing per request.
+- **Apply:** nothing.
+- **Re-check:** none. The baseline fingerprint stays `9fba33a8`.
+
 ## 0.39.0
 
 - **Changed:** the [memory check](memory-reliability.md) gives the steps to set up
