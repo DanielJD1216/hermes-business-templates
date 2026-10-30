@@ -24,6 +24,25 @@ separate local skill first. Then uninstall the guide and install it again withou
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.39.0
+
+- **Changed:** the [memory check](memory-reliability.md) gives the steps to set up
+  one OpenViking key per assistant, with keys stored as hashes. The
+  [backup steps](maintenance.md) say how to handle the memory key registry and
+  give a safe way to test a failed index refresh. The
+  [capability check](sources-and-capabilities.md) reads real use before calling a
+  capability not needed, and explains why a failing MCP server can disappear from
+  tool search. The guide adds proof methods for the Tailscale access policy, the
+  Parsec connection, the T3 Code quit and reopen test, and the Slack denial test.
+- **Apply:** if the memory service uses per-owner keys without hashing, turn on
+  `encryption.api_key_hashing.enabled` with the owner's approval, have the owner
+  restart the memory service, then check that each key still works. Keep the
+  service config, which holds the root key, out of backups, and the key registry
+  files too until the keys are hashed. If a backup already holds plain-text keys,
+  propose new keys.
+- **Re-check:** the backup row (key registry) and the OpenViking memory row (key
+  setup). The baseline fingerprint stays `9fba33a8`.
+
 ## 0.38.1
 
 - **Changed:** the [setup map](how-it-works.md) now describes every part as a place

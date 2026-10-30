@@ -114,6 +114,32 @@ retrieval paths, not a helper-only simulation:
   a naming convention and the denied cross-owner check fails. Include one request
   that names another owner's account. Real separation needs a root key and one user
   key per owner.
+  To set up per-owner keys on OpenViking (tested with 0.4.21), with the owner's
+  approval:
+  1. Back up the server config and the data folder, and pause any memory watchdog.
+  2. In the server config, set `server.root_api_key` to a long random value and
+     `encryption.api_key_hashing.enabled` to `true`, so the server stores Argon2id
+     hashes instead of user keys. Treat the config as a credential file:
+     owner-only permissions, never shown, kept out of ordinary backups.
+  3. The owner restarts the memory service while no assistant is working. A
+     request without a key now returns 401.
+  4. With the root key, register each profile's account:
+     `POST /api/v1/admin/accounts` with
+     `{"account_id": "<account>", "admin_user_id": "<admin>"}`. The reply's
+     `result.user_key` is an admin key for that account: store it with the root
+     key, not in a profile. Then add the assistant as a limited user:
+     `POST /api/v1/admin/accounts/<account>/users` with
+     `{"user_id": "<user>", "role": "user"}`, where `<user>` is the user name the
+     profile's memories already use, often `default`. That reply's
+     `result.user_key` is the assistant's key. Memories already in the account
+     stay as they were. The `default` account exists as soon as keys are on, so
+     its first call returns 409: only add its user.
+  5. Write each assistant key to its profile's `.env` as `OPENVIKING_API_KEY`,
+     changing only that line and never showing the value. The owner restarts the
+     Hermes services.
+  6. Run the separation check below.
+  A server that already holds plain-text keys converts them to hashes at its next
+  start once hashing is on, and the keys keep working.
   To check separation on the host, first ask the owner to approve this sentence:
   "Each assistant uses its own memory key, without showing it, to try to open
   another assistant's memories, and the memory service should refuse. Nothing is

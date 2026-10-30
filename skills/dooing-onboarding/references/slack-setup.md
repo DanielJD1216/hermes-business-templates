@@ -70,6 +70,10 @@ SYSTEM      system-alerts
   channel, goes in `slack.free_response_channels` as channel IDs. The settings
   apply after the gateway restarts while no T3 work runs. Test in a thread where
   the bot was mentioned once: a reply without a mention gets no answer from it.
+- To test denial, a person who is not among a bot's allowed users mentions it
+  once, and the bot must not act. A guest account can play that person. When
+  nobody is available, record the test as skipped by the owner; the Slack row
+  stays unproven until someone runs it.
 - Shared channels are group spaces. Private owner facts stay in direct messages
   or private conversations.
 
