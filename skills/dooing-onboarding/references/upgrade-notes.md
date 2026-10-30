@@ -24,6 +24,15 @@ separate local skill first. Then uninstall the guide and install it again withou
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.38.1
+
+- **Changed:** the [setup map](how-it-works.md) now describes every part as a place
+  in one building, each with a short line for boards. T3 Code is the workshop (it
+  was the IT department), Hermes Desktop is the breaker room (it was the door to the
+  power room) and Parsec is the emergency hatch (it was the back door).
+- **Apply:** nothing.
+- **Re-check:** none. The baseline fingerprint stays `9fba33a8`.
+
 ## 0.38.0
 
 - **Changed:** five clarifications from setups in use. Slack setup names the two
