@@ -1,7 +1,7 @@
 ---
 name: hermes-update-safety
 description: "Use when updating Hermes Agent or checking update safety."
-version: 1.1.0
+version: 1.2.0
 license: MIT
 platforms: [linux, macos]
 metadata:
@@ -31,7 +31,9 @@ A git-installed Hermes can carry uncommitted local source changes in its checkou
    ```
    Check each untracked path against the target with `git cat-file -e <target>:<path>`.
 4. Plugins: `python3 scripts/plugin_compat.py <target>` reports removed internal imports, removed hook names and memory-provider abstract method changes. It is static; behavior needs tests.
-5. Backups: read `updates.pre_update_backup` with `hermes config get` (a system Python may lack the YAML module). Legacy `false` means off, including the quick snapshot. `quick` skips files over 1 GiB, such as a large `state.db`. Use `--backup` (quick snapshot plus a HERMES_HOME zip that excludes `backups/` and `state-snapshots/`) for a large jump. The zip is all or nothing: if any SQLite file under HERMES_HOME fails its snapshot (a stray test database is enough), the zip is abandoned and the update continues without it. Measure its input first; `workspace/` alone can be tens of GB.
+   - Local edits to plugin code do not survive a plugin update either. `hermes plugins update` moves a catalog plugin to the catalog's pinned commit: untracked and ignored files carry over, but edited tracked files are copied to `<HERMES_HOME>/plugins-backup/<name>-<sha8>/` and replaced by the new code. A git-installed plugin updates with an autostashing `git pull`; when the stash does not apply cleanly, the stash entry stays for review.
+   - Each profile keeps its own copy in its `plugins/` folder. Back up and update every copy, re-apply the tested edits from a saved copy, then compare each file and check the install record.
+5. Backups: read `updates.pre_update_backup` with `hermes config get` (a system Python may lack the YAML module). Legacy `false` means off, including the quick snapshot. `quick` skips files over 1 GiB, such as a large `state.db`. `hermes backup --quick` is not the same: it has no size limit and copies a large `state.db` in full, so do not use it to test the update snapshot. Read the snapshot a real update wrote under `state-snapshots/` instead. Use `--backup` (quick snapshot plus a HERMES_HOME zip that excludes `backups/` and `state-snapshots/`) for a large jump. The zip is all or nothing: if any SQLite file under HERMES_HOME fails its snapshot (a stray test database is enough), the zip is abandoned and the update continues without it. Measure its input first; `workspace/` alone can be tens of GB.
 6. Restart coverage: `--plan` lists gateways only. The Desktop backend and T3 ACP sessions keep old code until they restart.
 7. Activity: no running T3 turn (open `~/.t3/userdata/statev2.sqlite` read-only; `orchestration_v2_projection_provider_turns` with status `running` and a recent `started_at`), no cron run and no chat turn in flight. A `running` record that started before T3 Code's last restart is stale; for a live one, the thread's `updated_at` in `orchestration_v2_projection_threads` is recent.
 8. Size: `git rev-list --count HEAD..<target>`. A patch version can still span thousands of commits.

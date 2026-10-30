@@ -88,6 +88,13 @@ replace them. Test the owner's own destination before relying on it.
    `rclone.conf`. Exclude `.git` folders by name: restic's
    `--exclude-if-present .git` keeps the `.git` folder itself. Record each
    exclusion, such as large media projects, with the owner's decision.
+   A memory service with per-owner keys keeps a key registry in its data folder.
+   OpenViking 0.4.21 stores each user key in plain text in
+   `viking/<account>/_system/users.json` unless `encryption.api_key_hashing.enabled`
+   is on. With hashing on it stores Argon2id hashes, which can stay in the backup,
+   and a restored server accepts the same keys. Without hashing, exclude those
+   files and plan to issue new keys after a restore. The service's config file
+   holds its root key: exclude it as a credential file.
 3. Rehearse against a local repository first. List the snapshot and search it
    for credential names, `.git` paths and excluded folders. Only then point the
    job at the approved destination.
@@ -183,8 +190,11 @@ the builder. Reuse the existing approved delivery route. Confirm attention and
 recovery messages at that destination, even when unrelated issues remain open.
 Retain known delivery failures across silent checks; script success is not receipt
 proof, and ambiguous sends do not authorize blind retries. Test failures safely
-without breaking the live index or sending an unapproved message. Label fixture,
-manual-service and observed automatic-run evidence distinctly. No new monitoring
+without breaking the live index or sending an unapproved message. One safe test,
+when the builder checks for its index tool first: run a single refresh with that
+tool missing from `PATH`. Check that search still answers from the old index and
+that the alert reached the approved destination, then run a normal refresh. Label
+fixture, manual-service and observed automatic-run evidence distinctly. No new monitoring
 platform or chat model is required. Missing support/authority remains a required-row
 blocker, not grounds to substitute manual-only refresh or claim readiness from this guide.
 

@@ -112,7 +112,7 @@ This is a reusable setup procedure. Discover my installation and preferences; do
 - Use a disposable task with timestamped progress.
 - Record the T3 server PID, start time, task identity, and relevant worker identity.
 - Quit and reopen the client, then verify the same server and task continued.
-- Obtain user confirmation or independently observable evidence of the actual client quit/reopen interval. A heartbeat log alone proves worker continuity, not that the client was closed. Automatic reconnection after a server restart is a separate test with a new server PID; do not present it as quit/reopen persistence.
+- Obtain user confirmation or independently observable evidence of the actual client quit/reopen interval. A heartbeat log alone proves worker continuity, not that the client was closed. Automatic reconnection after a server restart is a separate test with a new server PID; do not present it as quit/reopen persistence. Pair the user's confirmation with server-side continuity: the same run stays active, its turn items keep a steady pace through the quit window, and the server process did not restart.
 - Test client network loss separately if authorized; do not infer it from the quit/reopen test.
 - Test that one conversation's reasoning changes do not alter other agents.
 - If I want orchestration, separately verify Hermes-to-Hermes delegation through T3. Do not assume multiple provider entries reproduce every feature of a previous orchestration tool.

@@ -58,6 +58,12 @@ the owner to approve hundreds of entries individually; propose a coherent bounde
 set and carry its approved scope forward. Kanban and formal delivery-suite packages
 are outside onboarding, even when retained in the reference catalog for separate
 requests. Do not activate them as dependencies of the T3 development team.
+
+Before you mark an enabled capability as not needed, read each profile's real use:
+count past calls per MCP server in the profile's `state.db`, opened read-only. On
+Hermes v0.22.5 most MCP calls go through tool search, so the server's name sits in
+the arguments of a `tool_call` call, not in the call's own name. A capability that
+a role has used stays unless the owner decides otherwise.
 Do not preload or activate every upstream skill. Generic procedures are usable
 instructions, not byte-equivalent replacements for private custom packages. For
 source-acquired skills, obtain the complete pinned package with its supporting
@@ -113,6 +119,12 @@ Hermes v0.22.5 reaches MCP tools through tool search: the assistant finds a tool
 reads its description, then calls it. A test message that says "use no other
 tool" blocks that path, so a working server looks missing. Ask instead: "Use tool
 search to find <tool>, call it once, and reply with the result."
+
+Stop after two failed calls to one server and find the cause. On Hermes v0.22.5,
+three failed calls in a row block that server's calls for 60 seconds. When its
+connection keeps failing, Hermes parks the server: its tools leave tool search
+until a retry, every 300 seconds, connects again (`tools/mcp_tool.py`). A tool that
+suddenly cannot be found may be parked, not removed.
 
 Known issue on Hermes v0.22.5: in a T3 Code session, the profile's MCP tools are
 listed, but a call returns `MCP server <name> is not connected`, while the same

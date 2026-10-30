@@ -1,7 +1,7 @@
 ---
 name: dooing-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.38.1
+version: 0.39.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -279,6 +279,13 @@ policy permits Tailscale SSH. Use `tailscale set`, because `tailscale up --ssh`
 refuses when the host already has other non-default settings. For a Mac host, see
 the [Mac findings](references/mac-notes.md#limits-that-still-require-a-real-decision-or-test).
 
+For the Tailscale row, read the effective access policy on the admin console's
+Access controls page. The default policy lets every tailnet device reach every
+port. With one person and only that person's devices, the owner may accept it as
+a recorded exception, to revisit when anyone else or a shared device joins.
+Otherwise draft a minimum policy and test the paths the owner uses, such as
+Tailscale SSH, Taildrop and file sync, before saving it.
+
 ### 2. Understand the owner and propose the setup
 
 Settle the EA's identity first. When its SOUL is stock or empty, run the
@@ -369,6 +376,11 @@ Do not stop at an inventory, create Kanban boards or invoke formal delivery
 pipelines to complete onboarding. Reuse or install Parsec as the last-resort route
 for approved remote debugging/troubleshooting. Verify one actual connection to the
 intended desktop, then leave Parsec unused until Desktop cannot help.
+On a Windows host, Parsec's `log.txt` (in `%programdata%\Parsec` for a per-computer
+install, `%appdata%\Parsec` per user;
+[Parsec docs](https://support.parsec.app/hc/en-us/articles/32381199341716-Parsec-App-for-Windows))
+records each connection and disconnection with the account name. A session the
+owner used for a real fix counts. Check that every account in the log is approved.
 Check host/client support and owner permissions without granting permanent support
 access. Preserve existing access and verify backups separately; a Parsec session
 does not prove data restoration.
