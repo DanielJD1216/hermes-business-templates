@@ -6,14 +6,17 @@ host and the agents.
 
 ## The parts
 
+Each part is a place in one building. On a board, show each place with the words
+before the colon as its short line.
+
 | Part | Think of it as | What it is for |
 |---|---|---|
-| Agent host | The power room | The always-on computer that runs the agents, their memory, files and tools. Keep it on, awake and online. |
-| Slack | The boardroom | Daily work: the owner gives direction, raises ideas and gets results. |
-| T3 Code | The IT department | The development team (CTO and Engineer) builds and tests projects and new workflows. Works from a laptop or phone. |
-| Hermes Desktop | The door to the power room | The owner's way into the agent host from their daily computer: setup, settings and errors. Setup connects it first. |
-| Parsec | The back door | The last resort: the agent host's own screen, for hands-on fixes when Desktop cannot help. |
-| Tailscale | The private hallway | The private network between the owner's devices and the agent host. |
+| Agent host | The power room | Runs everything: the always-on computer with the agents, their memory, files and tools. Keep it on, awake and online. |
+| Slack | The boardroom | Direction, research and reports: the owner gives direction, raises ideas and gets results. |
+| T3 Code | The workshop | Builds projects and workflows: the development team (CTO and Engineer) builds and tests them in project folders. Works from a laptop or phone. |
+| Hermes Desktop | The breaker room | Initial setup, settings and errors: the owner's way into the agent host from their daily computer. Setup connects it first. |
+| Parsec | The emergency hatch | Remote screen, last resort: the agent host's own screen, for hands-on fixes when Desktop cannot help. |
+| Tailscale | The private hallway | Private connection: the private network between the owner's devices and the agent host. |
 
 The EA, the owner's main assistant, coordinates. It works in Slack and Hermes
 Desktop and hands development work to the team in T3 Code. Each role is one
