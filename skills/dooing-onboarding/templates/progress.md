@@ -162,7 +162,7 @@ checker footer rather than storing another percentage. Record missing facts as
 unknown only where permitted; unknown owner outcomes block completion.
 
 Checkpoint states and next actors: `continue`/`agent`, `owner-action`/`owner`,
-`waiting`/`job`, `blocked`/`agent` or `owner` or `external`, `paused`/`owner`,
+`waiting`/`job`, `blocked`/`owner` or `external`, `paused`/`owner`,
 `complete`/`none`. An owner step names the device/app, action and success signal.
 The footer shows the next action (the owner action when the owner acts next), why
 it matters and, when blocked, the blocker. Write each as one short plain sentence

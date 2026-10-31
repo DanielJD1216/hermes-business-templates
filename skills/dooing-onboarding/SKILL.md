@@ -1,7 +1,7 @@
 ---
 name: dooing-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.40.0
+version: 0.41.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -149,7 +149,11 @@ Before each setup reply, including resumption and handoff:
    Use `owner-action` when the only way forward is a step that only the owner can
    do: approve an install, choose a provider or account, sign in, or answer an OS
    permission prompt. Use `blocked` for a dependency that one owner step cannot
-   clear, such as missing access or a failed external service. On a host with no
+   clear, such as missing access or a failed external service. A blocked
+   checkpoint names who can clear it: the owner, or an outside party (`external`)
+   such as a provider with a confirmed outage or a person who has been asked.
+   Never use `external` for someone nobody has asked. When the next step is your
+   own work, the state is `continue`: do it. On a host with no
    Hermes or no model access, finish the read-only discovery first. The first
    checkpoint is then normally `owner-action` with the owner as next actor.
 
