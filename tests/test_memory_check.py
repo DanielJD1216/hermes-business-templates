@@ -131,6 +131,31 @@ class MemoryCheck(unittest.TestCase):
         self.assertTrue(text.startswith("HTTP 400: the input length exceeds the context length"))
         self.assertNotIn("abcdefghijklmnop", text)
 
+    def test_package_state_reports_changed_and_extra_files(self):
+        import base64, hashlib, os
+        with tempfile.TemporaryDirectory() as directory:
+            venv = Path(directory) / "venv"
+            site = venv / "lib/python3.12/site-packages"
+            (site / "openviking").mkdir(parents=True)
+            (site / "openviking-0.4.21.dist-info").mkdir()
+            (venv / "bin").mkdir()
+            server = venv / "bin/openviking-server"
+            server.write_text("#!/bin/sh\n")
+            server.chmod(0o755)
+            body = b"print('stock')\n"
+            (site / "openviking/a.py").write_bytes(body)
+            digest = base64.urlsafe_b64encode(hashlib.sha256(body).digest()).rstrip(b"=").decode()
+            (site / "openviking-0.4.21.dist-info/RECORD").write_text(
+                f"openviking/a.py,sha256={digest},{len(body)}\nopenviking-0.4.21.dist-info/RECORD,,\n")
+            state = mc.package_state([str(server)])
+            self.assertEqual((state["checked"], state["version"], state["changed_files"], state["extra_files"]),
+                             (True, "0.4.21", [], []))
+            (site / "openviking/a.py").write_bytes(b"print('patched')\n")
+            (site / "openviking/b.py").write_bytes(b"")
+            state = mc.package_state([str(server)])
+            self.assertEqual((state["changed_files"], state["extra_files"]), (["openviking/a.py"], ["openviking/b.py"]))
+            self.assertFalse(mc.package_state([os.path.join(directory, "missing-server")])["checked"])
+
     def test_results_keep_the_best_score_per_test_file(self):
         folder = mc.ROOT + "/long"
         found = [(folder + "/notes.md#2", 0.2), (folder + "/notes.md", 0.5), (folder + "/", 0.9),

@@ -233,7 +233,12 @@ address added, and delete the copy after the run.
 
 1. Run `python3 scripts/memory_check.py --plan`, adding `--config` and `--server`
    when the defaults do not fit. It starts nothing and shows the input limit, the
-   test sizes and the request cap.
+   test sizes, the request cap and `package`: whether the server's installed
+   OpenViking matches its install record. Use the `--server` the live service
+   runs, or the result describes a different install. If `package` lists changed,
+   missing or extra files, the install is not stock: the fixes below assume stock
+   files. Report the files, explain what each change does and let the owner decide
+   before changing settings.
 2. Ask the owner to approve, in plain words: "I'll test your memory service on a
    separate, throwaway copy. It uses your embedding service for up to 400
    requests, calls no chat model and doesn't touch your memories." For a paid
@@ -260,9 +265,10 @@ Lock contention is not covered: reuse release proof or record it as a gap.
 
 #### Rejected embedding requests
 
-The JSON then shows `embedding_errors` above 0, `first_rejection` and a hint. It
-usually means `embedding.max_input_tokens` lets OpenViking send more text than
-the embedding service accepts. OpenViking estimates about 4 characters per token;
+The JSON then shows `embedding_errors` above 0, `first_rejection` and a hint. On a
+stock package it usually means `embedding.max_input_tokens` lets OpenViking send
+more text than the embedding service accepts. OpenViking estimates about 4
+characters per token;
 code, numbers and some languages use more tokens per character. The effect on the
 owner's memory: a new memory the service rejects is never searchable, and a
 rejected update keeps the previous version in the index, so search finds the
@@ -273,7 +279,10 @@ Offer this fix before the choices below:
 1. Find the embedding model's documented input limit and start about a quarter
    below it.
 2. Run the check with `--max-input-tokens <value>`. It changes only the throwaway
-   server. Lower the value until no request is rejected.
+   server. Lower the value until no request is rejected. If requests are still
+   rejected at a low value, the limit is not the cause: stop and check `package`.
+   In one changed install, the adapter sent full text with cutting turned off and
+   used the limit as the model's context size, so a lower value rejected more.
 3. With the owner's approval, set `embedding.max_input_tokens` to that value in
    the server config and restart the service.
 4. Re-index the memory folder with the assistant's key: stock

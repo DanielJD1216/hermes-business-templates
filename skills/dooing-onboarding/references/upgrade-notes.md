@@ -24,6 +24,18 @@ separate local skill first. Then uninstall the guide and install it again withou
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.41.2
+
+- **Changed:** the memory check's plan and report show `package`: whether the
+  server's installed OpenViking matches its install record, with changed, missing
+  and extra files. The rejected-request fix applies to a stock package only; a
+  changed install is reported to the owner before any setting changes.
+- **Apply:** run the memory check with `--plan` against the server the live
+  service runs. If `package` lists files, mark any limit fix not yet applied as
+  waiting on the owner's decision about the changed install.
+- **Re-check:** the OpenViking memory row, when its install has changed files. The
+  baseline fingerprint stays `9fba33a8`.
+
 ## 0.41.1
 
 - **Fixed:** the memory check could pass `long_memory` while the embedding
