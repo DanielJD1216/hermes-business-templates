@@ -24,6 +24,18 @@ separate local skill first. Then uninstall the guide and install it again withou
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.40.0
+
+- **Changed:** the footer starts with a `Working on:` line, so the owner sees
+  which job a request belongs to, such as a guide update or one setup part. It
+  comes from a new optional record field, `Working on`: plain words, at most 12,
+  without step counts. When the field is absent or none, the line shows the
+  current component's name. A completed setup shows no such line.
+- **Apply:** optional. Add `- Working on: <plain words>` to the checkpoint section
+  of the private record, above `Current component`, and keep it current while
+  you work, for example during a guide update. Then run the checker.
+- **Re-check:** none. The baseline fingerprint stays `9fba33a8`.
+
 ## 0.39.1
 
 - **Changed:** three clarifications. The [backup steps](maintenance.md) explain

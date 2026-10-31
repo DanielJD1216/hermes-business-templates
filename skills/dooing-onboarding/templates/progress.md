@@ -173,6 +173,7 @@ Waiting requires a real job and registered callback/delivery evidence, not a pro
 Paused means an explicit owner pause; do not automatically resume it.
 
 - Checkpoint state: [one state above]
+- Working on: [optional: the job this step belongs to, in plain words, at most 12 words; none when complete]
 - Current component: [exact unfinished component name, Owner decisions and additional outcomes, or none when complete]
 - Just verified: [actual result, or none when no new check passed]
 - Next actor: [actor consistent with state]
