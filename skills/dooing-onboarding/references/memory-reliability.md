@@ -84,9 +84,11 @@ unreviewed raw logs out of shared summaries.
 In the existing private progress record, map each required behavior to applicable
 release and host evidence. Name partial coverage and exact missing proof. Prepare
 only the uncovered host checks using an existing supported procedure, with expected
-results, isolated data, provider/request/time limits and stop conditions. If that
-procedure is unavailable, name the specific gap; do not invent a runner or claim
-the requirements below are themselves a complete tested procedure. This research
+results, isolated data, provider/request/time limits and stop conditions. The
+[bundled memory check](#bundled-memory-check) is that procedure for growth/tail,
+distinct sources and restart. For anything else without one, name the specific gap;
+do not invent a runner or claim the requirements below are themselves a complete
+tested procedure. This research
 does not authorize live/provider tests, upgrades, history replay or resumed paused work.
 
 ## Release evidence and bounded host acceptance
@@ -204,12 +206,10 @@ Run these checks independently; preserve each check's evidence and limits:
    service retrieval, not fresh-Hermes recall. Submission, `.done`, empty queues and
    HTTP 200 are not completion. A legitimate extraction skip is not a demonstrated
    new save; do not force duplicate memories to obtain a pass.
-3. Run the release's small growth/tail, distinct-source and scope checks using a
-   disposable private data root and endpoint on the target host, with matching
-   versions/settings and an explicit request/time budget. Isolate HOME and
-   HERMES_HOME together and prevent dotenv, credentials or lazy installs from
-   reaching production. Do not put synthetic fixtures into the owner's real memory.
-   Reuse recent exact-combination host evidence where still applicable.
+3. Run the [bundled memory check](#bundled-memory-check) for growth/tail,
+   distinct sources and restart, and the scope check above, which only reads. Do
+   not put synthetic fixtures into the owner's real memory. Reuse recent evidence
+   from the same installed versions where still applicable.
 4. Verify the installed watchdog and its authorized schedule/destination below.
    Keep historical failures visible and distinguish them from newly submitted work.
 
@@ -217,6 +217,54 @@ Do not kill a production service to repeat interruption tests. Reuse applicable
 release proof and verify the host's documented recovery binding without disruption;
 a missing binding remains unverified. Missing test support, provider consent or
 budget is a blocker, not permission to skip a required check or broaden billing.
+
+### Bundled memory check
+
+[`scripts/memory_check.py`](../scripts/memory_check.py) runs three checks on a
+throwaway OpenViking server started from the installed `openviking-server`, with
+its own data folder and loopback port, both removed afterwards. It never opens the
+owner's memory or the running service. Embeddings go to the embedding service in
+the server config through a local proxy that stops at a hard request cap, 400 by
+default. A local stub replaces the summary model, so no chat model is called. It
+needs Python 3, and every embedding service in the config needs an `api_base`.
+
+1. Run `python3 scripts/memory_check.py --plan`, adding `--config` and `--server`
+   when the defaults do not fit. It starts nothing and shows the input limit, the
+   test sizes and the request cap.
+2. Ask the owner to approve, in plain words: "I'll test your memory service on a
+   separate, throwaway copy. It uses your embedding service for up to 400
+   requests, calls no chat model and doesn't touch your memories." For a paid
+   embedding service, add the cost: each request carries at most the input limit
+   in tokens.
+3. Run it without `--plan`. Exit 0 means every check passed, 1 means a check
+   failed and 2 means it could not finish; the JSON names the reason. On a desktop
+   a run took 1 to 5 minutes and up to 300 requests. Record the JSON summary; it
+   holds no memory text.
+
+What each check proves:
+
+- `long_memory`: a memory grows to three times the embedder's input limit. At
+  each size its newest fact, written last, must raise the search score above a
+  control copy that has a plain sentence in its place. A gain of exactly 0 means
+  the fact was never indexed.
+- `two_sources`: a long and a short memory on one topic both come back when two
+  results are allowed.
+- `restart`: the server is killed right after a write. After a restart the memory
+  must be indexed and keep every written byte.
+
+Lock contention is not covered: reuse release proof or record it as a gap.
+
+Known result, checked in October 2026: stock OpenViking 0.4.21 and 0.5.2.1 pass
+`two_sources` and `restart` but fail `long_memory` past the input limit. They embed
+only the start of each memory file, so search cannot find a fact past that point;
+within the limit the check passes. On a long-running setup, memory files that
+collect facts over time can grow past the limit. Tell the owner in plain words and
+offer the choices: accept it as a recorded exception, to revisit when a release
+indexes whole memory files; use an embedding model with a larger input limit,
+which moves the point where facts are lost, then run the check again; or wait for
+an upstream fix. When the owner accepts the exception, record the row as verified
+with that limit and the owner's decision. Do not patch the installed package as
+part of onboarding.
 
 ## Required watchdog behavior
 

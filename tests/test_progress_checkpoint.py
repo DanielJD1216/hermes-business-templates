@@ -112,9 +112,10 @@ class ProgressCheckpoint(unittest.TestCase):
         result, report = self.run_check(failing)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(report["footer"], W + "Progress: 38%\nNext (me): Verify the approved refresh schedule\nWhy: Keeps your search results current without you checking by hand")
-        result, report = self.run_check(failing.replace("Checkpoint state: continue", "Checkpoint state: blocked"))
+        result, report = self.run_check(failing.replace("Checkpoint state: continue", "Checkpoint state: blocked")
+                                        .replace("Next actor: agent", "Next actor: external"))
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(report["footer"], W + "Progress: 38%\nNext (me): Verify the approved refresh schedule\nWhy: Keeps your search results current without you checking by hand\n"
+        self.assertEqual(report["footer"], W + "Progress: 38%\nNext (someone else): Verify the approved refresh schedule\nWhy: Keeps your search results current without you checking by hand\n"
                                            "Blocked: The nightly refresh job failed")
 
     def test_footer_text_is_plain_words_for_the_owner(self):
@@ -167,6 +168,8 @@ class ProgressCheckpoint(unittest.TestCase):
             "waiting without callback": valid.replace("Checkpoint state: continue", "Checkpoint state: waiting").replace("Next actor: agent", "Next actor: job"),
             "owner action unspecified": valid.replace("Checkpoint state: continue", "Checkpoint state: owner-action").replace("Next actor: agent", "Next actor: owner"),
             "blocker unspecified": valid.replace("Checkpoint state: continue", "Checkpoint state: blocked"),
+            "blocked on own work": valid.replace("Checkpoint state: continue", "Checkpoint state: blocked")
+                                        .replace("Blocker: none", "Blocker: A test method is not yet verified"),
             "contradictory actor": valid.replace("Next actor: agent", "Next actor: owner"),
             "wrong headers": valid.replace("| Evidence basis | Evidence / observed time |", "| Limitation | Evidence basis |"),
         }

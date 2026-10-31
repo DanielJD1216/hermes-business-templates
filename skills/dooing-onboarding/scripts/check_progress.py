@@ -116,7 +116,7 @@ def check(text):
     complete = values["Checkpoint state"] == "complete"
     state, actor = values["Checkpoint state"], values["Next actor"]
     actors = {"continue": {"agent"}, "owner-action": {"owner"}, "waiting": {"job"},
-              "blocked": {"agent", "owner", "external"}, "paused": {"owner"}, "complete": {"none"}}
+              "blocked": {"owner", "external"}, "paused": {"owner"}, "complete": {"none"}}
     if state not in actors or actor not in actors[state]:
         raise ValueError("Checkpoint state and next actor are unknown or contradictory")
     for name in ("Just verified", "Owner action needed", "Blocker", "Continuation evidence"):

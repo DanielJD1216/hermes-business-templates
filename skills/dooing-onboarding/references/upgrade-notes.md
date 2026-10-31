@@ -24,6 +24,22 @@ separate local skill first. Then uninstall the guide and install it again withou
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.41.0
+
+- **Changed:** the guide bundles a
+  [memory check](memory-reliability.md#bundled-memory-check) script for the
+  growth/tail, distinct-source and restart checks, run on a
+  throwaway server with a request cap. It found that stock OpenViking 0.4.21 and
+  0.5.2.1 do not index the end of a long memory file, and the guide explains the
+  owner's choices. A blocked checkpoint now names who can clear it, the owner or a
+  named outside party: the checker rejects `blocked` with the agent as next actor.
+- **Apply:** if the OpenViking memory row waits on growth/tail, distinct-source or
+  restart proof, run the memory check with the owner's approval and record the
+  result. If `long_memory` fails, explain it and offer the choices. If the private
+  record is `blocked` with the agent as next actor, change it to `continue` and do
+  the work, or name the owner or outside party who must act. Then run the checker.
+- **Re-check:** the OpenViking memory row. The baseline fingerprint stays `9fba33a8`.
+
 ## 0.40.0
 
 - **Changed:** the footer starts with a `Working on:` line, so the owner sees
