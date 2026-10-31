@@ -156,6 +156,31 @@ class MemoryCheck(unittest.TestCase):
             self.assertEqual((state["changed_files"], state["extra_files"]), (["openviking/a.py"], ["openviking/b.py"]))
             self.assertFalse(mc.package_state([os.path.join(directory, "missing-server")])["checked"])
 
+    def test_a_stopped_run_removes_its_server_and_folder(self):
+        import os, signal, time, uuid
+        marker = f"memory-check-test-{uuid.uuid4().hex}"
+        alive = ["pgrep", "-f", rf"sleep\(120\) {marker}"]  # the fake server only, not this script's own arguments
+        fake = f"{sys.executable} -c 'import time; time.sleep(120)' {marker}"  # never answers /health
+        with tempfile.TemporaryDirectory() as directory:
+            conf = Path(directory) / "ov.conf"
+            conf.write_text(json.dumps({"embedding": {"dense": {"api_base": "http://127.0.0.1:9/v1"}}}))
+            env = {**os.environ, "TMPDIR": directory}
+            run = subprocess.Popen([sys.executable, str(SCRIPT), "--config", str(conf), "--server", fake],
+                                   env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            try:
+                for _ in range(100):
+                    if subprocess.run(alive, capture_output=True).returncode == 0:
+                        break
+                    time.sleep(0.1)
+                run.send_signal(signal.SIGTERM)
+                run.wait(timeout=60)
+                time.sleep(1)
+                self.assertNotEqual(subprocess.run(alive, capture_output=True).returncode, 0)
+                self.assertEqual([p.name for p in Path(directory).glob("memory-check-*")], [])
+            finally:
+                run.kill()
+                subprocess.run(["pkill", "-f", marker])
+
     def test_results_keep_the_best_score_per_test_file(self):
         folder = mc.ROOT + "/long"
         found = [(folder + "/notes.md#2", 0.2), (folder + "/notes.md", 0.5), (folder + "/", 0.9),

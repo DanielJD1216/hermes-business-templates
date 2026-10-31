@@ -238,7 +238,13 @@ address added, and delete the copy after the run.
    runs, or the result describes a different install. If `package` lists changed,
    missing or extra files, the install is not stock: the fixes below assume stock
    files. Report the files, explain what each change does and let the owner decide
-   before changing settings.
+   before changing settings. To test a fix for a changed install, copy the whole
+   install, change only the candidate files in the copy, confirm the copy differs
+   from live only by those files, and run the check with
+   `--server "<copy>/bin/python -m openviking_cli.server_bootstrap"`. Change the
+   live install only after the copy passes with no rejected requests. Prefer
+   reverting only the files behind the problem: other local changes can be
+   safeguards the owner relies on.
 2. Ask the owner to approve, in plain words: "I'll test your memory service on a
    separate, throwaway copy. It uses your embedding service for up to 400
    requests, calls no chat model and doesn't touch your memories." For a paid
@@ -247,8 +253,10 @@ address added, and delete the copy after the run.
 3. Run it without `--plan`. Exit 0 means every check passed, 1 means a check
    failed and 2 means it could not finish; the JSON names the reason. A request
    the embedding service rejects fails the check it ran in. On a desktop a run
-   took 1 to 5 minutes and up to 300 requests. Record the JSON summary; it holds
-   no memory text.
+   took 1 to 5 minutes and up to 300 requests. `--time-limit` stops new checks
+   but lets a running one finish, so give your own command timeout at least 5
+   minutes more. A stopped run still removes its throwaway server and folder.
+   Record the JSON summary; it holds no memory text.
 
 What each check proves:
 
@@ -285,11 +293,13 @@ Offer this fix before the choices below:
    used the limit as the model's context size, so a lower value rejected more.
 3. With the owner's approval, set `embedding.max_input_tokens` to that value in
    the server config and restart the service.
-4. Re-index the memory folder with the assistant's key: stock
-   `POST /api/v1/content/reindex` with body
+4. Re-index every memory folder the assistant's key can reach, including peer
+   memory folders, one at a time: stock `POST /api/v1/content/reindex` with body
    `{"uri": "<memory folder>", "mode": "vectors_only"}`. This sends every memory
-   in the folder to the embedding service again, so state the count and any cost
-   first.
+   in each folder to the embedding service again, so state the counts and any
+   cost first. Track each task to completion; a timed-out request is not a
+   failure to resubmit. Then confirm the memories rejected before can be found,
+   not only that the tasks finished.
 5. Run the check again without `--max-input-tokens`.
 
 Long memories are then searchable by their start. Facts past the limit are still
