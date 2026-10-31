@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT / "skills/dooing-onboarding"
 CHECKER = SKILL / "scripts/check_progress.py"
 BASELINE = SKILL / "references/baseline.md"
+W = "Working on: Scheduled index refresh\n"  # footer fallback: the current component
 
 
 def record():
@@ -76,7 +77,7 @@ class ProgressCheckpoint(unittest.TestCase):
         self.assertEqual((report["verified"], report["total"], report["percent"]), (7, 18, 38.9))
         self.assertEqual(report["owner_confirmed"], 2)
         self.assertFalse(report["complete"])
-        self.assertEqual(report["footer"], "Progress: 38%\nNext (me): Verify the approved refresh schedule\nWhy: Keeps your search results current without you checking by hand")
+        self.assertEqual(report["footer"], W + "Progress: 38%\nNext (me): Verify the approved refresh schedule\nWhy: Keeps your search results current without you checking by hand")
 
     def test_footer_names_the_owner_step(self):
         text = (record().replace("Checkpoint state: continue", "Checkpoint state: owner-action")
@@ -84,16 +85,36 @@ class ProgressCheckpoint(unittest.TestCase):
                 .replace("Owner action needed: none", "Owner action needed: Approve the refresh schedule"))
         result, report = self.run_check(text)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(report["footer"], "Progress: 38%\nNext (you): Approve the refresh schedule\nWhy: Keeps your search results current without you checking by hand")
+        self.assertEqual(report["footer"], W + "Progress: 38%\nNext (you): Approve the refresh schedule\nWhy: Keeps your search results current without you checking by hand")
+
+    def test_footer_names_what_the_work_is_for(self):
+        named = record().replace("- Current component:", "- Working on: Guide update 0.40.0, clearer footers\n- Current component:")
+        result, report = self.run_check(named)
+        self.assertEqual(result.returncode, 0, report)
+        self.assertTrue(report["footer"].startswith("Working on: Guide update 0.40.0, clearer footers\nProgress: 38%\n"))
+        for value in ("none", "[optional]"):
+            with self.subTest(fallback=value):
+                result, report = self.run_check(named.replace("Guide update 0.40.0, clearer footers", value))
+                self.assertEqual(result.returncode, 0, report)
+                self.assertTrue(report["footer"].startswith(W))
+        for label, value in {"code marks": "Run `hermes update`", "file path": "Edit ~/notes today",
+                             "too long": " ".join(["word"] * 13)}.items():
+            with self.subTest(label=label):
+                result, report = self.run_check(named.replace("Guide update 0.40.0, clearer footers", value))
+                self.assertNotEqual(result.returncode, 0, label)
+                self.assertIn("at most 12 words", report["error"])
+        result, report = self.run_check(named + "\n- Working on: Something else\n")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("at most one field: Working on", report["error"])
 
     def test_footer_names_the_blocker_only_when_blocked(self):
         failing = record().replace("Blocker: none", "Blocker: The nightly refresh job failed")
         result, report = self.run_check(failing)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(report["footer"], "Progress: 38%\nNext (me): Verify the approved refresh schedule\nWhy: Keeps your search results current without you checking by hand")
+        self.assertEqual(report["footer"], W + "Progress: 38%\nNext (me): Verify the approved refresh schedule\nWhy: Keeps your search results current without you checking by hand")
         result, report = self.run_check(failing.replace("Checkpoint state: continue", "Checkpoint state: blocked"))
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(report["footer"], "Progress: 38%\nNext (me): Verify the approved refresh schedule\nWhy: Keeps your search results current without you checking by hand\n"
+        self.assertEqual(report["footer"], W + "Progress: 38%\nNext (me): Verify the approved refresh schedule\nWhy: Keeps your search results current without you checking by hand\n"
                                            "Blocked: The nightly refresh job failed")
 
     def test_footer_text_is_plain_words_for_the_owner(self):
@@ -117,7 +138,7 @@ class ProgressCheckpoint(unittest.TestCase):
                 self.assertIn("Footer text is for the owner", report["error"])
         result, report = self.run_check(blocked.replace("Blocker: none", "Blocker: The memory service is down"))
         self.assertEqual(result.returncode, 0, report)
-        self.assertEqual(report["footer"], "Progress: 38%\nNext (someone else): Verify the approved refresh schedule\nWhy: Keeps your search results current without you checking by hand\n"
+        self.assertEqual(report["footer"], W + "Progress: 38%\nNext (someone else): Verify the approved refresh schedule\nWhy: Keeps your search results current without you checking by hand\n"
                                            "Blocked: The memory service is down")
         hidden = record().replace("Blocker: none", "Blocker: `refresh.timer` failed with exit 1")
         self.assertEqual(self.run_check(hidden)[0].returncode, 0, "A blocker outside the footer may stay technical")
@@ -175,6 +196,9 @@ class ProgressCheckpoint(unittest.TestCase):
         result, report = self.run_check(done)
         self.assertEqual(result.returncode, 0, report)
         self.assertTrue(report["complete"])
+        self.assertEqual(report["footer"], "Progress: 100%\nNext: none, setup complete")
+        kept = done.replace("- Current component:", "- Working on: Final review\n- Current component:")
+        self.assertNotEqual(self.run_check(kept)[0].returncode, 0, "A completed setup cannot keep a Working on line")
         roster = next(line for line in done.splitlines() if line.startswith("| Required EA,"))
         declined = roster.replace("| selected |", "| declined |").replace("| Main assistant |", "| Responsibilities and roster |")
         for invalid in (done.replace("| selected |", "| deferred |", 1),

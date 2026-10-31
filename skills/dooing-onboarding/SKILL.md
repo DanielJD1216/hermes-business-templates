@@ -1,7 +1,7 @@
 ---
 name: dooing-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.39.1
+version: 0.40.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -130,11 +130,14 @@ Before each setup reply, including resumption and handoff:
    not unchanged retries or reassuring claims.
 3. Run the bundled [read-only checker](scripts/check_progress.py) against the
    private record using the instructions below. End the reply with its `footer`
-   unchanged: the progress percentage, the next action and who takes it, why it
-   matters to the owner, and the blocker when setup is blocked. The footer copies
-   those record fields, so write each for the owner: one short plain sentence, at
-   most 25 words, with no commands, code or file paths. Keep technical detail in
-   the baseline row's next action cell.
+   unchanged: what the work is for, the progress percentage, the next action and
+   who takes it, why it matters to the owner, and the blocker when setup is
+   blocked. The footer copies those record fields, so write each for the owner:
+   one short plain sentence, at most 25 words, with no commands, code or file
+   paths. Keep technical detail in the baseline row's next action cell.
+   `Working on` names the job the next step belongs to, such as a guide update or
+   a baseline row, in at most 12 words and without step counts. When it is absent
+   or none, the footer shows the current component's name.
    If the checker cannot run or rejects the record, withhold the percentage,
    report progress as unvalidated, and repair the record within scope or identify
    the exact access/authority blocker. Never invent a passing result.

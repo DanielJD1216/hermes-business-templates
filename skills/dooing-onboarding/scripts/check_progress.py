@@ -51,6 +51,10 @@ def fields(text):
         if len(matches) != 1:
             raise ValueError("Expected one field: " + name)
         result[name] = matches[0].strip()
+    optional = re.findall(r"^- Working on:[ \t]*(.*)$", text, re.M)
+    if len(optional) > 1:
+        raise ValueError("Expected at most one field: Working on")
+    result["Working on"] = optional[0].strip() if optional else "none"
     return result
 
 
@@ -58,10 +62,10 @@ def meaningful(value):
     return bool(value) and value.casefold() not in {"none", "unknown", "pending", "todo", "n/a"} and not value.startswith("[")
 
 
-def plain_words(text):
+def plain_words(text, limit=25):
     # shortcut: catches length, code marks, flags and paths, not jargon; the guide's wording rule covers the rest.
-    if len(text.split()) > 25 or "`" in text or re.search(r"(?:^|\s)(?:-{1,2}[A-Za-z]|~/|\.{0,2}/\w)", text):
-        raise ValueError("Footer text is for the owner: one short plain sentence, at most 25 words, "
+    if len(text.split()) > limit or "`" in text or re.search(r"(?:^|\s)(?:-{1,2}[A-Za-z]|~/|\.{0,2}/\w)", text):
+        raise ValueError(f"Footer text is for the owner: one short plain sentence, at most {limit} words, "
                          "no code marks, command flags or file paths: " + text)
 
 
@@ -137,7 +141,7 @@ def check(text):
         if verified != len(required) or unresolved or extras != "none outstanding":
             raise ValueError("Completion requires all baseline evidence, resolved decisions and no outstanding owner outcomes")
         if any(values[name] != "none" for name in ("Current component", "Next incomplete action and prerequisite",
-                                                   "Why the next step", "Blocker")):
+                                                   "Why the next step", "Blocker", "Working on")):
             raise ValueError("A completed setup cannot retain an active component, next action or blocker")
     else:
         if not meaningful(values["Next incomplete action and prerequisite"]):
@@ -155,7 +159,11 @@ def check(text):
     action = values["Owner action needed"] if actor == "owner" else values["Next incomplete action and prerequisite"]
     for text in ([action, values["Why the next step"]] if not complete else []) + ([values["Blocker"]] if state == "blocked" else []):
         plain_words(text)
-    footer = (f"Progress: {100 * verified // len(required)}%\n"
+    # The job this step belongs to; an absent, none or placeholder value falls back to the row name.
+    working = values["Working on"] if meaningful(values["Working on"]) else values["Current component"]
+    if meaningful(values["Working on"]):
+        plain_words(working, limit=12)
+    footer = ("" if complete else f"Working on: {working}\n") + (f"Progress: {100 * verified // len(required)}%\n"
               + ("Next: none, setup complete" if complete else f"Next ({who}): {action}\nWhy: {values['Why the next step']}"))
     if state == "blocked":
         footer += "\nBlocked: " + values["Blocker"]
