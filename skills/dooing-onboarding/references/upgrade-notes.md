@@ -24,6 +24,20 @@ separate local skill first. Then uninstall the guide and install it again withou
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.42.0
+
+- **Changed:** when no published release evidence covers a required memory
+  release behavior (growing directory summaries, competing writes, interrupted
+  indexing, stale work, section coverage), the owner may accept it as a recorded
+  gap and the memory row can be verified. Before, missing test support blocked
+  the row on every stock OpenViking install. Host checks still cannot be accepted
+  away.
+- **Apply:** if the memory row waits only on release behaviors, explain the gap to
+  the owner in plain words and offer the accepted gap. Record the decision only
+  after the owner answers.
+- **Re-check:** the OpenViking memory row, if it was blocked on release evidence.
+  The baseline fingerprint stays `9fba33a8`.
+
 ## 0.41.3
 
 - **Changed:** for a changed install, test a fix on a copy of the install first

@@ -98,6 +98,21 @@ version-bound release evidence instead of rebuilding that suite for each custome
 The setup agent must still verify the actual installed combination and host route.
 Record release proof and host proof separately; neither substitutes for the other.
 
+When no published release evidence for the installed version covers a required
+release behavior, and no host check below tests it, the owner may accept the gap.
+Today this usually means growing directory summaries, lock contention and
+competing writes, interrupted indexing, stale or orphaned work and, for runtimes
+that use sections, section coverage and invalidation. Tell the owner in plain
+words: "OpenViking publishes no test results for <behaviors> in this version, and
+they can't be tested safely on your live service. I recommend recording this as an
+accepted gap and checking again at the next OpenViking update." When the owner
+accepts, record the row as verified with each uncovered behavior, where you looked
+for evidence, the owner's decision and its date. Re-check at the next OpenViking
+update. Host checks cannot be accepted this way: the ordinary save and recall, the
+bundled memory check, the separation check and the watchdog. The bundled check's
+known long-memory result has its own choice, described with that check. Do not run
+release behaviors on the live service to fill a gap.
+
 Required release proof covers these behaviors through native write, index and
 retrieval paths, not a helper-only simulation:
 
@@ -215,8 +230,10 @@ Run these checks independently; preserve each check's evidence and limits:
 
 Do not kill a production service to repeat interruption tests. Reuse applicable
 release proof and verify the host's documented recovery binding without disruption;
-a missing binding remains unverified. Missing test support, provider consent or
-budget is a blocker, not permission to skip a required check or broaden billing.
+a missing binding remains unverified. Missing provider consent or budget is a
+blocker, not permission to skip a required check or broaden billing. Missing
+release evidence follows the accepted-gap rule above; a host check that cannot run
+stays a blocker.
 
 ### Bundled memory check
 
@@ -269,7 +286,8 @@ What each check proves:
 - `restart`: the server is killed right after a write. After a restart the memory
   must be indexed and keep every written byte.
 
-Lock contention is not covered: reuse release proof or record it as a gap.
+Lock contention is not covered: reuse release proof or offer the owner the
+[accepted gap](#release-evidence-and-bounded-host-acceptance).
 
 #### Rejected embedding requests
 
