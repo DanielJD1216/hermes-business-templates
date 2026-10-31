@@ -17,12 +17,17 @@ Checks (references/memory-reliability.md):
                source must be indexed and keep every written byte
 
 A rejected embedding request fails the check it happened in: that text was never
-indexed. --max-input-tokens tests another input limit on the throwaway server
+indexed. The plan and report also compare the server's installed OpenViking package
+with its install record: changed files can alter how text reaches the embedding
+service, so this guide's fixes may not apply to them. --max-input-tokens tests another input limit on the throwaway server
 only; the owner's config is read, never changed.
 
 Exit 0: all passed. 1: a check failed. 2: could not run (setup, budget, time).
 """
 import argparse
+import base64
+import csv
+import hashlib
 import json
 import os
 import re
@@ -317,6 +322,34 @@ def restart(srv, limit_chars):
 CHECKS = {"long_memory": long_memory, "two_sources": two_sources, "restart": restart}
 
 
+def package_state(command):
+    """Compare the server's installed openviking package with its install record (RECORD hashes)."""
+    exe = shutil.which(command[0]) if command else None
+    if not exe:
+        return {"checked": False, "reason": "server command not found"}
+    # shortcut: expects a venv layout (bin/ beside lib/python3*/site-packages); other layouts report unchecked
+    records = sorted(Path(exe).resolve().parent.parent.glob("lib/python3*/site-packages/openviking-*.dist-info/RECORD"))
+    if len(records) != 1:
+        return {"checked": False, "reason": "no single install record beside the server command"}
+    site, rows = records[0].parent.parent, list(csv.reader(records[0].read_text().splitlines()))
+    listed, changed, missing = {row[0] for row in rows if row}, [], 0
+    for row in rows:
+        if len(row) < 2 or "=" not in row[1] or not row[0].startswith("openviking/"):
+            continue
+        path = site / row[0]
+        if not path.exists():
+            missing += 1
+            continue
+        algo, want = row[1].split("=", 1)
+        if base64.urlsafe_b64encode(hashlib.new(algo, path.read_bytes()).digest()).rstrip(b"=").decode() != want:
+            changed.append(row[0])
+    extra = sorted(str(f.relative_to(site)) for f in (site / "openviking").rglob("*.py")
+                   if str(f.relative_to(site)) not in listed)
+    return {"checked": True, "version": records[0].parent.name[len("openviking-"):-len(".dist-info")],
+            "changed_files": changed,
+            "missing_files": missing, "extra_files": extra}
+
+
 def mark_rejections(result, rejected):
     """Text the embedding service rejected was never indexed, so the check cannot pass."""
     result["embedding_rejections"] = rejected
@@ -359,7 +392,8 @@ def main():
             "max_input_tokens_from": limit_from,
             "source_sizes_chars": [int(s * limit_chars) for s in SIZES], "max_requests": args.max_requests,
             "time_limit_s": args.time_limit, "summary_model": "local stub, no model calls",
-            "owner_memory": "not touched: throwaway data folder and port"}
+            "owner_memory": "not touched: throwaway data folder and port",
+            "package": package_state(shlex.split(args.server))}
     if args.plan:
         print(json.dumps({"status": "plan", **plan}, indent=2))
         return 0
@@ -422,9 +456,15 @@ def main():
                       summary_stub_calls=budget.stub_calls)
         if budget.errors:
             report["first_rejection"] = budget.first_rejection
-            report["hint"] = (f"The embedding service rejected {budget.errors} requests. max_input_tokens "
-                              f"({limit_tokens}) may let OpenViking send more text than the service accepts. "
-                              "Test a lower value with --max-input-tokens; only the throwaway server uses it.")
+            pkg = plan["package"]
+            if pkg.get("changed_files") or pkg.get("missing_files") or pkg.get("extra_files"):
+                report["hint"] = (f"The embedding service rejected {budget.errors} requests, and the installed "
+                                  "OpenViking package differs from its install record. Review the changed files "
+                                  "before changing settings: the guide's input-limit fix assumes an unchanged package.")
+            else:
+                report["hint"] = (f"The embedding service rejected {budget.errors} requests. max_input_tokens "
+                                  f"({limit_tokens}) may let OpenViking send more text than the service accepts. "
+                                  "Test a lower value with --max-input-tokens; only the throwaway server uses it.")
         shutil.rmtree(work, ignore_errors=True)
         report["throwaway_folder_removed"] = not work.exists()
     print(json.dumps(report, indent=2))
