@@ -95,6 +95,42 @@ class MemoryCheck(unittest.TestCase):
         finally:
             server.shutdown()
 
+    def test_input_limit_override_shows_in_the_plan(self):
+        config = {"embedding": {"max_input_tokens": 4096, "dense": {"api_base": "http://127.0.0.1:9/v1"}}}
+        code, report = self.run_cli(config, "--plan", "--max-input-tokens", "1500")
+        self.assertEqual(code, 0)
+        self.assertEqual((report["max_input_tokens"], report["max_input_tokens_from"]), (1500, "--max-input-tokens"))
+        self.assertEqual(report["source_sizes_chars"], [3000, 9000, 18000])
+        code, report = self.run_cli(config, "--plan", "--max-input-tokens", "50")
+        self.assertEqual((code, report["status"]), (2, "not-run"))
+
+    def test_a_copy_that_was_never_indexed_fails_the_step(self):
+        folder = mc.ROOT + "/long"
+
+        class OnlyTarget:  # the control copy was rejected, so search returns the target alone
+            def write(self, *args, **kwargs):
+                pass
+
+            def settle(self):
+                pass
+
+            def find(self, question, limit, where):
+                return [(folder + "/notes.md", 0.6)]
+
+        result = mc.long_memory(OnlyTarget(), 1000)
+        self.assertFalse(result["passed"])
+        self.assertEqual({s["both_copies_indexed"] for s in result["steps"]}, {False})
+        self.assertEqual({s["score_gain_over_control"] for s in result["steps"]}, {None})
+
+    def test_rejected_requests_fail_the_check_and_keep_a_safe_reason(self):
+        self.assertEqual(mc.mark_rejections({"passed": True}, 2)["passed"], False)
+        self.assertEqual(mc.mark_rejections({"passed": True}, 0), {"passed": True, "embedding_rejections": 0})
+        self.assertIsNone(mc.mark_rejections({"passed": None}, 1)["passed"])
+        body = json.dumps({"error": {"message": "the input length exceeds the context length (key sk-proj-abcdefghijklmnop1234)"}})
+        text = mc.rejection_text(400, body.encode())
+        self.assertTrue(text.startswith("HTTP 400: the input length exceeds the context length"))
+        self.assertNotIn("abcdefghijklmnop", text)
+
     def test_results_keep_the_best_score_per_test_file(self):
         folder = mc.ROOT + "/long"
         found = [(folder + "/notes.md#2", 0.2), (folder + "/notes.md", 0.5), (folder + "/", 0.9),

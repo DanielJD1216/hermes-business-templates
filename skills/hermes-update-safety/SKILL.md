@@ -1,7 +1,7 @@
 ---
 name: hermes-update-safety
 description: "Use when updating Hermes Agent or checking update safety."
-version: 1.2.0
+version: 1.2.1
 license: MIT
 platforms: [linux, macos]
 metadata:
@@ -61,7 +61,7 @@ Report unsafe while any local change would be parked, a run is active, or no bac
 2. `hermes update --backup --keep-stash --no-gateway-restart --yes`.
 3. `bash templates/apply_port.sh` as a dry run, then with `--apply`. It refuses unless the checkout is clean at the target, and verifies the result equals the tested tree.
 4. Before the restart, copy every profile's `state.db` with `sqlite3.backup()` into a private backup folder and compare session and message counts with live. The first start of the new version can migrate the schema, the quick snapshot skips files over 1 GiB, and the full zip may have been abandoned.
-5. The owner or named operator restarts every affected service: the gateway (`hermes-gateway` when it runs as a systemd user unit), the Desktop backend and T3 Code.
+5. The owner or named operator restarts every affected service: the gateway (`hermes gateway restart` restarts the installed systemd or launchd service; the systemd user unit is `hermes-gateway`), the Desktop backend and T3 Code.
 6. Verify: fleet version in `hermes update --plan`; gateway log; Desktop reconnect; every profile's `state.db` `schema_version` and counts against the step 4 copies (the Desktop backend can log "behind SCHEMA_SQL" for a few seconds until the gateway migrates each store; that is expected); every enabled MCP server connects (`hermes mcp list` and the gateway log); a new T3 session; T3's view of each Hermes agent (after T3's next probe, minutes after the restart, it rewrites `~/.t3/caches/acpRegistry_<provider>.json`; every model's `capabilities.optionDescriptors` there must list `reasoning_effort`); one T3 delegated launch (a new session alone does not exercise launch-option validation); normal chat use. Record the evidence in the owner's private setup record.
    - T3 starts each agent on its profile default model unless T3's picker overrides it per thread; the T3 run payload records the pick as `modelSelection`.
    - Reasoning effort is not logged. It resolves session `/reasoning`, then `agent.reasoning_overrides`, then `agent.reasoning_effort`.
