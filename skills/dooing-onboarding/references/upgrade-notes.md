@@ -24,6 +24,33 @@ separate local skill first. Then uninstall the guide and install it again withou
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.41.1
+
+- **Fixed:** the memory check could pass `long_memory` while the embedding
+  service rejected requests, because OpenViking kept outdated index entries. A
+  rejected request now fails the check it ran in, each step needs both copies
+  indexed, and `--max-input-tokens` tests a lower input limit on the throwaway
+  server only. The guide explains
+  [rejected requests](memory-reliability.md#rejected-embedding-requests) and the
+  fix.
+- **Changed:** the [T3 setup prompt](t3-setup-prompt.md)'s phone section checks
+  the Tailscale access rules for the phone and its port before phone settings,
+  gives the address as plain text with `https://` and the port, checks that the
+  CLI matches the server version, and warns that opening a pairing link in the
+  phone's browser uses its code.
+- **Changed:** Mac host notes: the Parsec log path on a Mac, a read-only sleep and
+  power check, and macOS folder permissions for scheduled jobs. The memory check
+  explains a config without `api_base`. Update safety 1.2.1: `hermes gateway
+  restart` restarts the installed service on systemd or launchd.
+- **Apply:** if a recorded memory check shows `embedding_errors` above 0, mark that
+  result unverified, run the check again and offer the fix with the owner's
+  approval. If phone access to T3 times out, follow the new check order. On a Mac
+  host, run `pmset -g`, and prove each scheduled job that reads protected folders
+  from the scheduler itself.
+- **Re-check:** the OpenViking memory row, when its recorded check had rejected
+  requests; on a Mac host, the Parsec row if its proof waited on the log. The
+  baseline fingerprint stays `9fba33a8`.
+
 ## 0.41.0
 
 - **Changed:** the guide bundles a

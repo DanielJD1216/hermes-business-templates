@@ -227,6 +227,9 @@ owner's memory or the running service. Embeddings go to the embedding service in
 the server config through a local proxy that stops at a hard request cap, 400 by
 default. A local stub replaces the summary model, so no chat model is called. It
 needs Python 3, and every embedding service in the config needs an `api_base`.
+If the config leaves it to the provider's default, pass `--config` a private copy
+(mode 600) that holds only the `embedding` section with the provider's documented
+address added, and delete the copy after the run.
 
 1. Run `python3 scripts/memory_check.py --plan`, adding `--config` and `--server`
    when the defaults do not fit. It starts nothing and shows the input limit, the
@@ -237,16 +240,17 @@ needs Python 3, and every embedding service in the config needs an `api_base`.
    embedding service, add the cost: each request carries at most the input limit
    in tokens.
 3. Run it without `--plan`. Exit 0 means every check passed, 1 means a check
-   failed and 2 means it could not finish; the JSON names the reason. On a desktop
-   a run took 1 to 5 minutes and up to 300 requests. Record the JSON summary; it
-   holds no memory text.
+   failed and 2 means it could not finish; the JSON names the reason. A request
+   the embedding service rejects fails the check it ran in. On a desktop a run
+   took 1 to 5 minutes and up to 300 requests. Record the JSON summary; it holds
+   no memory text.
 
 What each check proves:
 
 - `long_memory`: a memory grows to three times the embedder's input limit. At
-  each size its newest fact, written last, must raise the search score above a
-  control copy that has a plain sentence in its place. A gain of exactly 0 means
-  the fact was never indexed.
+  each size both copies must be indexed, and the newest fact, written last, must
+  raise the search score above a control copy that has a plain sentence in its
+  place. A gain of exactly 0 means the fact was never indexed.
 - `two_sources`: a long and a short memory on one topic both come back when two
   results are allowed.
 - `restart`: the server is killed right after a write. After a restart the memory
@@ -254,17 +258,52 @@ What each check proves:
 
 Lock contention is not covered: reuse release proof or record it as a gap.
 
+#### Rejected embedding requests
+
+The JSON then shows `embedding_errors` above 0, `first_rejection` and a hint. It
+usually means `embedding.max_input_tokens` lets OpenViking send more text than
+the embedding service accepts. OpenViking estimates about 4 characters per token;
+code, numbers and some languages use more tokens per character. The effect on the
+owner's memory: a new memory the service rejects is never searchable, and a
+rejected update keeps the previous version in the index, so search finds the
+memory by outdated text. A service restart repairs neither.
+
+Offer this fix before the choices below:
+
+1. Find the embedding model's documented input limit and start about a quarter
+   below it.
+2. Run the check with `--max-input-tokens <value>`. It changes only the throwaway
+   server. Lower the value until no request is rejected.
+3. With the owner's approval, set `embedding.max_input_tokens` to that value in
+   the server config and restart the service.
+4. Re-index the memory folder with the assistant's key: stock
+   `POST /api/v1/content/reindex` with body
+   `{"uri": "<memory folder>", "mode": "vectors_only"}`. This sends every memory
+   in the folder to the embedding service again, so state the count and any cost
+   first.
+5. Run the check again without `--max-input-tokens`.
+
+Long memories are then searchable by their start. Facts past the limit are still
+missed; see the known result below.
+
+Measured in October 2026 on stock 0.4.21, with an embedding service that rejected
+inputs over 6,000 characters and an input limit of 2048: guide 0.41.0 reported a
+false `long_memory` pass from outdated index entries, and this version fails it.
+With `--max-input-tokens 1400` nothing was rejected, and `two_sources` and
+`restart` passed. A rejected memory stayed unsearchable after a restart with the
+lower limit and became searchable after the reindex call.
+
 Known result, checked in October 2026: stock OpenViking 0.4.21 and 0.5.2.1 pass
-`two_sources` and `restart` but fail `long_memory` past the input limit. They embed
-only the start of each memory file, so search cannot find a fact past that point;
-within the limit the check passes. On a long-running setup, memory files that
-collect facts over time can grow past the limit. Tell the owner in plain words and
-offer the choices: accept it as a recorded exception, to revisit when a release
-indexes whole memory files; use an embedding model with a larger input limit,
-which moves the point where facts are lost, then run the check again; or wait for
-an upstream fix. When the owner accepts the exception, record the row as verified
-with that limit and the owner's decision. Do not patch the installed package as
-part of onboarding.
+`two_sources` and `restart` but fail `long_memory` past the input limit. They
+embed only the start of each memory file, so search cannot find a fact past that
+point; within the limit the check passes. On a long-running setup, memory files
+that collect facts over time can grow past the limit. Fix rejected requests first,
+as above. Then tell the owner in plain words and offer the choices: accept it as a
+recorded exception, to revisit when a release indexes whole memory files; use an
+embedding model with a larger input limit, which moves the point where facts are
+lost, then run the check again; or wait for an upstream fix. When the owner
+accepts the exception, record the row as verified with that limit and the owner's
+decision. Do not patch the installed package as part of onboarding.
 
 ## Required watchdog behavior
 

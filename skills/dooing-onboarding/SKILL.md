@@ -1,7 +1,7 @@
 ---
 name: dooing-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.41.0
+version: 0.41.1
 license: MIT
 platforms: [linux, macos]
 ---
@@ -386,7 +386,9 @@ intended desktop, then leave Parsec unused until Desktop cannot help.
 On a Windows host, Parsec's `log.txt` (in `%programdata%\Parsec` for a per-computer
 install, `%appdata%\Parsec` per user;
 [Parsec docs](https://support.parsec.app/hc/en-us/articles/32381199341716-Parsec-App-for-Windows))
-records each connection and disconnection with the account name. A session the
+records each connection and disconnection with the account name. On a Mac host the
+log is `~/.parsec/log.txt`, or `/Users/Shared/.parsec/log.txt` for the login-screen
+installer ([Parsec docs](https://support.parsec.app/hc/en-us/articles/32381394408596-Parsec-App-for-macOS)). A session the
 owner used for a real fix counts. Check that every account in the log is approved.
 Check host/client support and owner permissions without granting permanent support
 access. Preserve existing access and verify backups separately; a Parsec session

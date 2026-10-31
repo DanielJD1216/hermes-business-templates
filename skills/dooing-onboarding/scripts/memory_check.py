@@ -9,18 +9,23 @@ Output is JSON with results and counts only: no keys, no memory text.
 
 Checks (references/memory-reliability.md):
   long_memory  a source grows to 3 times the embedder's input limit; at each size
-               its newest fact, placed last, must score above a control copy
-               that has a plain sentence in its place (equal scores mean the
-               fact was never indexed)
+               both copies must be indexed, and the newest fact, placed last,
+               must score above a control copy that has a plain sentence in its
+               place (equal scores mean the fact was never indexed)
   two_sources  a long and a short source on one topic both come back at limit 2
   restart      the server is killed right after a write; after a restart the
                source must be indexed and keep every written byte
+
+A rejected embedding request fails the check it happened in: that text was never
+indexed. --max-input-tokens tests another input limit on the throwaway server
+only; the owner's config is read, never changed.
 
 Exit 0: all passed. 1: a check failed. 2: could not run (setup, budget, time).
 """
 import argparse
 import json
 import os
+import re
 import shlex
 import shutil
 import signal
@@ -71,6 +76,7 @@ MIN_GAIN = 0.001  # a never-indexed fact leaves the two copies with identical ve
 class Budget:
     def __init__(self, cap):
         self.cap, self.used, self.errors, self.stub_calls, self.exhausted = cap, 0, 0, 0, False
+        self.first_rejection = None
         self.lock = threading.Lock()
 
     def take(self):
@@ -80,6 +86,18 @@ class Budget:
                 return False
             self.used += 1
             return True
+
+
+def rejection_text(status, data):
+    """Short, key-free reason from an embedding service error body."""
+    try:
+        body = json.loads(data)
+        error = body.get("error", body) if isinstance(body, dict) else body
+        message = error.get("message", "") if isinstance(error, dict) else str(error)
+    except ValueError:
+        message = data.decode("utf-8", "replace")
+    message = re.sub(r"[A-Za-z0-9_\-]{16,}", "<redacted>", " ".join(str(message).split()))
+    return f"HTTP {status}: {message[:160]}"
 
 
 def serve(handler):
@@ -116,6 +134,8 @@ def proxy(upstream, budget):
             if counted and status >= 400:
                 with budget.lock:
                     budget.errors += 1
+                    if budget.first_rejection is None:
+                        budget.first_rejection = rejection_text(status, data)
             self.send_response(status)
             self.send_header("Content-Type", ctype or "application/octet-stream")
             self.send_header("Content-Length", str(len(data)))
@@ -260,9 +280,11 @@ def long_memory(srv, limit_chars):
         mode = "replace"
         srv.settle()
         best = files(srv.find(question, 10, folder), folder)
-        gain = round(best.get(target, 0.0) - best.get(control, 0.0), 4)
-        steps.append({"size_x_limit": size, "score_gain_over_control": gain})
-    return {"passed": all(s["score_gain_over_control"] > MIN_GAIN for s in steps), "steps": steps}
+        indexed = target in best and control in best  # a missing copy is not a score of 0
+        gain = round(best[target] - best[control], 4) if indexed else None
+        steps.append({"size_x_limit": size, "both_copies_indexed": indexed, "score_gain_over_control": gain})
+    return {"passed": all(s["both_copies_indexed"] and s["score_gain_over_control"] > MIN_GAIN for s in steps),
+            "steps": steps}
 
 
 def two_sources(srv, limit_chars):
@@ -273,7 +295,8 @@ def two_sources(srv, limit_chars):
     srv.write(short_uri, TOPIC + " " + FILLER[3] + "\n", "create")
     srv.settle()
     top = list(files(srv.find(TOPIC_Q, 2, folder), folder))
-    return {"passed": set(top) == {long_uri, short_uri}, "returned_files": len(top)}
+    return {"passed": set(top) == {long_uri, short_uri}, "long_found": long_uri in top,
+            "short_found": short_uri in top}
 
 
 def restart(srv, limit_chars):
@@ -294,6 +317,14 @@ def restart(srv, limit_chars):
 CHECKS = {"long_memory": long_memory, "two_sources": two_sources, "restart": restart}
 
 
+def mark_rejections(result, rejected):
+    """Text the embedding service rejected was never indexed, so the check cannot pass."""
+    result["embedding_rejections"] = rejected
+    if rejected and result.get("passed"):
+        result.update(passed=False, reason="the embedding service rejected requests during this check")
+    return result
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--config", type=Path, default=Path.home() / ".openviking/ov.conf",
@@ -302,6 +333,8 @@ def main():
                     help="the installed openviking-server command to test")
     ap.add_argument("--max-requests", type=int, default=400, help="hard cap on embedding requests (default 400)")
     ap.add_argument("--time-limit", type=int, default=1200, help="seconds before the run stops (default 1200)")
+    ap.add_argument("--max-input-tokens", type=int,
+                    help="test this embedding input limit on the throwaway server instead of the configured one")
     ap.add_argument("--plan", action="store_true", help="show what would run, start nothing")
     args = ap.parse_args()
 
@@ -315,9 +348,15 @@ def main():
         print(json.dumps({"status": "not-run", "reason": "every embedding service needs an api_base, "
                           "so its requests can be counted and capped"}))
         return 2
-    limit_tokens = int(embedding.get("max_input_tokens") or 4096)
+    if args.max_input_tokens is not None and args.max_input_tokens < 100:
+        print(json.dumps({"status": "not-run", "reason": "--max-input-tokens must be at least 100"}))
+        return 2
+    limit_from = ("--max-input-tokens" if args.max_input_tokens else
+                  "config" if embedding.get("max_input_tokens") else "OpenViking default")
+    limit_tokens = int(args.max_input_tokens or embedding.get("max_input_tokens") or 4096)
     limit_chars = 4 * limit_tokens  # shortcut: about 4 characters per token in English; sizes use 1.5x and 3x margins
     plan = {"server": args.server, "embedding_services": sorted(bases), "max_input_tokens": limit_tokens,
+            "max_input_tokens_from": limit_from,
             "source_sizes_chars": [int(s * limit_chars) for s in SIZES], "max_requests": args.max_requests,
             "time_limit_s": args.time_limit, "summary_model": "local stub, no model calls",
             "owner_memory": "not touched: throwaway data folder and port"}
@@ -333,6 +372,7 @@ def main():
         (work / "home").mkdir()
         (work / "tmp").mkdir()
         local = json.loads(json.dumps(embedding))
+        local["max_input_tokens"] = limit_tokens
         for name, base in bases.items():
             server, local[name]["api_base"] = proxy(base, budget)
             servers.append(server)
@@ -356,13 +396,14 @@ def main():
             if budget.exhausted or time.time() > deadline:
                 results[name] = {"passed": None, "reason": "request cap or time limit reached"}
                 continue
-            used = budget.used
+            used, rejected = budget.used, budget.errors
             try:
                 results[name] = check(srv, limit_chars)
             except RuntimeError as error:  # one check failing to run does not hide the others
                 results[name] = {"passed": None, "reason": str(error)[:200]}
                 srv.stop()
                 srv.start(min(deadline, time.time() + 180))
+            mark_rejections(results[name], budget.errors - rejected)
             if budget.exhausted:
                 results[name] = {"passed": None, "reason": "request cap reached during this check"}
             results[name]["embedding_requests"] = budget.used - used
@@ -379,6 +420,11 @@ def main():
             server.shutdown()
         report.update(embedding_requests=budget.used, embedding_errors=budget.errors,
                       summary_stub_calls=budget.stub_calls)
+        if budget.errors:
+            report["first_rejection"] = budget.first_rejection
+            report["hint"] = (f"The embedding service rejected {budget.errors} requests. max_input_tokens "
+                              f"({limit_tokens}) may let OpenViking send more text than the service accepts. "
+                              "Test a lower value with --max-input-tokens; only the throwaway server uses it.")
         shutil.rmtree(work, ignore_errors=True)
         report["throwaway_folder_removed"] = not work.exists()
     print(json.dumps(report, indent=2))

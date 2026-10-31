@@ -84,6 +84,25 @@ before selecting a historical repair. Preserve third-party license/source duties
   ([Apple](https://support.apple.com/guide/mac-help/allow-a-remote-computer-to-access-your-mac-mchlp1066/mac)),
   then connect with ordinary SSH to the Mac's private-network address. Remote Login
   makes the Mac reachable by SSH, so turning it on is the owner's security decision.
+- A Mac host may sleep on default settings, which pauses the agents, T3 and remote
+  access. On a desktop Mac, the owner turns on **Prevent automatic sleeping when the
+  display is off** and the start-up-after-power-failure option in **System Settings
+  > Energy**; a laptop has the first under **Battery > Options**
+  ([Apple](https://support.apple.com/guide/mac-help/set-sleep-and-wake-settings-mchle41a6ccd/mac)).
+  Check read-only with `pmset -g`: `sleep 0` means no automatic system sleep and
+  `autorestart 1` starts the Mac after a power failure. `pmset -g log` shows sleeps
+  and wakes, for example around night jobs. With the default `cron.catch_up_missed`,
+  stock Hermes runs a missed daily job once after wake, so sleep delays it.
+- macOS asks before an app reads Desktop, Documents, Downloads, iCloud Drive, network
+  or removable volumes
+  ([Apple](https://support.apple.com/guide/security/controlling-app-access-to-files-secddd1d86a6/web)).
+  A scheduled job, such as the index refresh or a backup, cannot answer that prompt,
+  so it can fail or skip those files while the same command works in a session that
+  already has access. Prove these jobs from the scheduler itself and compare file
+  counts. If a job needs those folders, the owner grants the program it runs access
+  in **System Settings > Privacy & Security** (**Files & Folders**, or **Full Disk
+  Access**, which covers all of them), or moves the files. Full Disk Access is
+  broad, so granting it is the owner's security decision.
 - Imports, authentication, service startup, memory write/recall, Slack delivery,
   private client access and recovery are separate checks. Complete only the gates
   observed on the intended host and approved scope; never claim all-Mac readiness.
