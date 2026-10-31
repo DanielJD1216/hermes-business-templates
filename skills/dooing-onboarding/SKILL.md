@@ -1,7 +1,7 @@
 ---
 name: dooing-onboarding
 description: "Guide an agent-led, owner-approved Hermes setup."
-version: 0.41.3
+version: 0.42.0
 license: MIT
 platforms: [linux, macos]
 ---
@@ -346,8 +346,10 @@ For memory, select a supported exact runtime combination and follow
 then verify fresh save/index/recall, bounded growth and scope checks, and the
 watchdog's failed/stalled-save and update-drift detection on the target host.
 Keep fixtures isolated from real memories. A small write or healthy search alone
-does not satisfy acceptance. Missing compatible artifacts or Mac evidence remain
-explicit blockers; do not manufacture a customer-specific patch during setup.
+does not satisfy acceptance. A release behavior with no published evidence can be
+an owner-accepted, recorded gap; a host check cannot. Missing compatible artifacts
+or Mac evidence remain explicit blockers; do not manufacture a customer-specific
+patch during setup.
 
 For LEANN, follow the [refresh scope and proof requirements](references/maintenance.md#required-leann-refresh-schedule).
 Share exclusions between precheck and discovery, keep unapproved roots excluded,
