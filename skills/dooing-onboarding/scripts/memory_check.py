@@ -327,8 +327,11 @@ def package_state(command):
     exe = shutil.which(command[0]) if command else None
     if not exe:
         return {"checked": False, "reason": "server command not found"}
-    # shortcut: expects a venv layout (bin/ beside lib/python3*/site-packages); other layouts report unchecked
-    records = sorted(Path(exe).resolve().parent.parent.glob("lib/python3*/site-packages/openviking-*.dist-info/RECORD"))
+    # shortcut: expects a venv layout (bin/ beside lib/python3*/site-packages); other layouts report unchecked.
+    # The unresolved path comes first: a venv's bin/python links to the base interpreter outside the venv.
+    pattern = "lib/python3*/site-packages/openviking-*.dist-info/RECORD"
+    records = (sorted(Path(exe).absolute().parent.parent.glob(pattern))
+               or sorted(Path(exe).resolve().parent.parent.glob(pattern)))
     if len(records) != 1:
         return {"checked": False, "reason": "no single install record beside the server command"}
     site, rows = records[0].parent.parent, list(csv.reader(records[0].read_text().splitlines()))
@@ -365,11 +368,14 @@ def main():
     ap.add_argument("--server", default=shutil.which("openviking-server") or "openviking-server",
                     help="the installed openviking-server command to test")
     ap.add_argument("--max-requests", type=int, default=400, help="hard cap on embedding requests (default 400)")
-    ap.add_argument("--time-limit", type=int, default=1200, help="seconds before the run stops (default 1200)")
+    ap.add_argument("--time-limit", type=int, default=1200,
+                    help="seconds after which no new check starts (default 1200); a running check finishes first")
     ap.add_argument("--max-input-tokens", type=int,
                     help="test this embedding input limit on the throwaway server instead of the configured one")
     ap.add_argument("--plan", action="store_true", help="show what would run, start nothing")
     args = ap.parse_args()
+    for sig in (signal.SIGTERM, signal.SIGHUP):  # a stopped run still removes its throwaway server and folder
+        signal.signal(sig, lambda *_: sys.exit(2))
 
     try:
         embedding = json.loads(args.config.read_text())["embedding"]

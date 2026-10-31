@@ -24,6 +24,17 @@ separate local skill first. Then uninstall the guide and install it again withou
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.41.3
+
+- **Changed:** for a changed install, test a fix on a copy of the install first
+  (`--server` with the copy's Python) and prefer reverting only the files behind
+  the problem. Re-index every memory folder the assistant can reach and confirm
+  the rejected memories can be found. A memory check stopped by its caller now
+  removes its throwaway server and folder; `--time-limit` stops new checks only.
+- **Apply:** if a stopped memory check left a server or a `memory-check-` folder
+  behind, stop that server and remove the folder. Otherwise nothing.
+- **Re-check:** none. The baseline fingerprint stays `9fba33a8`.
+
 ## 0.41.2
 
 - **Changed:** the memory check's plan and report show `package`: whether the
