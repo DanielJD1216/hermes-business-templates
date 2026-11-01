@@ -24,6 +24,18 @@ separate local skill first. Then uninstall the guide and install it again withou
 
 An entry with **Apply:** nothing and **Re-check:** none needs no owner action.
 
+## 0.42.1
+
+- **Changed:** the separation check covers only profiles whose memory provider
+  is OpenViking, and finds each key where the memory plugin does: the quick local
+  setup, the profile's key setting or a linked OpenViking CLI profile. With one
+  OpenViking profile, it checks that a request without a key returns 401. Trusted
+  authentication mode is named alongside development mode as not separating
+  owners.
+- **Apply:** if the separation check stopped on a missing key, find the key again
+  with the new rule before reporting it missing.
+- **Re-check:** none. The baseline fingerprint stays `9fba33a8`.
+
 ## 0.42.0
 
 - **Changed:** when no published release evidence covers a required memory
