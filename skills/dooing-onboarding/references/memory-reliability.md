@@ -129,8 +129,9 @@ retrieval paths, not a helper-only simulation:
   key runs in development mode: every caller that can reach it is an administrator
   and names its own account and user in request headers, so owner separation is only
   a naming convention and the denied cross-owner check fails. Include one request
-  that names another owner's account. Real separation needs a root key and one user
-  key per owner.
+  that names another owner's account. `server.auth_mode: trusted` also takes the
+  identity from headers, so it separates owners no better. Real separation needs a
+  root key, the default `api_key` mode and one user key per owner.
   To set up per-owner keys on OpenViking (tested with 0.4.21), with the owner's
   approval:
   1. Back up the server config and the data folder, and pause any memory watchdog.
@@ -163,10 +164,16 @@ retrieval paths, not a helper-only simulation:
   "Each assistant uses its own memory key, without showing it, to try to open
   another assistant's memories, and the memory service should refuse. Nothing is
   created, changed or deleted." Then:
-  1. Check that every profile has its own `OPENVIKING_API_KEY` and that no two
-     profiles share one. Compare SHA-256 hashes and never print a value. A
-     missing key, a shared key or the server's root key fails the check for those
-     profiles.
+  1. List the profiles whose `memory.provider` is `openviking`; the others are
+     outside this check. For each, find the key the memory plugin uses: with
+     `memory.openviking.deployment: quick_local`, the quick local setup's own
+     profile; otherwise the profile's `OPENVIKING_API_KEY`, else a linked
+     OpenViking CLI profile (`memory.openviking.use_ovcli_config`, read from
+     `ovcli_config_path` or `~/.openviking/ovcli.conf`). Check that no two
+     profiles share a key. Compare SHA-256 hashes and never print a
+     value. No key in any of these places, a shared key or the server's root key
+     fails the check for those profiles. If only one profile uses OpenViking,
+     check instead that a request without a key returns 401.
   2. When an account has more than one user, use one user's key to list another
      user's memories (`GET /api/v1/fs/ls?uri=viking://user/<other user>/memories`).
      Expect 403.
